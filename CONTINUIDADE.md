@@ -61,8 +61,12 @@ Não executar chamadas pagas só para testar a implantação.
 
 `node scripts/check.cjs` passou: 10 referências locais presentes; sintaxe conjunta dos scripts válida; logo incorporada; configuração sem proxy; flags preservadas.
 Essa verificação é estática. NÃO equivale a login real, teste visual ou validação de todos os módulos.
-Não foi concluída a validação em navegador nem uma nova implantação nesta conversa.
-A tentativa anterior de ferramenta de deploy foi rejeitada na validação de argumentos; não há deployment novo confirmado por ela.
+Publicado em 11/09/2026: deployment dpl_Bf6nPjboZQ1BXpPsgRkMREhk8U9K, READY, exclusivamente no projeto de teste.
+Fonte do frontend: commit ab0a192ee0000922c7799c3e8b9a6e3dec48be72.
+Link estável: https://versao-teste-etapa12-consolidada.vercel.app
+URL imutável: https://versao-teste-etapa12-consolidada-pk43maune-professormavi-6775.vercel.app
+HTML, 3 CSS e 7 JS conferidos no link estável: HTTP 200 e conteúdo idêntico ao pacote local.
+Validação visual/login real pendente: agent-browser falhou ao iniciar o daemon, inclusive com --debug. Não declarar navegação ou login aprovados.
 Não houve alteração de produção nem chamada paga de IA nesta recuperação.
 
 ## Próxima execução — checklist rastreável
@@ -73,7 +77,7 @@ Não houve alteração de produção nem chamada paga de IA nesta recuperação.
 - [ ] Validar Propostas, Gestão, Ao Vivo, Ranking e área do aluno; preservar bloqueio de gravações.
 - [ ] Validar Colar da IA com correção existente e proteção contra cobrança duplicada.
 - [ ] Confirmar o contrato real da ai-correction-api por leitura; não modificar o backend compartilhado.
-- [ ] Conferir vínculo do projeto de TESTE e publicar o pacote completo, sem loader/proxy/arquivos parciais.
+- [x] Conferir vínculo do projeto de TESTE e publicar o pacote completo, sem loader/proxy/arquivos parciais.
 - [ ] Conferir HTML + todos os CSS/JS no endereço servido, console e fluxos. HTTP 200 sozinho não valida uma interface.
 - [ ] Registrar commit, deployment, testes e pendências aqui; enviar link ao usuário.
 - [ ] Aguardar aprovação do usuário para concluir Etapa 12. Etapa 13 ainda não iniciada.
