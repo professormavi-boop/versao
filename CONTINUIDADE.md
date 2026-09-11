@@ -69,6 +69,15 @@ HTML, 3 CSS e 7 JS conferidos no link estável: HTTP 200 e conteúdo idêntico a
 Validação visual/login real pendente: agent-browser falhou ao iniciar o daemon, inclusive com --debug. Não declarar navegação ou login aprovados.
 Não houve alteração de produção nem chamada paga de IA nesta recuperação.
 
+## Atualização — Propostas e Gestão (11/09/2026)
+
+- Propostas: editor no topo com foco/rolagem; erros de leitura visíveis e opção de tentar novamente; edição local preservada ao reabrir e navegar.
+- Propostas: inserir, editar, ocultar/reexibir e excluir na simulação; busca e filtros; selecionar todas as turmas; edição de múltiplos textos motivadores preservados.
+- Gestão: editor no topo, listas em largura completa responsiva, busca e filtro ativo/oculto; removido corte silencioso de 150 alunos; cache local por instituição durante navegação.
+- Gestão: renomear turma atualiza nomes locais dos alunos; excluir turma com alunos vinculados é bloqueado; ocultar permanece disponível.
+- Verificação estática passou. Teste DOM via servidor HTTP com API simulada passou para os controles, reabertura, persistência na navegação, busca de 160 alunos e proteção de vínculos, sem escrita de API.
+- Teste DOM não comprova layout visual nem contrato real das APIs; validar com usuário após publicação. Gravações continuam desativadas.
+
 ## Próxima execução — checklist rastreável
 
 - [ ] Conferir HEAD e ler AGENTS.md; criar branch de trabalho a partir desta main.
