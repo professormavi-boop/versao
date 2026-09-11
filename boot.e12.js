@@ -1,0 +1,5 @@
+'use strict';
+$('loginForm').onsubmit=async e=>{e.preventDefault();$('loginStatus').textContent='';$('loginBtn').disabled=true;$('loginBtn').textContent='Entrando...';try{S.session=await signIn($('email').value.trim(),$('password').value,true);await profile();startApp()}catch(err){clearSession();S.session=null;$('loginStatus').textContent=err.message||'Não foi possível entrar.'}finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Entrar'}};
+$('logoutBtn').onclick=()=>{clearSession();S.session=null;S.profile=null;S.cache={};S.student=null;location.reload()};$('menuBtn').onclick=openDrawer;$('drawerShade').onclick=closeDrawer;
+function startApp(){buildNav();showOnly('shell');navigate(S.profile.role==='student'?'student-home':'home')}
+(async()=>{try{let s=readSession();if(s&&(!s.expires_at||s.expires_at<Math.floor(Date.now()/1000)+60))s=await refreshSession(s);if(!s){showOnly('auth');return}S.session=s;await profile();startApp()}catch(err){clearSession();S.session=null;S.profile=null;showOnly('auth');$('loginStatus').textContent=err.message||'Não foi possível recuperar a sessão. Entre novamente.'}})();
