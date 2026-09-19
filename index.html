@@ -4,20 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#8B1C1C">
-  <title>VERSÃO — Consolidação estrutural · Etapa 12</title>
+  <title>VERSÃO</title>
   <link rel="stylesheet" href="/base.e12.css">
-  <link rel="stylesheet" href="/responsive.e12.css">
   <link rel="stylesheet" href="/enhancements.e12.css">
-    <script src="/core.e12.js" defer></script>
+  <link rel="stylesheet" href="/responsive.e12.css">
+  <script src="/boot.e12.js" defer></script>
+  <script src="/core.e12.js" defer></script>
   <script src="/teacher-main.e12.js" defer></script>
+  <script src="/teacher-home.e12.js" defer></script>
+  <script src="/teacher-organization.e12.js" defer></script>
   <script src="/teacher-correction-shell.e12.js" defer></script>
   <script src="/correction.e12.js" defer></script>
   <script src="/ranking-management.e12.js" defer></script>
   <script src="/student.e12.js" defer></script>
-  <script src="/boot.e12.js" defer></script>
 </head>
 <body>
-  <div id="boot" class="boot"><div class="spin"></div></div>
+  <div id="boot" class="boot" role="status" aria-label="Verificando sessão"><div class="spin"></div></div>
 
   <main id="auth" class="auth hidden">
     <section class="auth-card">
@@ -25,14 +27,32 @@
         <div class="brand-logo" aria-label="Versão"></div>
         <div><div class="brand-name">VERSÃO</div><div class="brand-tag">Escreva. Melhore. Evolua.</div></div>
       </div>
-      <span class="env-pill">Ambiente isolado · Etapa 12</span>
-      <h1>Entrar</h1>
-      <p>Frontend consolidado. Cada texto pode ir mais longe.</p>
+      <span class="env-pill">VERSÃO</span>
+      <h1 id="authTitle">Entrar</h1>
+      <p>Cada texto pode ir mais longe.</p>
+      <label id="loginChoice" for="loginAccessType">Tipo de acesso<select id="loginAccessType"><option value="teacher">Professor</option><option value="student">Aluno</option></select></label>
       <form id="loginForm">
-        <label>E-mail<input id="email" type="email" autocomplete="username" required></label>
-        <label>Senha<input id="password" type="password" autocomplete="current-password" required></label>
-        <button id="loginBtn" class="btn primary full" type="submit">Entrar</button>
-        <div id="loginStatus" class="form-status"></div>
+        <label id="emailField">E-mail<input id="email" type="email" autocomplete="username" required></label>
+        <label id="passwordField">Senha<input id="password" type="password" autocomplete="current-password" required></label>
+        <label id="classCodeField" class="hidden">Código da turma<input id="classCode" autocomplete="username" maxlength="12" pattern="[a-fA-F0-9]{12}"></label>
+        <label id="studentPinField" class="hidden">PIN individual<input id="studentPin" type="password" inputmode="numeric" autocomplete="current-password" pattern="[0-9]{8}" minlength="8" maxlength="8"></label>
+        <p id="pinHelp" class="muted hidden">Peça ao professor o código da turma e seu PIN de 8 números.</p>
+        <button id="loginBtn" class="btn primary full" type="submit" disabled>Entrar</button>
+        <div id="loginStatus" class="form-status" role="status" aria-live="polite">Preparando acesso. Se esta mensagem permanecer, atualize a página.</div>
+        <noscript>Ative o JavaScript no navegador para acessar o VERSÃO.</noscript>
+      </form>
+      <div id="authLinks" class="item-actions">
+        <button id="registerLink" class="btn ghost" type="button">Quero me cadastrar</button>
+        <button id="forgotLink" class="btn ghost" type="button">Esqueci minha senha</button>
+      </div>
+      <form id="accountForm" class="hidden">
+        <label id="nameField" class="hidden">Nome completo<input id="registerName" autocomplete="name"></label>
+        <label id="accountEmailField">E-mail<input id="accountEmail" type="email" autocomplete="email" required></label>
+        <label id="newPasswordField" class="hidden">Nova senha<input id="newPassword" type="password" autocomplete="new-password" minlength="8"></label>
+        <label id="confirmPasswordField" class="hidden">Confirmar senha<input id="confirmPassword" type="password" autocomplete="new-password" minlength="8"></label>
+        <button id="accountSubmit" class="btn primary full" type="submit">Continuar</button>
+        <div id="accountStatus" class="form-status" role="status" aria-live="polite"></div>
+        <button id="backToLogin" class="btn ghost full" type="button">Voltar para entrar</button>
       </form>
     </section>
   </main>
@@ -55,10 +75,10 @@
         <div class="sidebar-brand compact-brand"><div class="brand-logo tiny"></div><div class="brand-name mobile-brand">VERSÃO</div></div>
         <button id="menuBtn" class="menu-btn" aria-label="Abrir menu">☰</button>
       </header>
-      <div class="test-banner"><b>Etapa 12.</b> Consolidação estrutural em ambiente isolado. Leituras usam dados atuais. Gravações administrativas, publicação, upload real e alteração de senha permanecem desativados. A correção com IA está conectada de forma real e só gera custo após clique explícito em “Corrigir com IA”.</div>
       <main id="view" class="view"></main>
     </section>
   </div>
   <div id="drawerShade" class="drawer-shade hidden"></div>
 </body>
 </html>
+
