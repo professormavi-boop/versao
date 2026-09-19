@@ -26,15 +26,9 @@ async function saveManual(id,publish){
   finally{officialPending.delete(id);if(button){button.disabled=false;button.textContent='Aprovar e publicar'}}
 }
 
-async function aiUsage(id){
-  try{
-    const rows=await rest(`ai_correction_usage?submission_id=eq.${encodeURIComponent(id)}&select=input_tokens,output_tokens,estimated_cost_usd,model,created_at&order=created_at.desc&limit=1`);
-    return rows?.[0]||null;
-  }catch{return null}
-}
 function renderAiResult(id,job,official,usage,row){
   const slot=$('slot-'+id),box=slot?.querySelector('.box');if(!box)return;
-  const r=job?.result||{},codes=['C1','C2','C3','C4','C5'],compData={};
+  const r={...(job?.result||{})};if(official){r.total_score=official.total_score;r.overall_feedback=official.feedback;r.improvement_priority=official.improvement_priority;r.detailed_analysis=official.detailed_analysis||{};r.c1_deviations=r.detailed_analysis.c1_deviations||[];r.competencies=Object.fromEntries(CC.map(([c])=>[c,{...(r.competencies?.[c]||{}),score:official.competencies?.[c],diagnostic:official.competency_justifications?.[c],improvement:official.detailed_analysis?.competency_improvements?.[c]||r.competencies?.[c]?.improvement}]));}const codes=['C1','C2','C3','C4','C5'],compData={};
   for(const c of codes){
     const rc=r.competencies?.[c]||{},offScore=official?.competencies?.[c];
     compData[c]={score:Number.isFinite(Number(rc.score))?Number(rc.score):(Number.isFinite(Number(offScore))?Number(offScore):null),diagnostic:String(rc.diagnostic||official?.competency_justifications?.[c]||rc.justification||'').trim(),strength:String(rc.strength||'').trim(),improvement:String(rc.improvement||'').trim()};
@@ -47,17 +41,23 @@ function renderAiResult(id,job,official,usage,row){
   const cost=usage&&Number.isFinite(Number(usage.estimated_cost_usd))?Number(usage.estimated_cost_usd):null;
   box.innerHTML=`<div class="box-head editor-head"><div><h2>Correção Inteligente VERSÃO</h2><p>${esc(row?.student_name||'Aluno')} · análise da redação</p></div><span class="pill ${jobStatus==='approved'?'ok':jobStatus==='completed'?'warn':''}">${esc(statusText)}</span></div>
   <div class="box-body ai-report">
-    <div class="grid cols4"><div class="card metric"><small>Nota total</small><b>${total??'—'}</b></div><div class="card metric"><small>Modelo</small><b class="metric-text">${esc(model)}</b></div><div class="card metric"><small>Unidades de texto (entrada + saída)</small><b class="metric-text">${usage?`${Number(usage.input_tokens||0).toLocaleString('pt-BR')} + ${Number(usage.output_tokens||0).toLocaleString('pt-BR')}`:'—'}</b></div><div class="card metric"><small>Custo estimado</small><b class="metric-text">${cost==null?'—':`US$ ${cost.toFixed(4)}`}</b></div></div>
+    <div class="score-total" data-ai-total>${total??'—'} / 1000</div>
     <div class="grid cols2"><div class="card metric"><small>Qualidade da leitura</small><b class="metric-text">${esc(reportPortuguese(reading)||'—')}</b></div><div class="card metric"><small>Aderência ao tema</small><b class="metric-text">${esc(reportPortuguese(theme)||'—')}</b></div></div>
     <div class="ai-section"><h4>Competências</h4><div class="ai-competencies">${codes.map(c=>{const d=compData[c];return `<div class="ai-comp"><div class="ai-comp-head"><b>${c}</b><span>${d.score??'—'}</span></div>${d.diagnostic?`<p><strong>Diagnóstico:</strong> ${esc(d.diagnostic)}</p>`:''}${d.strength?`<p><strong>Ponto forte:</strong> ${esc(d.strength)}</p>`:''}${d.improvement?`<p><strong>Como melhorar:</strong> ${esc(d.improvement)}</p>`:''}</div>`}).join('')}</div></div>
+    ${r.needs_manual_review?`<div class="safe-note"><b>Revisão de leitura necessária.</b> ${esc(r.manual_review_reason||'Há trechos cuja leitura precisa ser conferida na foto.')}</div>`:''}
     ${alerts.length?`<div class="ai-section"><h4>Alertas</h4><div class="ai-alert-list">${alerts.map(a=>`<div class="ai-alert">${esc(a)}</div>`).join('')}</div></div>`:''}
     <div class="grid cols2"><div class="ai-section"><h4>Estrutura da introdução</h4><p>${esc(r.introduction_structure||official?.detailed_analysis?.thesis_d1_d2||'Sem registro específico.')}</p></div><div class="ai-section"><h4>Produtividade do repertório</h4><p>${esc(r.repertoire_productivity||official?.detailed_analysis?.repertoire||'Sem registro específico.')}</p></div><div class="ai-section"><h4>Alinhamento da intervenção</h4><p>${esc(r.intervention_alignment||official?.detailed_analysis?.c5_link||'Sem registro específico.')}</p></div><div class="ai-section"><h4>Prioridade de melhoria</h4><p>${esc(official?.improvement_priority||r.improvement_priority||compData.C2.improvement||'Sem prioridade registrada.')}</p></div></div>
     <div class="ai-section"><h4>Devolutiva</h4><p>${esc(official?.feedback||r.overall_feedback||'Nenhuma devolutiva disponível.')}</p></div>
     <div class="ai-section"><h4>C1 · desvios</h4><p class="muted">Padrão definitivo: trecho original → correção → regra → categoria.</p><div class="c1-table">${c1.length?c1.map(x=>`<div class="c1-row"><div><b>Original</b><br>${esc(x.original||x.excerpt||x.trecho||'—')}</div><div><b>Correção</b><br>${esc(x.correction||x.corrected||x.correcao||'—')}</div><div><b>Regra</b><br>${esc(x.rule||x.regra||'—')}</div><div><b>Categoria</b><br>${esc(reportPortuguese(x.category||x.categoria||'—'))}</div></div>`).join(''):(rawDev?`<div class="ai-raw-deviations">${esc(rawDev)}</div>`:'<div class="empty">Esta correção não possui desvios C1 estruturados.</div>')}</div></div>
+    ${r.repertoire_checks?.length?`<div class="ai-section"><h4>Verificação de repertórios</h4>${r.repertoire_checks.map(x=>`<p><strong>${esc(x.reference)}</strong> · ${esc(x.classification)}<br>${esc(x.analysis)} ${/^https:\/\//i.test(x.source_url||'')?`<a href="${esc(x.source_url)}" target="_blank" rel="noopener noreferrer">Consultar fonte</a>`:''}</p>`).join('')}</div>`:''}
+    ${r.c5_check?`<div class="ai-section"><h4>Componentes da intervenção</h4>${[['agent','Agente'],['action','Ação'],['means','Meio/Modo'],['purpose','Finalidade/Efeito'],['detail','Detalhamento'],['human_rights','Direitos humanos'],['argument_alignment','Articulação com os argumentos']].map(([key,label])=>`<p><strong>${label}:</strong> ${esc(r.c5_check[key]||'Não registrado')}</p>`).join('')}</div>`:''}
+    ${r.paragraph_balance?`<div class="ai-section"><h4>Equilíbrio dos parágrafos</h4><p>${esc(r.paragraph_balance)}</p></div>`:''}
+    ${r.transcription?`<details class="ai-section"><summary>Conferir transcrição</summary><p style="white-space:pre-wrap">${esc(r.transcription)}</p></details>`:''}
     ${copy?`<div class="ai-section"><h4>Cópia dos textos motivadores</h4><p>${esc(reportPortuguese(copy,'copy'))}</p></div>`:''}
-    ${jobStatus==='completed'?`<div class="form-section"><label>Prioridade de melhoria<textarea data-ai-priority style="width:100%;min-height:80px">${esc(r.improvement_priority||'')}</textarea></label><p>Revise o resultado acima. Ao aprovar, a nota e a devolutiva serão disponibilizadas ao aluno.</p><button class="btn primary" data-approve-ai>Validar e publicar</button><p data-approve-status role="status"></p></div>`:''}
-    <div class="safe-note"><b>Correção Inteligente com IA.</b> Novas leituras só são iniciadas por clique explícito em “Correção Inteligente” e geram custo real. A nota continua preliminar até revisão/aprovação do professor.</div>
+    ${jobStatus==='completed'?`<div class="form-section"><details data-ai-edit><summary>Editar correção por IA</summary><p>Revise as notas e os textos antes de publicar. A edição não inicia outra correção.</p><div class="comp-grid">${codes.map(c=>`<label class="field"><small>${c} · ${CC.find(x=>x[0]===c)[1]}</small><select data-ai-score="${c}">${CV.map(v=>`<option value="${v}" ${v===compData[c].score?'selected':''}>${v}</option>`).join('')}</select><textarea data-ai-just="${c}" aria-label="Justificativa ${c}">${esc(compData[c].diagnostic)}</textarea><small>Próximo passo</small><textarea data-ai-next="${c}">${esc(compData[c].improvement)}</textarea></label>`).join('')}</div><label class="field"><small>Devolutiva ao aluno</small><textarea data-ai-feedback>${esc(r.overall_feedback||'')}</textarea></label><label class="field"><small>Desvios encontrados e regras</small><textarea data-ai-deviations>${esc(rawDev||c1.map(x=>[x.original||x.excerpt||x.trecho,x.correction||x.corrected||x.correcao,x.rule||x.regra,x.category||x.categoria].filter(Boolean).join(' → ')).join('\n'))}</textarea></label></details><label>Prioridade de melhoria<textarea data-ai-priority style="width:100%;min-height:80px">${esc(r.improvement_priority||'')}</textarea></label><p>Revise o resultado acima. Ao aprovar, a nota e a devolutiva serão disponibilizadas ao aluno.</p><button class="btn primary" data-approve-ai>Validar e publicar</button><p data-approve-status role="status"></p></div>`:''}
+    <div class="safe-note"><b>Correção Inteligente com IA.</b> Novas leituras só são iniciadas por clique explícito em “Correção Inteligente”. A nota continua preliminar até revisão/aprovação do professor.</div>
   </div>`;
+  box.querySelectorAll('[data-ai-score]').forEach(el=>el.onchange=()=>{box.querySelector('[data-ai-total]').textContent=codes.reduce((n,c)=>n+Number(box.querySelector(`[data-ai-score="${c}"]`).value),0)+' / 1000';});
   const approve=box.querySelector('[data-approve-ai]');
   if(approve)approve.onclick=async()=>{
     if(approve.disabled)return;
@@ -68,9 +68,10 @@ function renderAiResult(id,job,official,usage,row){
       if(!await appConfirm('Aprovar esta correção e publicar a nota e a devolutiva para o aluno?'))return;
       if(!box.isConnected)return;
       status.textContent='Publicando correção...';
-      const result=await edge(API.ai,{action:'approve',submission_id:id,improvement_priority:priority});
+      const edits=aiReviewData(box,r);
+      const result=await edge(API.ai,{action:'approve',submission_id:id,improvement_priority:priority,...edits});
       if(!result.approved||!result.score?.id)throw Error('O servidor não confirmou a aprovação.');
-      S.cache={};status.textContent='Correção aprovada e publicada para o aluno.';approve.textContent='Correção aprovada';approve.dataset.done='true';
+      S.cache={};status.textContent='Correção aprovada e publicada para o aluno.';approve.textContent='Correção aprovada';approve.dataset.done='true';box.querySelectorAll('select,textarea').forEach(el=>el.disabled=true);
     }catch(error){status.textContent=error.message||'Não foi possível aprovar. Tente novamente.'}
     finally{approve.disabled=approve.dataset.done==='true'}
   };
@@ -99,17 +100,17 @@ function aiNotice(ctx,message,retry=false){
   ctx.box.innerHTML=`<div class="box-head"><h2>Correção Inteligente VERSÃO</h2></div><div class="box-body"><div class="empty" role="status">${esc(message)}</div><div class="item-actions"><button class="btn soft-btn" data-ai-check>Consultar andamento</button>${retry?'<button class="btn primary" data-ai-retry>Tentar nova Correção Inteligente</button>':''}</div><div class="safe-note">Consultar andamento não inicia uma nova correção. Sair desta tela não cancela o trabalho no servidor. Nenhuma aprovação automática é realizada.</div></div>`;
   ctx.box.querySelector('[data-ai-check]').onclick=()=>aiCorrection(ctx.id,{readOnly:true});
   const retryButton=ctx.box.querySelector('[data-ai-retry]');
-  if(retryButton)retryButton.onclick=async()=>{if(await appConfirm('Iniciar uma nova tentativa de correção? Esta ação pode gerar custo real.'))aiCorrection(ctx.id,{retry:true})};
+  if(retryButton)retryButton.onclick=async()=>{if(await appConfirm('Iniciar uma nova tentativa de correção? Esta ação usará créditos da sua conta.'))aiCorrection(ctx.id,{retry:true})};
 }
 async function aiShowJob(ctx,job){
   if(!aiPanelCurrent(ctx))return true;
   if(['completed','approved'].includes(job?.status)){
     aiPending(ctx.key,false);
     if(!job.result?.competencies){aiNotice(ctx,'A execução terminou, mas o resultado recebido está incompleto. Consulte novamente.');return true}
-    const usage=await aiUsage(ctx.id);
+    let official=null;if(job.status==='approved'){try{official=(await edge(API.official,{action:'get',submission_id:ctx.id})).official;if(!official)throw Error('missing');}catch{aiNotice(ctx,'Não foi possível carregar a versão oficial. Consulte novamente.');return true}}const usage=null;
     if(!aiPanelCurrent(ctx))return true;
     // Never mix an older official grade into the current preliminary result.
-    renderAiResult(ctx.id,job,null,usage,ctx.row);
+    renderAiResult(ctx.id,job,official,usage,ctx.row);
     S.cache.queue=null;
     S.cache.correctionRows=(S.cache.correctionRows||[]).map(x=>x.submission_id===ctx.id?{...x,job_status:job.status,status:job.status==='completed'?'awaiting_approval':x.status}:x);
     return true;
@@ -189,3 +190,18 @@ function reportPortuguese(value,field=''){
  return (field==='copy'?copy[key]:null)||terms[key]||text;
 }
 
+
+function aiReviewData(box,result){
+ const scores={},competency_justifications={},competency_improvements={};
+ for(const [code] of CC){
+  scores[code]=Number(box.querySelector(`[data-ai-score="${code}"]`).value);
+  competency_justifications[code]=box.querySelector(`[data-ai-just="${code}"]`).value.trim();
+  competency_improvements[code]=box.querySelector(`[data-ai-next="${code}"]`)?.value.trim()||result.competencies?.[code]?.improvement||'';
+  if(!CV.includes(scores[code])||!competency_justifications[code])throw Error('Revise a nota e a justificativa de '+code+'.');
+ }
+ const overall_feedback=box.querySelector('[data-ai-feedback]').value.trim();
+ if(!overall_feedback)throw Error('Preencha a devolutiva ao aluno.');
+ const detailed_analysis={...result.detailed_analysis,competency_improvements,deviations_rules:box.querySelector('[data-ai-deviations]').value.trim()};
+ delete detailed_analysis.c1_deviations;delete detailed_analysis.deviations_structured;
+ return {scores,competency_justifications,overall_feedback,detailed_analysis};
+}

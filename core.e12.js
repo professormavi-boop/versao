@@ -190,3 +190,27 @@ async function signInPin(code,pin){
  saveSession(d.session);return d.session;
 }
 
+
+const PHOTO_GUIDANCE='Uma imagem de má qualidade poderá prejudicar a correção. Fotografe a folha inteira, de frente, com foco e boa iluminação. Se houver pouca luz, ative o flash na câmera e confira se ele não criou reflexos sobre a escrita.';
+function photoWarnings(width,height,pixels){
+ const warnings=[];
+ if(Math.min(width,height)<1000||Math.max(width,height)<1400)warnings.push('Resolução baixa. Aproxime a câmera sem cortar a folha.');
+ let sum=0,sq=0,edge=0,count=0;
+ const gray=[];
+ for(let i=0;i<pixels.length;i+=4){const v=.2126*pixels[i]+.7152*pixels[i+1]+.0722*pixels[i+2];gray.push(v);sum+=v;sq+=v*v;}
+ const mean=sum/gray.length,contrast=Math.sqrt(Math.max(0,sq/gray.length-mean*mean));
+ for(let i=1;i<gray.length;i++){edge+=Math.abs(gray[i]-gray[i-1]);count++;}
+ if(mean<65)warnings.push('Imagem escura. Melhore a iluminação ou use flash sem reflexos.');
+ if(contrast<18||edge/Math.max(count,1)<1.5)warnings.push('Pouco detalhe na escrita: pode haver desfoque, reflexo ou folha muito distante. Refaça a foto.');
+ return warnings;
+}
+async function inspectEssayPhoto(file){
+ const url=URL.createObjectURL(file);
+ try{
+  const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error('Não foi possível ler esta imagem. Escolha outra foto.'));img.src=url;});
+  const canvas=document.createElement('canvas'),scale=Math.min(1,800/Math.max(img.naturalWidth,img.naturalHeight));
+  canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  return photoWarnings(img.naturalWidth,img.naturalHeight,ctx.getImageData(0,0,canvas.width,canvas.height).data);
+ }finally{URL.revokeObjectURL(url)}
+}
