@@ -111,7 +111,7 @@ function aiPanelCurrent(ctx){
 }
 function aiNotice(ctx,message,retry=false){
   if(!aiPanelCurrent(ctx))return;
-  ctx.box.innerHTML=`<div class="box-head"><h2>Correção Inteligente VERSÃO</h2></div><div class="box-body"><div class="empty" role="status">${esc(message)}</div><div class="item-actions"><button class="btn soft-btn" data-ai-check>Consultar andamento</button>${retry?'<button class="btn primary" data-ai-retry>Tentar nova Correção Inteligente</button>':''}</div><div class="safe-note">Consultar andamento não inicia uma nova correção. Sair desta tela não cancela o trabalho no servidor. Nenhuma aprovação automática é realizada.</div></div>`;
+  ctx.box.innerHTML=`<div class="box-head"><h2>Correção Inteligente VERSÃO</h2></div><div class="box-body"><div class="empty" role="status">${esc(message)}</div><div class="item-actions"><button class="btn soft-btn" data-ai-check>Consultar andamento</button>${retry?'<button class="btn primary" data-ai-retry>Tentar nova Correção Inteligente</button>':''}</div><div class="safe-note">Consultar andamento não inicia uma nova correção. Você pode sair desta tela e consultar depois. Volte em alguns minutos para recuperar o resultado. Nenhuma aprovação automática é realizada.</div></div>`;
   ctx.box.querySelector('[data-ai-check]').onclick=()=>aiCorrection(ctx.id,{readOnly:true});
   const retryButton=ctx.box.querySelector('[data-ai-retry]');
   if(retryButton)retryButton.onclick=async()=>{if(await appConfirm('Iniciar uma nova tentativa de correção? Esta ação usará créditos da sua conta.'))aiCorrection(ctx.id,{retry:true})};
@@ -146,7 +146,7 @@ async function aiWatch(ctx,initialJob){
   const deadline=Date.now()+AI_WATCH_MS;
   while(aiPanelCurrent(ctx)&&Date.now()<deadline){
     const running=ctx.operation||aiInFlight.get(ctx.key);
-    if(running?.job)job=running.job;
+    if(running?.job&&!['processing','queued'].includes(running.job.status))job=running.job;
     if(await aiShowJob(ctx,job))return;
     aiNotice(ctx,failures?'Conexão instável. Tentando consultar o andamento...':job?.status==='processing'?'Lendo a redação com IA. O resultado aparecerá aqui ao terminar.':'Aguardando confirmação do servidor. Nenhuma nova execução será iniciada.');
     await new Promise(resolve=>setTimeout(resolve,AI_POLL_MS));
@@ -177,7 +177,7 @@ async function aiCorrection(id,options={}){
     if(!aiPanelCurrent(ctx))return;
     if(['completed','approved'].includes(job?.status)&&!options.redo){await aiShowJob(ctx,job);return}
     if(options.redo&&job?.id!==options.previousJob){if(!await aiShowJob(ctx,job))await aiWatch(ctx,job);return}
-    if(job?.status==='processing'||previous?.promise||((!options.retry)&&aiPending(key))){unlock=generationScreen('Sua correção está sendo processada…');await aiWatch(ctx,job);return}
+    if(job?.status==='processing'||previous?.promise||((!options.retry)&&aiPending(key))){await aiWatch(ctx,job);return}
     if(['failed','cancelled'].includes(job?.status)&&!options.retry){await aiShowJob(ctx,job);return}
     if(options.readOnly){aiNotice(ctx,job?.status==='queued'?'A redação está na fila e ainda não iniciou. Clique em Correção Inteligente para iniciar.':'Não há execução em andamento. Clique em Correção Inteligente para iniciar.');return}
     if(job&&!['queued','failed','cancelled'].includes(job.status)&&!(options.redo&&['completed','approved'].includes(job.status)))throw Error('Estado da correção não reconhecido. Nenhuma execução foi iniciada.');
@@ -186,7 +186,7 @@ async function aiCorrection(id,options={}){
     if(!aiPanelCurrent(ctx))return;
     if(!status.enabled||!status.key_configured)throw Error('A IA está desativada ou não possui chave configurada no servidor.');
     if(S.profile.role!=='super_admin'&&!status.account_enabled)throw Error('A correção por IA não está habilitada para esta conta.');
-    unlock=generationScreen('Sua correção está sendo gerada…');
+
     aiPending(key,true);
     reservation.starting=false;
     reservation.promise=edge(API.ai,{action:'correct',submission_id:id,...(options.redo?{force:true,previous_job_id:options.previousJob,credit_confirmed:true}:{})}).then(result=>{
