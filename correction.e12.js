@@ -58,9 +58,16 @@ function renderAiResult(id,job,official,usage,row){
     ${r.transcription?`<details class="ai-section"><summary>Conferir transcrição</summary><p style="white-space:pre-wrap">${esc(r.transcription)}</p></details>`:''}
     ${copy?`<div class="ai-section"><h4>Cópia dos textos motivadores</h4><p>${esc(reportPortuguese(copy,'copy'))}</p></div>`:''}
     ${jobStatus==='completed'?`<div class="form-section"><details data-ai-edit><summary>Editar correção por IA</summary><p>Revise as notas e os textos antes de publicar. A edição não inicia outra correção.</p><div class="comp-grid">${codes.map(c=>`<label class="field"><small>${c} · ${CC.find(x=>x[0]===c)[1]}</small><select data-ai-score="${c}">${CV.map(v=>`<option value="${v}" ${v===compData[c].score?'selected':''}>${v}</option>`).join('')}</select><textarea data-ai-just="${c}" aria-label="Justificativa ${c}">${esc(compData[c].diagnostic)}</textarea><small>Próximo passo</small><textarea data-ai-next="${c}">${esc(compData[c].improvement)}</textarea></label>`).join('')}</div><label class="field"><small>Devolutiva ao aluno</small><textarea data-ai-feedback>${esc(r.overall_feedback||'')}</textarea></label><label class="field"><small>Anotações complementares do professor (não substituem a conferência das ocorrências)</small><textarea data-ai-deviations>${esc(r.detailed_analysis?.teacher_notes||'')}</textarea></label></details><label>Prioridade de melhoria<textarea data-ai-priority style="width:100%;min-height:80px">${esc(r.improvement_priority||'')}</textarea></label><p>Revise o resultado acima. Ao aprovar, a nota e a devolutiva serão disponibilizadas ao aluno.</p>${r.quality_version==='enem-evidence-2026-09-20'?`<div class="form-section"><h4>Conferir desvios no manuscrito</h4><p>A nota de C1 não é calculada por desconto por erro. Confira a leitura, a regra e a estrutura sintática.</p>${c1.map((d,i)=>`<div class="ai-section"><p><strong>${esc(d.original)}</strong> → ${esc(d.correction)}</p><p>${esc(d.rule)} · ${esc(d.location)}</p><blockquote>${esc(d.evidence)}</blockquote><label class="field"><small>Forma adequada</small><input data-deviation-correction="${i}" value="${esc(d.correction)}"></label><label class="field"><small>Regra aplicada no contexto</small><textarea data-deviation-rule="${i}">${esc(d.rule)}</textarea></label><label class="field"><small>Decisão para esta ocorrência</small><select data-deviation-review="${i}"><option value="">Conferir no manuscrito</option value="confirmed">Confirmo o desvio e a regra</option><option value="discarded">Descartar apontamento</option></select></label><label class="field"><small>Motivo, se descartado</small><input data-deviation-reason="${i}" placeholder="Leitura incorreta, variante aceita, sugestão de estilo..."></label></div>`).join('')||'<p>Nenhum desvio confirmado proposto. Confira a transcrição e o diagnóstico de C1.</p>'}<label class="field"><small>Registro da conferência e resolução das dúvidas</small><textarea data-review-note placeholder="Registre o que conferiu e os ajustes necessários nas notas e justificativas."></textarea></label><label><input type="checkbox" data-review-confirmed> Conferi o manuscrito, as ocorrências, as fontes e a coerência das notas. Resolvi as dúvidas indicadas.</label></div><button class="btn primary" data-approve-ai>Validar e publicar</button>`:'<div class="safe-note">Análise anterior ao controle de evidências. Use Correção manual para conferir e publicar sem nova cobrança, ou solicite uma nova análise.</div>'}<p data-approve-status role="status"></p></div>`:''}
+    ${['completed','approved'].includes(jobStatus)?'<div class="item-actions"><button class="btn soft-btn" data-ai-redo>Refazer correção com IA</button></div><p class="safe-note">Uma nova análise consome mais 1 crédito. A nota publicada, se houver, permanece até você aprovar a nova versão.</p>':''}
     <div class="safe-note"><b>Correção Inteligente com IA.</b> Novas leituras só são iniciadas por clique explícito em “Correção Inteligente”. A nota continua preliminar até revisão/aprovação do professor.</div>
   </div>`;
   box.querySelectorAll('[data-ai-score]').forEach(el=>el.onchange=()=>{box.querySelector('[data-ai-total]').textContent=codes.reduce((n,c)=>n+Number(box.querySelector(`[data-ai-score="${c}"]`).value),0)+' / 1000';});
+  const redo=box.querySelector('[data-ai-redo]');
+  if(redo)redo.onclick=async()=>{
+    if(redo.disabled)return;redo.disabled=true;
+    try{if(await appConfirm('Refazer esta correção com IA? Será consumido mais 1 crédito. A nova análise precisará da sua revisão e aprovação. Edições ainda não publicadas nesta tela não serão usadas na nova análise.')){if(box.isConnected)await aiCorrection(id,{redo:true,previousJob:job.id});}}
+    finally{if(box.isConnected)redo.disabled=false}
+  };
   const approve=box.querySelector('[data-approve-ai]');
   if(approve)approve.onclick=async()=>{
     if(approve.disabled)return;
@@ -111,6 +118,10 @@ function aiNotice(ctx,message,retry=false){
 }
 async function aiShowJob(ctx,job){
   if(!aiPanelCurrent(ctx))return true;
+  if(ctx.previousJob===job?.id){
+    if(!ctx.operation?.settled)return false;
+    if(ctx.operation?.error){aiNotice(ctx,'Não foi possível confirmar a nova correção: '+ctx.operation.error+' Use Consultar andamento antes de tentar novamente.');return true}
+  }
   if(['completed','approved'].includes(job?.status)){
     aiPending(ctx.key,false);
     if(!job.result?.competencies){aiNotice(ctx,'A execução terminou, mas o resultado recebido está incompleto. Consulte novamente.');return true}
@@ -158,17 +169,18 @@ async function aiCorrection(id,options={}){
   const reservation=previous||{starting:true};
   if(!previous)aiInFlight.set(key,reservation);
   slot.innerHTML=`<div class="split" style="margin-top:12px"><div class="essay-pane" id="aiEssay-${esc(id)}"></div><div class="box"><div class="box-head"><h2>Correção Inteligente VERSÃO</h2></div><div class="box-body"><div class="empty">Consultando a correção...</div></div></div></div>`;
-  const ctx={id,key,row,slot,box:slot.querySelector('.box'),user:S.session.user.id,navigation:navigationVersion,operation:reservation};
+  const ctx={id,key,row,previousJob:options.redo?options.previousJob:null,slot,box:slot.querySelector('.box'),user:S.session.user.id,navigation:navigationVersion,operation:reservation};
   openEssay(id,$('aiEssay-'+id));
   let unlock=()=>{};
   try{
     let job=(await aiRead({action:'get',submission_id:id}))?.job||null;
     if(!aiPanelCurrent(ctx))return;
-    if(['completed','approved'].includes(job?.status)){await aiShowJob(ctx,job);return}
+    if(['completed','approved'].includes(job?.status)&&!options.redo){await aiShowJob(ctx,job);return}
+    if(options.redo&&job?.id!==options.previousJob){if(!await aiShowJob(ctx,job))await aiWatch(ctx,job);return}
     if(job?.status==='processing'||previous?.promise||((!options.retry)&&aiPending(key))){unlock=generationScreen('Sua correção está sendo processada…');await aiWatch(ctx,job);return}
     if(['failed','cancelled'].includes(job?.status)&&!options.retry){await aiShowJob(ctx,job);return}
     if(options.readOnly){aiNotice(ctx,job?.status==='queued'?'A redação está na fila e ainda não iniciou. Clique em Correção Inteligente para iniciar.':'Não há execução em andamento. Clique em Correção Inteligente para iniciar.');return}
-    if(job&&!['queued','failed','cancelled'].includes(job.status))throw Error('Estado da correção não reconhecido. Nenhuma execução foi iniciada.');
+    if(job&&!['queued','failed','cancelled'].includes(job.status)&&!(options.redo&&['completed','approved'].includes(job.status)))throw Error('Estado da correção não reconhecido. Nenhuma execução foi iniciada.');
     if(!PAID_AI_ENABLED)throw Error('A geração paga de IA está bloqueada neste ambiente.');
     const status=await aiRead({action:'status'});
     if(!aiPanelCurrent(ctx))return;
@@ -177,14 +189,15 @@ async function aiCorrection(id,options={}){
     unlock=generationScreen('Sua correção está sendo gerada…');
     aiPending(key,true);
     reservation.starting=false;
-    reservation.promise=edge(API.ai,{action:'correct',submission_id:id}).then(result=>{
+    reservation.promise=edge(API.ai,{action:'correct',submission_id:id,...(options.redo?{force:true,previous_job_id:options.previousJob,credit_confirmed:true}:{})}).then(result=>{
       reservation.job=result?.job||null;
       if(['completed','approved','failed','cancelled'].includes(reservation.job?.status))aiPending(key,false);
-    }).catch(()=>{
+    }).catch(error=>{
+      reservation.error=error.message||'Falha de conexão.';
       // Ambiguous transport errors must be reconciled with GET, never another POST correct.
       reservation.uncertain=true;
     }).finally(()=>{reservation.settled=true;if(aiInFlight.get(key)===reservation)aiInFlight.delete(key)});
-    await aiWatch(ctx,job);
+    await aiWatch(ctx,options.redo?{id:job?.id,status:'processing'}:job);
   }catch(e){aiNotice(ctx,e.message||'Não foi possível consultar a IA.')}
   finally{unlock();if(!reservation.promise&&aiInFlight.get(key)===reservation)aiInFlight.delete(key)}
 }
