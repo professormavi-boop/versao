@@ -60,7 +60,7 @@
     if(mode!=='reset')recoveryToken=null;
     const form=element('accountForm');if(!form)return;
     element('loginForm').classList.toggle('hidden',mode!=='login');
-    element('authLinks').classList.toggle('hidden',mode!=='login');
+    element('authLinks').classList.toggle('hidden',mode!=='login'||pinMode);
     form.classList.toggle('hidden',mode==='login');
     element('authTitle').textContent={login:'Entrar',register:'Quero me cadastrar',forgot:'Recuperar senha',reset:'Definir nova senha'}[mode];
     element('nameField').classList.toggle('hidden',mode!=='register');
