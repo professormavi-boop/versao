@@ -79,9 +79,10 @@ async function navigate(route){
   if(S.profile?.role==='super_admin'&&!ADMIN_ROUTES.has(route))route=route==='admin-accounts'?'admin-create':'admin-overview';
   invalidateNavigation();S.route=route;$('view').onclick=null;
   const navigation={route,version:navigationVersion,timer:null};activeNavigation=navigation;
-  setActive(route);if(S.profile.role==='super_admin')document.querySelector('#nav [data-route="'+route+'"]')?.closest('details')?.setAttribute('open','');$('view').innerHTML='<div class="empty">Carregando...</div>';
+  setActive(route);if(S.profile?.role==='super_admin')document.querySelector('#nav [data-route="'+route+'"]')?.closest('details')?.setAttribute('open','');$('view').innerHTML='<div class="empty">Carregando...</div>';
   navigation.timer=setTimeout(()=>navigationError(navigation,Error('O carregamento demorou a responder.')),30000);
   try{
+    if(!S.profile)throw Error('Sessão encerrada. Entre novamente.');
     if(S.profile.role==='super_admin'){await renderPlatformPage(navigation);return;}
     const map={home:S.profile.role==='teacher'&&BETA_PROPOSALS?renderTeacherHome:renderHome,proposals:renderProposals,live:renderLive,correction:renderCorrection,ranking:renderRanking,management:renderManagement,'admin-accounts':renderAdminAccounts,'teacher-organization':renderTeacherOrganization,'teacher-account':renderTeacherAccount,'student-home':renderStudentHome,'student-proposals':renderStudentProposals,'student-essays':renderStudentEssays,'student-evolution':renderStudentEvolution,'student-account':renderStudentAccount};
     if(!Object.hasOwn(map,route))throw Error('Área não disponível.');
