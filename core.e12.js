@@ -42,7 +42,7 @@ function betaRequestAllowed(url,options={}){
    'proposal-beta-api':['bootstrap','get','save','save_all','generate','credits','update_status','delete'],'live-correction-api':['queue','list'], 'proposal-api':['bootstrap','get'],
    'official-correction-beta-api':['get','approve'],'ai-correction-beta-api':['get','status','correct','approve'],
    'student-dashboard-cycle-api':['get','dashboard',undefined],'student-proposals-cycle-api':['list','get',undefined],'student-proposals-api':['list','get',undefined],
-   'student-submission-cycle-api':['state','states','finalize','delete_file','view_file'],'admin-base-api':['organizations','create_organization','approve_account','hide_account','delete_account','change_password','bootstrap','create_class','update_class','toggle_class','delete_class','create_student','update_student','toggle_student','delete_student'],'credit-checkout-api':['packages','checkout']
+   'student-submission-cycle-api':['state','states','finalize','delete_file','view_file'],'admin-base-api':['platform_report','account_access','reset_student_pin','organizations','create_organization','approve_account','hide_account','delete_account','change_password','bootstrap','create_class','update_class','toggle_class','delete_class','create_student','update_student','toggle_student','delete_student'],'credit-checkout-api':['packages','checkout']
   };
   return (readActions[url.split('/').pop()]||[]).includes(body.action);
  }
