@@ -60,7 +60,7 @@ function toast(msg){document.querySelector('.toast')?.remove();const d=document.
 function safeMessage(action){toast(`${action} validado no ambiente isolado. Nenhum dado foi gravado na produção.`)}
 const NAV_TEACHER=[['home','Início'],['proposals','Propostas'],['live','Ao vivo'],['correction','Correção'],['ranking','Ranking'],['teacher-account','Conta e créditos']];
 const NAV_STUDENT=[['student-home','Início'],['student-proposals','Propostas'],['student-essays','Minhas redações'],['student-evolution','Evolução'],['student-account','Conta']];
-function buildNav(){let nav=S.profile.role==='student'?[...NAV_STUDENT]:[...NAV_TEACHER];if(S.profile.role==='super_admin')nav.push(['management','Gestão']);if(BETA_PROPOSALS&&S.profile.role==='teacher')nav=[['home','Início'],['teacher-organization','Minhas instituições'],['proposals','Propostas'],['live','Ao Vivo'],['correction','Correção'],['teacher-account','Conta e créditos']];$('nav').innerHTML=nav.map(([r,l])=>`<button data-route="${r}"><span class="dot"></span>${l}</button>`).join('');$('nav').onclick=e=>{const b=e.target.closest('[data-route]');if(b){navigate(b.dataset.route);closeDrawer()}};$('identity').innerHTML=`<b>${esc(S.profile.full_name||S.profile.email||'Usuário')}</b>${esc(S.profile.role==='super_admin'?'Super Admin':S.profile.role==='teacher'?'Professor':'Aluno')}`}
+function buildNav(){let nav=S.profile.role==='student'?[...NAV_STUDENT]:[...NAV_TEACHER];if(S.profile.role==='super_admin')nav=[['management','Gestão da plataforma']];if(BETA_PROPOSALS&&S.profile.role==='teacher')nav=[['home','Início'],['teacher-organization','Minhas instituições'],['proposals','Propostas'],['live','Ao Vivo'],['correction','Correção'],['teacher-account','Conta e créditos']];$('nav').innerHTML=nav.map(([r,l])=>`<button data-route="${r}"><span class="dot"></span>${l}</button>`).join('');$('nav').onclick=e=>{const b=e.target.closest('[data-route]');if(b){navigate(b.dataset.route);closeDrawer()}};$('identity').innerHTML=`<b>${esc(S.profile.full_name||S.profile.email||'Usuário')}</b>${esc(S.profile.role==='super_admin'?'Super Admin':S.profile.role==='teacher'?'Professor':'Aluno')}`}
 function openDrawer(){$('sidebar').classList.add('open');$('drawerShade').classList.remove('hidden')}function closeDrawer(){$('sidebar').classList.remove('open');$('drawerShade').classList.add('hidden')}
 function header(title,sub,action=''){return `<div class="page-head"><div><span class="page-kicker">VERSÃO</span><h1>${esc(title)}</h1><p>${esc(sub)}</p></div>${action}</div>`}
 function setActive(route){document.querySelectorAll('#nav [data-route]').forEach(b=>b.classList.toggle('active',b.dataset.route===route))}
@@ -74,6 +74,7 @@ function navigationError(navigation,error){
   $('retryRoute').onclick=()=>navigate(navigation.route);
 }
 async function navigate(route){
+  if(S.profile?.role==='super_admin')route='management';
   invalidateNavigation();S.route=route;$('view').onclick=null;
   const navigation={route,version:navigationVersion,timer:null};activeNavigation=navigation;
   setActive(route);$('view').innerHTML='<div class="empty">Carregando...</div>';
