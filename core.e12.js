@@ -184,7 +184,8 @@ function generationScreen(message){
  dialog.className='app-confirm generation-screen';dialog.setAttribute('aria-label',message);dialog.setAttribute('aria-busy','true');
  dialog.innerHTML='<div class="spin" aria-hidden="true"></div><h2></h2><p role="status" aria-live="polite">Aguarde nesta tela. O conteúdo aparecerá quando o processamento terminar.</p>';
  dialog.querySelector('h2').textContent=message;dialog.oncancel=e=>e.preventDefault();document.body.appendChild(dialog);dialog.showModal();
- let closed=false;return()=>{if(closed)return;closed=true;dialog.close();dialog.remove();if(previous?.isConnected)previous.focus()};
+ let closed=false;const close=()=>{if(closed)return;closed=true;dialog.close();dialog.remove();if(previous?.isConnected)previous.focus()};
+ close.update=text=>{if(!closed)dialog.querySelector('[role="status"]').textContent=text};return close;
 }
 
 async function signInPin(code,pin){
