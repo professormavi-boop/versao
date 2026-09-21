@@ -79,10 +79,12 @@ ${r.review_requirements?.length?`<div class="safe-note">${r.review_requirements.
   if(approve)approve.onclick=async()=>{
     if(approve.disabled)return;
     const status=box.querySelector('[data-approve-status]');
+    box.querySelectorAll('[data-review-error]').forEach(el=>el.remove());
+    box.querySelectorAll('[aria-invalid]').forEach(el=>el.removeAttribute('aria-invalid'));
     const notice=(message,field)=>{
       status.textContent=message;status.setAttribute('tabindex','-1');
       status.setAttribute('role',field?'alert':'status');
-      if(field){const details=field.closest('details');if(details)details.open=true;field.setAttribute('aria-invalid','true');field.focus();field.scrollIntoView({block:'center',behavior:'smooth'});}
+      if(field){const details=field.closest('details');if(details)details.open=true;field.setAttribute('aria-invalid','true');const hint=document.createElement('p');hint.dataset.reviewError='true';hint.className='safe-note';hint.setAttribute('role','alert');hint.textContent=message;field.insertAdjacentElement('afterend',hint);field.focus();field.scrollIntoView({block:'center',behavior:'smooth'});}
       else{status.focus();status.scrollIntoView({block:'center',behavior:'smooth'});}
       toast(message);
     };
