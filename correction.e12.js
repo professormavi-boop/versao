@@ -78,23 +78,44 @@ ${r.review_requirements?.length?`<div class="safe-note">${r.review_requirements.
   const approve=box.querySelector('[data-approve-ai]');
   if(approve)approve.onclick=async()=>{
     if(approve.disabled)return;
-    const priority=box.querySelector('[data-ai-priority]').value.trim(),status=box.querySelector('[data-approve-status]');
-    if(!priority){status.textContent='Preencha a prioridade de melhoria antes de aprovar.';return}
+    const status=box.querySelector('[data-approve-status]');
+    const notice=(message,field)=>{
+      status.textContent=message;status.setAttribute('tabindex','-1');
+      status.setAttribute('role',field?'alert':'status');
+      if(field){const details=field.closest('details');if(details)details.open=true;field.setAttribute('aria-invalid','true');field.focus();field.scrollIntoView({block:'center',behavior:'smooth'});}
+      else{status.focus();status.scrollIntoView({block:'center',behavior:'smooth'});}
+      toast(message);
+    };
+    const required=(selector,message)=>{const field=box.querySelector(selector);notice(message,field);};
+    const priority=box.querySelector('[data-ai-priority]').value.trim();
+    if(!priority)return required('[data-ai-priority]','Preencha a prioridade de melhoria antes de publicar.');
+    let edits;
+    try{edits=aiReviewData(box,r);}catch(error){box.querySelector('[data-ai-edit]').open=true;notice(error.message,box.querySelector('[data-ai-edit] textarea'));return;}
+    edits.main_strength=box.querySelector('[data-ai-strength]')?.value.trim()||r.main_strength||'';
+    edits.deviation_reviews=(r.c1_deviations||[]).map((d,i)=>({index:i,decision:box.querySelector(`[data-deviation-review="${i}"]`).value,reason:box.querySelector(`[data-deviation-reason="${i}"]`).value.trim(),correction:box.querySelector(`[data-deviation-correction="${i}"]`).value.trim(),rule:box.querySelector(`[data-deviation-rule="${i}"]`).value.trim()}));
+    const pending=edits.deviation_reviews.find(d=>!['confirmed','discarded'].includes(d.decision));
+    if(pending)return required(`[data-deviation-review="${pending.index}"]`,`Publicação pendente: confirme ou descarte o desvio ${pending.index+1}.`);
+    const reason=edits.deviation_reviews.find(d=>d.decision==='discarded'&&d.reason.length<8);
+    if(reason)return required(`[data-deviation-reason="${reason.index}"]`,`Explique por que descartou o desvio ${reason.index+1} (mínimo de 8 caracteres).`);
+    const incomplete=edits.deviation_reviews.find(d=>d.decision==='confirmed'&&(!d.correction||!d.rule));
+    if(incomplete)return required(`[data-deviation-${incomplete.correction?'rule':'correction'}="${incomplete.index}"]`,`Complete a correção e a regra do desvio ${incomplete.index+1}.`);
+    edits.review_note=box.querySelector('[data-review-note]').value.trim();
+    if(edits.review_note.length<12)return required('[data-review-note]','Registre o que conferiu na revisão (mínimo de 12 caracteres).');
+    if(!box.querySelector('[data-review-confirmed]')?.checked)return required('[data-review-confirmed]','Marque a confirmação da conferência antes de publicar.');
+    edits.review_confirmed=true;
     approve.disabled=true;
     try{
-      if(!await appConfirm('Aprovar esta correção e publicar a nota e a devolutiva para o aluno?'))return;
+      if(!await appConfirm('Aprovar esta correção e publicar a nota e a devolutiva para o aluno?')){status.textContent='Publicação cancelada. Suas alterações continuam nesta tela.';return;}
       if(!box.isConnected)return;
-      status.textContent='Publicando correção...';
-      const edits=aiReviewData(box,r);
-      if(!box.querySelector('[data-review-confirmed]')?.checked)throw Error('Confirme a conferência antes de publicar.');
-      edits.main_strength=box.querySelector('[data-ai-strength]')?.value.trim()||r.main_strength||'';edits.review_confirmed=true;edits.review_note=box.querySelector('[data-review-note]').value.trim();
-      edits.deviation_reviews=(r.c1_deviations||[]).map((d,i)=>({index:i,decision:box.querySelector(`[data-deviation-review="${i}"]`).value,reason:box.querySelector(`[data-deviation-reason="${i}"]`).value.trim(),correction:box.querySelector(`[data-deviation-correction="${i}"]`).value.trim(),rule:box.querySelector(`[data-deviation-rule="${i}"]`).value.trim()}));
-      if(edits.review_note.length<12||edits.deviation_reviews.some(d=>!d.decision||(d.decision==='discarded'&&d.reason.length<8)))throw Error('Confira todas as ocorrências e registre a revisão.');
+      status.textContent='Publicando correção...';approve.textContent='Publicando...';
       const result=await edge(API.ai,{action:'approve',submission_id:id,job_id:job.id,improvement_priority:priority,...edits});
       if(!result.approved||!result.score?.id)throw Error('O servidor não confirmou a aprovação.');
-      S.cache={};status.textContent='Correção aprovada e publicada para o aluno.';approve.textContent='Correção aprovada';approve.dataset.done='true';box.querySelectorAll('select,textarea').forEach(el=>el.disabled=true);
-    }catch(error){status.textContent=error.message||'Não foi possível aprovar. Tente novamente.'}
-    finally{approve.disabled=approve.dataset.done==='true'}
+      aiQueueStatus(id,'approved');S.cache={};
+      notice('Correção aprovada e publicada para o aluno.');approve.textContent='Correção publicada';approve.dataset.done='true';
+      const badge=box.querySelector('.box-head .pill');if(badge){badge.textContent='Correção oficial';badge.className='pill ok';}
+      box.querySelectorAll('select,textarea,input').forEach(el=>el.disabled=true);
+    }catch(error){notice(error.message||'Não foi possível publicar. Suas alterações continuam nesta tela.');}
+    finally{approve.disabled=approve.dataset.done==='true';if(!approve.disabled)approve.textContent='Validar e publicar';}
   };
 }
 // A request can continue on the server after navigation or a transport timeout.
