@@ -177,7 +177,7 @@ async function aiWatch(ctx,initialJob){
     const running=ctx.operation||aiInFlight.get(ctx.key);
     if(running?.job&&!['processing','queued'].includes(running.job.status))job=running.job;
     if(await aiShowJob(ctx,job))return;
-    const seconds=Math.max(0,Math.floor((Date.now()-Date.parse(job?.created_at||ctx.startedAt||new Date(deadline-AI_WATCH_MS).toISOString()))/1000)),elapsed=seconds>=60?`${Math.floor(seconds/60)} min ${seconds%60} s`:`${seconds} s`;
+    const seconds=Math.max(0,Math.floor((Date.now()-Date.parse(job?.started_at||ctx.startedAt||new Date(deadline-AI_WATCH_MS).toISOString()))/1000)),elapsed=seconds>=60?`${Math.floor(seconds/60)} min ${seconds%60} s`:`${seconds} s`;
     aiNotice(ctx,failures?'Reconectando à correção em andamento. Nenhum crédito adicional será consumido.':`Analisando a redação. Isso pode levar alguns minutos. Tempo decorrido: ${elapsed}.${ctx.averageSeconds?` Tempo médio: cerca de ${Math.round(ctx.averageSeconds)} s.${seconds>ctx.averageSeconds?' Está demorando um pouco mais que o normal, mas a análise continua.':''}`:' Tempo médio ainda indisponível.'}${seconds>240?' A análise está levando mais tempo que o esperado.':''}`,false,true);
     await new Promise(resolve=>setTimeout(resolve,AI_POLL_MS));
     if(!aiPanelCurrent(ctx))return;
@@ -204,7 +204,7 @@ async function aiCorrection(id,options={}){
   openEssay(id,$('aiEssay-'+id));
   const unlock=()=>{};ctx.unlock=unlock;
   try{
-    const initial=await aiRead({action:'get',submission_id:id});let job=initial?.job||null;ctx.averageSeconds=initial?.average_seconds;ctx.startedAt=job?.created_at;ctx.history=initial?.previous_job||null;
+    const initial=await aiRead({action:'get',submission_id:id});let job=initial?.job||null;ctx.averageSeconds=initial?.average_seconds;ctx.startedAt=job?.started_at;ctx.history=initial?.previous_job||null;
     if(ctx.history)unlock.action?.('Ver correção anterior',()=>aiPrevious(ctx));
     if(!aiPanelCurrent(ctx))return;
     if(['completed','approved'].includes(job?.status)&&!options.redo){await aiShowJob(ctx,job);return}
@@ -219,7 +219,7 @@ async function aiCorrection(id,options={}){
     if(!status.enabled||!status.key_configured)throw Error('A IA está desativada ou não possui chave configurada no servidor.');
     if(S.profile.role!=='super_admin'&&!status.account_enabled)throw Error('A correção por IA não está habilitada para esta conta.');
 
-    aiPending(key,true);aiQueueStatus(id,'processing');
+    ctx.startedAt=new Date().toISOString();aiPending(key,true);aiQueueStatus(id,'processing');
     reservation.starting=false;
     reservation.promise=edge(API.ai,{action:'correct',submission_id:id,...(options.redo?{force:true,previous_job_id:options.previousJob,credit_confirmed:true}:{})}).then(result=>{
       reservation.job=result?.job||null;
