@@ -37,7 +37,7 @@ function renderAiResult(id,job,official,usage,row){
   const c1=Array.isArray(r.c1_deviations)?r.c1_deviations:Array.isArray(r.detailed_analysis?.c1_deviations)?r.detailed_analysis.c1_deviations:Array.isArray(r.detailed_analysis?.deviations_structured)?r.detailed_analysis.deviations_structured:Array.isArray(r.deviations)?r.deviations:[];
   const rawDev=String(r.detailed_analysis?.deviations_rules||official?.detailed_analysis?.deviations_rules||'').trim(),alerts=Array.isArray(r.alerts)?r.alerts.filter(Boolean):[];
   const jobStatus=job?.status||'official',model=job?.model||official?.protocol||'VERSÃO',reading=r.reading_quality?String(r.reading_quality):'',theme=r.theme_adherence?String(r.theme_adherence):'',copy=r.motivating_text_copy?String(r.motivating_text_copy):'';
-  const statusText={completed:'Preliminar concluída',approved:'Correção oficial',processing:'Em processamento',queued:'Na fila',failed:'Falhou',cancelled:'Cancelada',official:'Oficial'}[jobStatus]||'Estado não identificado';
+  const statusText={completed:'Preliminar concluída',approved:'Correção oficial',processing:'Em processamento',queued:'Na fila',failed:'Falhou',cancelled:'Cancelada',official:'Oficial',historical:'Correção anterior'}[jobStatus]||'Estado não identificado';
   const cost=usage&&Number.isFinite(Number(usage.estimated_cost_usd))?Number(usage.estimated_cost_usd):null;
   box.innerHTML=`<div class="box-head editor-head"><div><h2>Correção Inteligente VERSÃO</h2><p>${esc(row?.student_name||'Aluno')} · análise da redação</p></div><span class="pill ${jobStatus==='approved'?'ok':jobStatus==='completed'?'warn':''}">${esc(statusText)}</span></div>
   <div class="box-body ai-report">
@@ -106,19 +106,29 @@ async function aiRead(body){
   finally{clearTimeout(timer)}
 }
 function aiPanelCurrent(ctx){
-  return S.session?.user?.id===ctx.user&&navigationVersion===ctx.navigation&&
+  return !ctx.stopped&&S.session?.user?.id===ctx.user&&navigationVersion===ctx.navigation&&
     $('slot-'+ctx.id)===ctx.slot&&ctx.slot.isConnected&&ctx.slot.querySelector('.box')===ctx.box;
 }
 function aiNotice(ctx,message,retry=false,waiting=false){
   if(!aiPanelCurrent(ctx))return;
   ctx.unlock?.update?.(message);
   const action=waiting?'':retry?'<button class="btn primary" data-ai-retry>Refazer correção inteligente</button>':'<button class="btn primary" data-ai-check>Acompanhar correção</button>';
+  const history=ctx.history?'<button class="btn soft-btn" data-ai-history>Ver correção anterior</button>':'';
   const note=waiting?'Aguarde. O resultado abrirá automaticamente para sua revisão.':retry?'Uma nova correção consome 1 crédito e exige sua confirmação.':'Esta ação recupera a análise existente, sem consumir outro crédito.';
-  ctx.box.innerHTML=`<div class="box-head"><h2>Correção inteligente</h2></div><div class="box-body"><div class="empty" role="status">${esc(message)}</div>${action?`<div class="item-actions">${action}</div>`:''}<p class="safe-note">${note}</p></div>`;
+  ctx.box.innerHTML=`<div class="box-head"><h2>Correção inteligente</h2></div><div class="box-body"><div class="empty" role="status">${esc(message)}</div>${action||history?`<div class="item-actions">${action}${history}</div>`:''}<p class="safe-note">${note}</p></div>`;
+  const historyButton=ctx.box.querySelector('[data-ai-history]');if(historyButton)historyButton.onclick=()=>aiPrevious(ctx);
   const check=ctx.box.querySelector('[data-ai-check]');
   if(check)check.onclick=()=>aiCorrection(ctx.id,{readOnly:true});
   const retryButton=ctx.box.querySelector('[data-ai-retry]');
   if(retryButton)retryButton.onclick=async()=>{retryButton.disabled=true;try{if(await appConfirm('Refazer a correção inteligente? Será consumido 1 crédito. A nova análise ficará disponível para sua revisão antes de publicar.'))await aiCorrection(ctx.id,{retry:true});}finally{retryButton.disabled=false}};
+}
+function aiPrevious(ctx){
+ if(!ctx.history||!aiPanelCurrent(ctx))return;
+ ctx.unlock();
+ renderAiResult(ctx.id,{...ctx.history,status:'historical'},null,null,ctx.row);
+ const header=ctx.box.querySelector('h2');if(header)header.textContent='Correção anterior — somente leitura';
+ const back=document.createElement('button');back.className='btn primary';back.textContent='Voltar à correção atual';back.onclick=()=>aiCorrection(ctx.id,{readOnly:true});ctx.box.appendChild(back);
+ ctx.stopped=true;
 }
 async function aiShowJob(ctx,job){
   if(!aiPanelCurrent(ctx))return true;
@@ -157,7 +167,8 @@ async function aiWatch(ctx,initialJob){
     await new Promise(resolve=>setTimeout(resolve,AI_POLL_MS));
     if(!aiPanelCurrent(ctx))return;
     try{
-      job=(await aiRead({action:'get',submission_id:ctx.id}))?.job||null;
+      const current=await aiRead({action:'get',submission_id:ctx.id});job=current?.job||null;ctx.history=current?.previous_job||ctx.history;
+      if(ctx.history)ctx.unlock.action?.('Ver correção anterior',()=>aiPrevious(ctx));
       failures=0;
     }catch{
       if(++failures>=3){aiNotice(ctx,'Não foi possível confirmar o resultado. O servidor pode continuar processando. Clique em Acompanhar correção para recuperar o resultado, sem nova cobrança.');return}
@@ -178,7 +189,8 @@ async function aiCorrection(id,options={}){
   openEssay(id,$('aiEssay-'+id));
   const unlock=generationScreen('Correção inteligente em andamento');ctx.unlock=unlock;
   try{
-    let job=(await aiRead({action:'get',submission_id:id}))?.job||null;
+    const initial=await aiRead({action:'get',submission_id:id});let job=initial?.job||null;ctx.history=initial?.previous_job||null;
+    if(ctx.history)unlock.action?.('Ver correção anterior',()=>aiPrevious(ctx));
     if(!aiPanelCurrent(ctx))return;
     if(['completed','approved'].includes(job?.status)&&!options.redo){await aiShowJob(ctx,job);return}
     if(options.redo&&job?.id!==options.previousJob){if(!await aiShowJob(ctx,job))await aiWatch(ctx,job);return}

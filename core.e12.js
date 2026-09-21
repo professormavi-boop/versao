@@ -185,7 +185,7 @@ function generationScreen(message){
  dialog.innerHTML='<div class="spin" aria-hidden="true"></div><h2></h2><p role="status" aria-live="polite">Aguarde nesta tela. O conteúdo aparecerá quando o processamento terminar.</p>';
  dialog.querySelector('h2').textContent=message;dialog.oncancel=e=>e.preventDefault();document.body.appendChild(dialog);dialog.showModal();
  let closed=false;const close=()=>{if(closed)return;closed=true;dialog.close();dialog.remove();if(previous?.isConnected)previous.focus()};
- close.update=text=>{if(!closed)dialog.querySelector('[role="status"]').textContent=text};return close;
+ close.update=text=>{if(!closed)dialog.querySelector('[role="status"]').textContent=text};close.action=(label,handler)=>{if(closed)return;let button=dialog.querySelector('button');if(!button){button=document.createElement('button');button.className='btn soft-btn';dialog.appendChild(button)}button.textContent=label;button.onclick=handler};return close;
 }
 
 async function signInPin(code,pin){
