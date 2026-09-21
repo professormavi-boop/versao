@@ -9,7 +9,7 @@ function actionAlert(message,title='Ação concluída'){
     const paragraph=activeActionAlert.querySelector('p');
     if(heading)heading.textContent=title;
     if(paragraph)paragraph.textContent=text;
-    activeActionAlert.showModal?.();
+    if(!activeActionAlert.open)activeActionAlert.showModal();
     return;
   }
   const previous=document.activeElement;
@@ -37,21 +37,24 @@ function actionAlert(message,title='Ação concluída'){
 window.actionAlert=actionAlert;
 window.toast=function(message){
   const text=String(message||'');
-  const title=/não foi possível|falh|erro|inválid|expirad|incorret|bloquead/i.test(text)?'Atenção':'Ação concluída';
+  const title=/não foi possível|falh|erro|inválid|expirad|incorret|bloquead|insuficiente/i.test(text)?'Atenção':'Ação concluída';
   actionAlert(text,title);
 };
 
-// Toda nova correção inteligente precisa de confirmação legível antes de consumir crédito.
-const redoAuthorized=new WeakSet();
+// Toda Correção Inteligente que consome crédito pede confirmação no padrão grande do sistema.
+const aiActionAuthorized=new WeakSet();
 document.addEventListener('click',async event=>{
-  const button=event.target?.closest?.('[data-ai-redo]');
-  if(!button||button.disabled||redoAuthorized.has(button))return;
-  const handler=button.onclick;
-  if(typeof handler!=='function')return;
+  const button=event.target?.closest?.('[data-ai-redo],[data-ai]');
+  if(!button||button.disabled||aiActionAuthorized.has(button))return;
+  const label=(button.textContent||'').trim();
+  const isRedo=/refazer/i.test(label)||button.hasAttribute('data-ai-redo');
   event.preventDefault();
   event.stopImmediatePropagation();
-  const confirmed=await appConfirm('Refazer a Correção Inteligente? Uma nova análise consome 1 crédito. A correção já publicada continuará disponível até você validar a nova versão.');
+  const message=isRedo
+    ?'Refazer a Correção Inteligente? Uma nova análise consome 1 crédito. A correção já publicada continuará disponível até você validar a nova versão.'
+    :'Iniciar a Correção Inteligente? Esta análise consome 1 crédito. Em caso de falha, o crédito é devolvido.';
+  const confirmed=await appConfirm(message);
   if(!confirmed)return;
-  redoAuthorized.add(button);
-  try{await handler.call(button,event)}finally{redoAuthorized.delete(button)}
+  aiActionAuthorized.add(button);
+  try{button.click()}finally{aiActionAuthorized.delete(button)}
 },true);
