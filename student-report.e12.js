@@ -1,6 +1,0 @@
-'use strict';
-function studentEssentialReport(a){
-  const d=a.detailed_analysis||{};
-  const codes=['C1','C2','C3','C4','C5'];
-  return `<section class="ai-section"><h4>Nota e competências</h4><div class="student-score">${Number(a.total_score)} / 1000</div><div class="ai-competencies">${codes.map(c=>`<div class="ai-comp"><div class="ai-comp-head"><b>${c}</b><span>${Number(a.competencies?.[c])}</span></div><p>${esc(a.competency_justifications?.[c]||'Sem justificativa registrada.')}</p></div>`).join('')}</div><h4>C5</h4>${[['action','Ação'],['agent','Agente'],['means','Meio/modo'],['purpose','Finalidade/efeito'],['detail','Detalhamento']].map(([k,l])=>`<p>${l}: ${esc(d.c5_check?.[k]||'Não informado')}</p>`).join('')}</section><section class="ai-section"><h4>Ponto forte</h4><p>${esc(d.main_strength||'Não informado')}</p></section><section class="ai-section"><h4>Prioridade de melhoria</h4><p>${esc(a.improvement_priority||'Não informada')}</p></section><section class="ai-section"><h4>Desvios</h4>${(d.c1_deviations||[]).map(x=>`<p><b>Trecho:</b> ${esc(x.original)}<br><b>Tipo:</b> ${esc(x.category)}<br><b>Explicação:</b> ${esc(x.rule)}<br><b>Sugestão:</b> ${esc(x.correction)}</p>`).join('')||'<p>Nenhum desvio confirmado.</p>'}</section><section class="ai-section"><h4>Próximo passo</h4><p>${esc(a.feedback||d.next_step||'Não informado')}</p></section>`;
-}
