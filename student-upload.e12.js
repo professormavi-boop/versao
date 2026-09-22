@@ -14,6 +14,45 @@ function studentUploadKind(file){
   return 'other';
 }
 
+function studentAmbiguousNetworkError(error){
+  const message=String(error?.message||error||'').toLowerCase();
+  return /não foi possível conectar|conexão demorou|envio demorou|failed to fetch|networkerror|network request failed/.test(message);
+}
+
+const studentUploadWait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+
+async function studentUploadState(roundId){
+  return edge(API.studentSub,{action:'state',round_id:roundId});
+}
+
+function studentUploadCommitted(before,after){
+  const beforePath=before?.file?.storage_path||null,afterPath=after?.file?.storage_path||null;
+  const fileChanged=!!afterPath&&afterPath!==beforePath;
+  const statusChanged=after?.submission?.status==='awaiting_approval'&&before?.submission?.status!=='awaiting_approval';
+  return fileChanged||statusChanged;
+}
+
+async function studentRecoverFileSubmission(roundId,before,phase){
+  for(const delay of [350,900,1600]){
+    await studentUploadWait(delay);
+    let state;
+    try{state=await studentUploadState(roundId)}catch{continue}
+    if(!state?.submission||!state?.file)continue;
+    const committed=phase==='finalize'||studentUploadCommitted(before,state);
+    if(!committed)continue;
+    if(state.submission.status==='awaiting_approval'||state.submission.status==='approved')return state;
+    if(state.editable===true){
+      try{
+        await edge(API.studentSub,{action:'finalize',round_id:roundId});
+        return await studentUploadState(roundId).catch(()=>state);
+      }catch(error){
+        if(!studentAmbiguousNetworkError(error))throw error;
+      }
+    }
+  }
+  return null;
+}
+
 async function studentPasteRequest(roundId,text,retried=false){
   let session=await ensure();
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),60000);
@@ -109,12 +148,25 @@ async function openStudentFileV2(roundId){
       send.onclick=async()=>{
         if(send.disabled)return;
         send.disabled=true;check.disabled=true;send.textContent='Enviando...';
+        let before,phase='baseline';
         try{
+          before=await studentUploadState(roundId);
+          phase='upload';
           await uploadEssay(API.studentSub,{action:'upload',round_id:roundId},file);
+          phase='finalize';
           await edge(API.studentSub,{action:'finalize',round_id:roundId});
           S.cache={};S.student=null;finish();await navigate('student-essays');toast('Redação enviada para correção.');
         }catch(error){
-          send.disabled=false;check.disabled=false;send.textContent='Tentar enviar novamente';toast(error.message||'Falha no envio. O arquivo continua selecionado; tente novamente.');
+          let recovered=null;
+          if(phase!=='baseline'&&studentAmbiguousNetworkError(error)){
+            try{recovered=await studentRecoverFileSubmission(roundId,before,phase)}catch(recoveryError){error=recoveryError}
+          }
+          if(recovered){
+            S.cache={};S.student=null;finish();await navigate('student-essays');toast('Redação enviada para correção.');return;
+          }
+          send.disabled=false;check.disabled=false;send.textContent='Tentar enviar novamente';
+          const fallback=phase==='baseline'?'Não foi possível confirmar o estado atual. Verifique sua conexão e tente novamente.':'Falha no envio. O arquivo continua selecionado; tente novamente.';
+          toast(error?.message||fallback);
         }
       };
     }
