@@ -1,7 +1,7 @@
 'use strict';
 
 // Fluxo do aluno: foto, PDF/imagem ou texto colado.
-// Arquivos usam upload direto ao Storage por URL assinada para evitar memória/timeout na Edge Function.
+// Arquivos usam URL assinada e vão direto ao Storage sem atravessar a Edge Function.
 const STUDENT_UPLOAD_ACCEPTED='JPG, PNG, WEBP ou PDF';
 const STUDENT_UPLOAD_ACCEPT='image/jpeg,image/png,image/webp,application/pdf';
 const STUDENT_DIRECT_API='student-upload-direct-api';
@@ -21,6 +21,12 @@ function studentCanonicalMime(file){
   if(type==='image/png'||name.endsWith('.png'))return 'image/png';
   if(type==='image/webp'||name.endsWith('.webp'))return 'image/webp';
   return type;
+}
+function studentUploadError(message){
+  const text=String(message||'Não foi possível enviar a redação.');
+  if(typeof actionAlert==='function')actionAlert(text,'Atenção');
+  else if(typeof window.actionAlert==='function')window.actionAlert(text,'Atenção');
+  else toast(text);
 }
 
 async function studentJsonRequest(slug,body,retried=false){
@@ -50,29 +56,30 @@ async function studentPasteRequest(roundId,text){
   return studentJsonRequest(API.studentSub,{action:'paste',round_id:roundId,text});
 }
 
-async function studentSignedStorageUpload(signedUrl,file){
-  const session=await ensure();
-  const form=new FormData();
-  form.append('cacheControl','3600');
-  form.append('',file,file.name||'redacao');
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),120000);
-  try{
-    const response=await fetch(signedUrl,{
-      method:'PUT',
-      headers:{apikey:KEY,Authorization:'Bearer '+session.access_token,'x-upsert':'false'},
-      body:form,signal:controller.signal
-    });
-    if(!response.ok){
+function studentSignedStorageUpload(signedUrl,file){
+  return new Promise((resolve,reject)=>{
+    const form=new FormData();
+    form.append('cacheControl','3600');
+    form.append('',file,file.name||'redacao');
+    const xhr=new XMLHttpRequest();
+    let settled=false;
+    const done=(fn,value)=>{if(settled)return;settled=true;clearTimeout(timer);fn(value)};
+    const timer=setTimeout(()=>{
+      try{xhr.abort()}catch{}
+      done(reject,Error('O envio demorou demais. Tente novamente.'));
+    },120000);
+    xhr.open('PUT',signedUrl,true);
+    // A URL assinada já contém a autorização. Não adicionar Authorization/apikey evita preflight desnecessário no navegador móvel.
+    xhr.onload=()=>{
+      if(xhr.status>=200&&xhr.status<300){done(resolve,true);return}
       let message='';
-      try{const data=await response.json();message=data?.message||data?.error||''}catch{try{message=await response.text()}catch{}}
-      throw Error(message||`O armazenamento recusou o arquivo (${response.status}).`);
-    }
-    return true;
-  }catch(error){
-    if(error?.name==='AbortError')throw Error('O envio do arquivo demorou demais. Tente novamente.');
-    if(error instanceof TypeError)throw Error('A conexão caiu durante o envio do arquivo. Tente novamente.');
-    throw error;
-  }finally{clearTimeout(timer)}
+      try{const data=JSON.parse(xhr.responseText||'{}');message=data?.message||data?.error||''}catch{message=xhr.responseText||''}
+      done(reject,Error(message||`O armazenamento recusou o arquivo (${xhr.status}).`));
+    };
+    xhr.onerror=()=>done(reject,Error('A conexão caiu durante o envio do arquivo. Tente novamente.'));
+    xhr.onabort=()=>done(reject,Error('O envio foi interrompido. Tente novamente.'));
+    try{xhr.send(form)}catch(error){done(reject,error instanceof Error?error:Error('Não foi possível iniciar o envio.'))}
+  });
 }
 
 async function studentDirectUpload(roundId,sourceFile){
@@ -81,9 +88,9 @@ async function studentDirectUpload(roundId,sourceFile){
   const prepared=await studentJsonRequest(STUDENT_DIRECT_API,{action:'prepare',round_id:roundId,file_name:file.name||'redacao',mime_type:mime,file_size:size});
   let uploadError=null;
   try{await studentSignedStorageUpload(prepared.signed_url,file)}catch(error){uploadError=error}
-  const commit={action:'commit',round_id:roundId,path:prepared.path,mime_type:mime,file_size:size};
+  const commit={action:'commit',round_id:roundId,path:prepared.path,mime_type:mime,file_size:size,file_name:file.name||'redacao'};
   if(uploadError){
-    // Se a rede caiu depois de o Storage receber o arquivo, a confirmação ainda consegue concluir a entrega.
+    // Se o navegador perder apenas a resposta, o servidor ainda consegue reconhecer o arquivo que já chegou.
     try{return await studentJsonRequest(STUDENT_DIRECT_API,commit)}catch{throw uploadError}
   }
   try{return await studentJsonRequest(STUDENT_DIRECT_API,commit)}
@@ -144,9 +151,9 @@ async function openStudentCameraV2(roundId){
   input.onchange=async()=>{
     const file=input.files?.[0];
     if(!file){cleanup();return}
-    if(studentUploadKind(file)!=='image'||file.size>15*1024*1024){cleanup();toast('Use uma foto JPG, PNG ou WEBP de até 15 MB.');return}
+    if(studentUploadKind(file)!=='image'||file.size>15*1024*1024){cleanup();studentUploadError('Use uma foto JPG, PNG ou WEBP de até 15 MB.');return}
     let warnings=[];
-    try{warnings=await inspectEssayPhoto(file)}catch(error){cleanup();toast(error.message||'Não foi possível verificar a foto.');return}
+    try{warnings=await inspectEssayPhoto(file)}catch(error){cleanup();studentUploadError(error.message||'Não foi possível verificar a foto.');return}
     const objectUrl=URL.createObjectURL(file),dialog=document.createElement('dialog');
     dialog.className='app-confirm student-photo-confirm';
     dialog.innerHTML=`<h2>Conferir foto</h2><img src="${objectUrl}" alt="Prévia da redação" style="display:block;max-width:100%;max-height:52vh;margin:0 auto 12px;object-fit:contain"><p role="status">${esc(warnings.length?warnings.join(' '):'Confira se todas as linhas estão legíveis, sem cortes, sombras ou reflexos.')}</p>${warnings.length?'':`<label class="photo-confirm"><input type="checkbox" data-student-photo-ok> Conferi a foto e todas as linhas estão legíveis.</label>`}<div class="item-actions"><button type="button" class="btn soft-btn" data-student-retake>Refazer foto</button>${warnings.length?'':'<button type="button" class="btn primary" data-student-photo-send disabled>Enviar para correção</button>'}</div>`;
@@ -160,7 +167,7 @@ async function openStudentCameraV2(roundId){
       send.onclick=async()=>{
         if(send.disabled)return;send.disabled=true;check.disabled=true;send.textContent='Enviando...';
         try{await studentDirectUpload(roundId,file);S.cache={};S.student=null;finish();await navigate('student-essays');toast('Redação enviada para correção.');}
-        catch(error){send.disabled=false;check.disabled=false;send.textContent='Tentar enviar novamente';toast(error.message||'Falha no envio.');}
+        catch(error){send.disabled=false;check.disabled=false;send.textContent='Tentar enviar novamente';studentUploadError(error.message||'Falha no envio.');}
       };
     }
     dialog.showModal();
@@ -177,9 +184,9 @@ async function openStudentFileV2(roundId){
     const file=input.files?.[0];
     if(!file){cleanup();return}
     const kind=studentUploadKind(file);
-    if(kind==='other'||file.size>15*1024*1024){cleanup();toast(`Arquivos aceitos: ${STUDENT_UPLOAD_ACCEPTED}. Máximo de 15 MB.`);return}
+    if(kind==='other'||file.size>15*1024*1024){cleanup();studentUploadError(`Arquivos aceitos: ${STUDENT_UPLOAD_ACCEPTED}. Máximo de 15 MB.`);return}
     let warnings=[];
-    if(kind==='image'){try{warnings=await inspectEssayPhoto(file)}catch(error){cleanup();toast(error.message||'Não foi possível verificar a imagem.');return}}
+    if(kind==='image'){try{warnings=await inspectEssayPhoto(file)}catch(error){cleanup();studentUploadError(error.message||'Não foi possível verificar a imagem.');return}}
     let objectUrl='',preview='';
     if(kind==='pdf')preview=`<div class="safe-note"><b>PDF selecionado:</b> ${esc(file.name)}<br>Confira se a redação está completa e legível.</div>`;
     else{objectUrl=URL.createObjectURL(file);preview=`<img src="${objectUrl}" alt="Prévia da redação" style="display:block;max-width:100%;max-height:52vh;margin:0 auto 12px;object-fit:contain">`}
@@ -196,7 +203,7 @@ async function openStudentFileV2(roundId){
       send.onclick=async()=>{
         if(send.disabled)return;send.disabled=true;check.disabled=true;send.textContent='Enviando...';
         try{await studentDirectUpload(roundId,file);S.cache={};S.student=null;finish();await navigate('student-essays');toast('Redação enviada para correção.');}
-        catch(error){send.disabled=false;check.disabled=false;send.textContent='Tentar enviar novamente';toast(error.message||'Falha no envio. O arquivo continua selecionado; tente novamente.');}
+        catch(error){send.disabled=false;check.disabled=false;send.textContent='Tentar enviar novamente';studentUploadError(error.message||'Falha no envio. O arquivo continua selecionado; tente novamente.');}
       };
     }
     dialog.showModal();
@@ -217,7 +224,7 @@ function openStudentPaste(roundId){
   send.onclick=async()=>{
     if(send.disabled)return;const text=textarea.value.trim();send.disabled=true;textarea.disabled=true;send.textContent='Enviando...';
     try{await studentPasteRequest(roundId,text);S.cache={};S.student=null;close();await navigate('student-essays');toast('Redação colada e enviada para correção.');}
-    catch(error){textarea.disabled=false;send.disabled=false;send.textContent='Tentar enviar novamente';toast(error.message||'Não foi possível enviar o texto.');}
+    catch(error){textarea.disabled=false;send.disabled=false;send.textContent='Tentar enviar novamente';studentUploadError(error.message||'Não foi possível enviar o texto.');}
   };
   dialog.showModal();textarea.focus();
 }
@@ -229,3 +236,12 @@ document.addEventListener('click',event=>{
   const roundId=paste.getAttribute('data-student-paste');if(!roundId)return;
   event.preventDefault();event.stopImmediatePropagation();openStudentPaste(roundId);
 },true);
+
+// Corrige a classificação global dos avisos: falha de conexão nunca pode aparecer como “Ação concluída”.
+if(typeof window.actionAlert==='function'){
+  window.toast=function(message){
+    const text=String(message||'');
+    const isError=/não foi possível|falh|erro|inválid|expirad|incorret|bloquead|insuficiente|conexão caiu|interrompid|recusou|tente novamente|indisponível/i.test(text);
+    window.actionAlert(text,isError?'Atenção':'Ação concluída');
+  };
+}
