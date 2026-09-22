@@ -58,3 +58,23 @@ document.addEventListener('click',async event=>{
   aiActionAuthorized.add(button);
   try{button.click()}finally{aiActionAuthorized.delete(button)}
 },true);
+
+// Listas de alunos do professor ficam sempre em ordem alfabética pt-BR.
+const studentNameCollator=new Intl.Collator('pt-BR',{sensitivity:'base',numeric:true});
+function sortTeacherStudentLists(root=document){
+  root.querySelectorAll?.('.org-students').forEach(list=>{
+    const rows=[...list.children].filter(row=>row.matches('li[data-student-search]'));
+    if(rows.length<2)return;
+    const ordered=[...rows].sort((a,b)=>studentNameCollator.compare(
+      (a.querySelector('b')?.textContent||'').trim(),
+      (b.querySelector('b')?.textContent||'').trim()
+    ));
+    if(rows.every((row,index)=>row===ordered[index]))return;
+    ordered.forEach(row=>list.appendChild(row));
+  });
+}
+const studentListObserver=new MutationObserver(()=>sortTeacherStudentLists());
+document.addEventListener('DOMContentLoaded',()=>{
+  sortTeacherStudentLists();
+  studentListObserver.observe(document.body,{childList:true,subtree:true});
+},{once:true});
