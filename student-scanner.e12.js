@@ -9,25 +9,24 @@
   const A4_RATIO=210/297;
 
   function scannerError(message){
-    if(typeof window.studentUploadError==='function')window.studentUploadError(message);
+    if(typeof studentUploadError==='function')studentUploadError(message);
     else if(typeof window.actionAlert==='function')window.actionAlert(message,'Atenção');
-    else if(typeof window.toast==='function')window.toast(message);
+    else if(typeof toast==='function')toast(message);
   }
 
   function nativePicker(roundId,camera=false){
-    if(!roundId||window.S?.profile?.role!=='student')return;
+    if(!roundId||S?.profile?.role!=='student')return;
     const input=document.createElement('input');
     input.type='file';input.hidden=true;
-    input.accept=camera?'image/jpeg,image/png,image/webp':window.STUDENT_UPLOAD_ACCEPT||'image/jpeg,image/png,image/webp,application/pdf';
+    input.accept=camera?'image/jpeg,image/png,image/webp':STUDENT_UPLOAD_ACCEPT;
     if(camera)input.setAttribute('capture','environment');
     document.body.appendChild(input);
     const cleanup=()=>input.remove();
     input.onchange=()=>{
       const file=input.files?.[0];
       if(!file){cleanup();return}
-      const mime=typeof window.studentUploadMime==='function'?window.studentUploadMime(file):file.type;
-      const max=window.STUDENT_UPLOAD_MAX||15*1024*1024;
-      if(!mime||file.size>max){cleanup();scannerError('Arquivo inválido ou maior que 15 MB.');return}
+      const mime=studentUploadMime(file);
+      if(!mime||file.size>STUDENT_UPLOAD_MAX){cleanup();scannerError(`Arquivos aceitos: ${STUDENT_UPLOAD_ACCEPTED}. Máximo de 15 MB.`);return}
       window.showStudentFileConfirm(roundId,file,cleanup,camera);
     };
     input.click();
@@ -35,14 +34,13 @@
 
   // Remove a antiga confirmação/certificado de legibilidade.
   window.showStudentFileConfirm=function(roundId,file,cleanup=()=>{},camera=false){
-    const mime=typeof window.studentUploadMime==='function'?window.studentUploadMime(file):file.type;
-    const dialog=document.createElement('dialog');
+    const mime=studentUploadMime(file),dialog=document.createElement('dialog');
     dialog.className='app-confirm student-photo-confirm';
     let objectUrl='';
     const preview=String(mime||'').startsWith('image/')
       ?(()=>{objectUrl=URL.createObjectURL(file);return `<img src="${objectUrl}" alt="Prévia da redação" style="display:block;max-width:100%;max-height:52vh;margin:0 auto 12px;object-fit:contain;border-radius:10px">`})()
       :`<div class="safe-note"><b>PDF selecionado:</b> ${esc(file.name)}</div>`;
-    const size=typeof window.studentUploadSizeLabel==='function'?window.studentUploadSizeLabel(file.size):`${file.size} bytes`;
+    const size=studentUploadSizeLabel(file.size);
     dialog.innerHTML=`<h2>Conferir ${camera?'foto':'arquivo'}</h2>${preview}<p><b>${esc(file.name||'Redação')}</b><br>${esc(size)}</p><div class="item-actions"><button type="button" class="btn soft-btn" data-scanner-change>Escolher outro</button><button type="button" class="btn primary" data-scanner-send>Enviar para correção</button></div>`;
     document.body.appendChild(dialog);
     const finish=()=>{if(objectUrl)URL.revokeObjectURL(objectUrl);try{dialog.close()}catch{}dialog.remove();cleanup()};
@@ -53,9 +51,8 @@
       if(send.disabled)return;
       send.disabled=true;send.textContent='Enviando...';
       try{
-        await window.studentSubmitFile(roundId,file);
-        window.S.cache={};window.S.student=null;finish();await window.navigate('student-essays');
-        if(typeof window.studentUploadSuccess==='function')window.studentUploadSuccess();
+        await studentSubmitFile(roundId,file);
+        S.cache={};S.student=null;finish();await navigate('student-essays');studentUploadSuccess();
       }catch(error){
         send.disabled=false;send.textContent='Tentar novamente';scannerError(error?.message||'Falha no envio.');
       }
@@ -98,10 +95,7 @@
     const normalizedEdge=((left.value+right.value)/(h/2)+(top.value+bottom.value)/(w/2))/4;
     const confidence=avg?normalizedEdge/avg:0;
     if(!Number.isFinite(confidence)||confidence<1.12)return null;
-    return {
-      x:left.index/w,y:top.index/h,w:width/w,h:height/h,
-      confidence:Math.min(2,confidence)
-    };
+    return {x:left.index/w,y:top.index/h,w:width/w,h:height/h,confidence:Math.min(2,confidence)};
   }
 
   function defaultCrop(video){
@@ -199,7 +193,7 @@
 
   // O handler já existente em student-upload.e12.js chama esta função global.
   window.chooseStudentFile=function(roundId,camera=false){
-    if(!roundId||window.S?.profile?.role!=='student')return;
+    if(!roundId||S?.profile?.role!=='student')return;
     if(camera){openScanner(roundId);return}
     nativePicker(roundId,false);
   };
