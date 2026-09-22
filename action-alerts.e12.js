@@ -115,12 +115,13 @@ async function renderStudentSendPage(){
     if(S.route!=='student-send')return;
     const cards=(p.proposals||[]).map(r=>{
       const st=sm.get(r.id),sub=st?.submission,editable=st?.editable===true;
-      const label=sub?'Refazer foto':'Abrir câmera';
+      const photoLabel=sub?'Refazer foto':'Tirar foto';
+      const fileLabel=sub?'Substituir arquivo':'Selecionar arquivo';
       const status=sub?.status==='approved'?'Aprovada':sub?'Enviada':'Disponível';
       const cls=sub?.status==='approved'?'ok':sub?'warn':'crimson';
-      return `<article class="student-card"><div class="item-top"><div><div class="item-title">R${esc(r.number??'—')} · ${esc(r.theme)}</div>${r.due_date?`<div class="item-meta">Prazo: ${fmtDate(r.due_date)}</div>`:''}</div><span class="pill ${cls}">${status}</span></div><p class="muted">${esc(r.proposal_command||'')}</p><button class="btn primary full" data-student-camera="${esc(r.id)}" ${editable?'':'disabled'}>${editable?label:(sub?.status==='approved'?'Correção concluída':'Envio indisponível')}</button></article>`;
+      return `<article class="student-card"><div class="item-top"><div><div class="item-title">R${esc(r.number??'—')} · ${esc(r.theme)}</div>${r.due_date?`<div class="item-meta">Prazo: ${fmtDate(r.due_date)}</div>`:''}</div><span class="pill ${cls}">${status}</span></div><p class="muted">${esc(r.proposal_command||'')}</p><div class="item-actions"><button class="btn primary" data-student-camera="${esc(r.id)}" ${editable?'':'disabled'}>${editable?photoLabel:(sub?.status==='approved'?'Correção concluída':'Envio indisponível')}</button><button class="btn soft-btn" data-student-file="${esc(r.id)}" ${editable?'':'disabled'}>${editable?fileLabel:'Selecionar arquivo'}</button></div>${editable?'<p class="muted">Você pode fotografar agora ou enviar JPG, PNG, WEBP ou PDF de uma página, até 15 MB.</p>':''}</article>`;
     }).join('');
-    view.innerHTML=header('Enviar redação','Escolha a proposta e fotografe sua redação.')+`<div class="list" id="studentSendList">${cards||'<div class="empty">Nenhuma proposta disponível para envio.</div>'}</div>`;
+    view.innerHTML=header('Enviar redação','Escolha a proposta e envie sua redação por foto ou arquivo.')+`<div class="list" id="studentSendList">${cards||'<div class="empty">Nenhuma proposta disponível para envio.</div>'}</div>`;
   }catch(error){
     if(S.route==='student-send')view.innerHTML=header('Enviar redação','Não foi possível carregar suas propostas.')+`<div class="card"><p>${esc(error.message||error)}</p><button class="btn primary" data-student-send-menu>Tentar novamente</button></div>`;
   }
@@ -177,16 +178,76 @@ async function openStudentCamera(roundId){
   input.click();
 }
 
+async function openStudentFile(roundId){
+  if(!roundId||S?.profile?.role!=='student')return;
+  const input=document.createElement('input');
+  input.type='file';
+  input.accept='image/jpeg,image/png,image/webp,application/pdf';
+  input.hidden=true;
+  document.body.appendChild(input);
+  const cleanup=()=>input.remove();
+  input.onchange=async()=>{
+    const file=input.files?.[0];
+    if(!file){cleanup();return;}
+    const allowed=['image/jpeg','image/png','image/webp','application/pdf'];
+    if(!allowed.includes(file.type)||file.size>15*1024*1024){cleanup();toast('Use JPG, PNG, WEBP ou PDF de uma página, até 15 MB.');return;}
+    let warnings=[];
+    if(file.type!=='application/pdf'){
+      try{warnings=await inspectEssayPhoto(file)}catch(error){cleanup();toast(error.message||'Não foi possível verificar a imagem.');return;}
+    }
+    let preview='';
+    let objectUrl='';
+    if(file.type==='application/pdf'){
+      preview=`<div class="safe-note"><b>PDF selecionado:</b> ${esc(file.name)}<br>Confirme que o arquivo possui apenas uma página e que todo o texto está legível.</div>`;
+    }else{
+      objectUrl=URL.createObjectURL(file);
+      preview=`<img src="${objectUrl}" alt="Prévia da redação" style="display:block;max-width:100%;max-height:52vh;margin:0 auto 12px;object-fit:contain">`;
+    }
+    const dialog=document.createElement('dialog');
+    dialog.className='app-confirm student-photo-confirm';
+    dialog.innerHTML=`<h2>Conferir arquivo</h2>${preview}<p role="status">${esc(warnings.length?warnings.join(' '):file.type==='application/pdf'?'Confira o PDF antes de enviar.':'Confira se todas as linhas estão legíveis, sem cortes, sombras ou reflexos.')}</p>${warnings.length?'':`<label class="photo-confirm"><input type="checkbox" data-student-file-ok> Conferi o arquivo e a redação está completa e legível em uma página.</label>`}<div class="item-actions"><button type="button" class="btn soft-btn" data-student-file-change>Escolher outro arquivo</button>${warnings.length?'':'<button type="button" class="btn primary" data-student-file-send disabled>Enviar para correção</button>'}</div>`;
+    document.body.appendChild(dialog);
+    const finish=()=>{if(objectUrl)URL.revokeObjectURL(objectUrl);closeStudentPhotoDialog(dialog);cleanup()};
+    dialog.oncancel=e=>{e.preventDefault();finish()};
+    dialog.querySelector('[data-student-file-change]').onclick=()=>{finish();setTimeout(()=>openStudentFile(roundId),0)};
+    const check=dialog.querySelector('[data-student-file-ok]'),send=dialog.querySelector('[data-student-file-send]');
+    if(check&&send){
+      check.onchange=()=>send.disabled=!check.checked;
+      send.onclick=async()=>{
+        if(send.disabled)return;
+        send.disabled=true;check.disabled=true;send.textContent='Enviando...';
+        try{
+          await uploadEssay(API.studentSub,{action:'upload',round_id:roundId},file);
+          await edge(API.studentSub,{action:'finalize',round_id:roundId});
+          S.cache={};S.student=null;
+          finish();
+          await navigate('student-essays');
+          toast('Redação enviada para correção.');
+        }catch(error){
+          send.disabled=false;check.disabled=false;send.textContent='Enviar para correção';toast(error.message||'Falha no envio.');
+        }
+      };
+    }
+    dialog.showModal();
+  };
+  input.click();
+}
+
 document.addEventListener('click',event=>{
   if(S?.profile?.role!=='student')return;
   const shortcut=event.target?.closest?.('[data-student-send-menu],#studentSendShortcut');
   if(shortcut){
     event.preventDefault();event.stopImmediatePropagation();renderStudentSendPage();return;
   }
-  const camera=event.target?.closest?.('[data-student-camera],[data-student-prop]');
+  const camera=event.target?.closest?.('[data-student-camera]');
   if(camera&&!camera.disabled){
-    const roundId=camera.getAttribute('data-student-camera')||camera.getAttribute('data-student-prop');
-    if(roundId){event.preventDefault();event.stopImmediatePropagation();openStudentCamera(roundId)}
+    const roundId=camera.getAttribute('data-student-camera');
+    if(roundId){event.preventDefault();event.stopImmediatePropagation();openStudentCamera(roundId);return;}
+  }
+  const file=event.target?.closest?.('[data-student-file]');
+  if(file&&!file.disabled){
+    const roundId=file.getAttribute('data-student-file');
+    if(roundId){event.preventDefault();event.stopImmediatePropagation();openStudentFile(roundId);}
   }
 },true);
 
