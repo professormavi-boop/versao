@@ -77,4 +77,13 @@ const studentListObserver=new MutationObserver(()=>sortTeacherStudentLists());
 document.addEventListener('DOMContentLoaded',()=>{
   sortTeacherStudentLists();
   studentListObserver.observe(document.body,{childList:true,subtree:true});
+
+  const classCode=document.getElementById('classCode');
+  if(classCode){
+    classCode.maxLength=40;
+    classCode.pattern='(?:[A-Fa-f0-9]{12}|[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*-[0-9]{2}-[0-9]{3})';
+    classCode.placeholder='Ex.: 3b-26-417';
+    classCode.autocapitalize='none';
+    classCode.spellcheck=false;
+  }
 },{once:true});
