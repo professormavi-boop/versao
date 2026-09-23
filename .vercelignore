@@ -7,6 +7,8 @@
 !core.e12.js
 !action-alerts.e12.js
 !teacher-main.e12.js
+!teacher-proposals-v2.e12.js
+!proposal-edit-all-hotfix.e12.js
 !teacher-credits.e12.js
 !teacher-home.e12.js
 !teacher-organization.e12.js
