@@ -2,14 +2,14 @@
 function ensureTeacherHomeQuickStyle(){
  if(document.getElementById('teacherHomeQuickStyle'))return;
  const style=document.createElement('style');style.id='teacherHomeQuickStyle';style.textContent=`
- .teacher-home .home-quick-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:12px}
- .teacher-home .home-quick-card{aspect-ratio:1/1;min-width:0;border:1px solid var(--line);border-radius:20px;background:#fff;color:var(--crimson);padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;text-align:center;font-weight:900;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
- .teacher-home .home-quick-card:hover{transform:translateY(-2px);border-color:#D5B8B5;box-shadow:0 10px 28px rgba(91,29,29,.07)}
- .teacher-home .home-quick-card.is-primary{border-color:var(--crimson);background:linear-gradient(145deg,var(--crimson),var(--crimson2));color:#fff;box-shadow:0 10px 28px rgba(139,28,28,.13)}
- .teacher-home .home-quick-icon{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:var(--soft);color:var(--crimson);flex:0 0 auto}
+ .teacher-home .home-quick-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+ .teacher-home .home-quick-card{aspect-ratio:auto;min-height:88px;min-width:0;border:1px solid var(--line);border-radius:16px;background:#fff;color:var(--crimson);padding:14px 16px;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;text-align:left;font-weight:850;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+ .teacher-home .home-quick-card:hover{transform:translateY(-2px);border-color:#D5B8B5;box-shadow:0 8px 22px rgba(91,29,29,.06)}
+ .teacher-home .home-quick-card.is-primary{border-color:var(--crimson);background:linear-gradient(145deg,var(--crimson),var(--crimson2));color:#fff;box-shadow:0 8px 22px rgba(139,28,28,.11)}
+ .teacher-home .home-quick-icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--soft);color:var(--crimson);flex:0 0 auto}
  .teacher-home .home-quick-card.is-primary .home-quick-icon{background:rgba(255,255,255,.12);color:#fff}
- .teacher-home .home-quick-icon svg{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
- .teacher-home .home-quick-label{font-size:17px;line-height:1.22}
+ .teacher-home .home-quick-icon svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+ .teacher-home .home-quick-label{font-size:15px;line-height:1.2}
  .teacher-home .home-credit-card{margin-top:18px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,#FFFDFC 0%,var(--soft) 100%);padding:22px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:start}
  .teacher-home .home-credit-symbol{width:60px;height:60px;border-radius:18px;background:#F3DCDC;color:var(--crimson);display:grid;place-items:center}
  .teacher-home .home-credit-symbol svg{width:32px;height:32px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -17,7 +17,7 @@ function ensureTeacherHomeQuickStyle(){
  .teacher-home .home-credit-balance{display:flex;align-items:baseline;gap:8px;margin-top:10px}.teacher-home .home-credit-balance strong{font-size:38px;line-height:1;color:var(--crimson)}.teacher-home .home-credit-balance span{color:var(--muted);font-weight:750}
  .teacher-home .home-credit-rule{height:8px;border-radius:999px;background:#E9D7D5;margin:16px 0 18px;overflow:hidden}.teacher-home .home-credit-rule>span{display:block;width:64%;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--crimson),var(--crimson2))}
  .teacher-home .home-credit-actions{display:grid;grid-template-columns:1.15fr 1fr;gap:10px}.teacher-home .home-credit-actions .btn{min-height:46px}
- @media(max-width:720px){.teacher-home .home-quick-actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.teacher-home .home-quick-card{aspect-ratio:auto;min-height:102px;border-radius:15px;padding:10px 7px;gap:8px}.teacher-home .home-quick-icon{width:38px;height:38px;border-radius:11px}.teacher-home .home-quick-icon svg{width:23px;height:23px}.teacher-home .home-quick-label{font-size:13px;line-height:1.16}.teacher-home .home-credit-card{grid-template-columns:1fr;padding:18px;gap:12px}.teacher-home .home-credit-symbol{width:52px;height:52px}.teacher-home .home-credit-actions{grid-template-columns:1fr}.teacher-home .home-credit-balance strong{font-size:34px}}
+ @media(max-width:720px){.teacher-home .home-quick-actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.teacher-home .home-quick-card{min-height:102px;border-radius:15px;padding:10px 7px;gap:8px;flex-direction:column;justify-content:center;text-align:center}.teacher-home .home-quick-icon{width:38px;height:38px;border-radius:11px}.teacher-home .home-quick-icon svg{width:23px;height:23px}.teacher-home .home-quick-label{font-size:13px;line-height:1.16}.teacher-home .home-credit-card{grid-template-columns:1fr;padding:18px;gap:12px}.teacher-home .home-credit-symbol{width:52px;height:52px}.teacher-home .home-credit-actions{grid-template-columns:1fr}.teacher-home .home-credit-balance strong{font-size:34px}}
  @media(max-width:360px){.teacher-home .home-quick-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.teacher-home .home-quick-card{min-height:92px}.teacher-home .home-quick-label{font-size:12.5px}}
  `;document.head.appendChild(style);
 }
