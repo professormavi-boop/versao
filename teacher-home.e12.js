@@ -26,7 +26,8 @@ function teacherHomeQuickIcon(key){
   correction:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11a2 2 0 0 1 2 2v6"/><path d="M5 3v18h8"/><path d="M8 8h7M8 12h5"/><path d="m14 18 5-5 2 2-5 5-3 1z"/></svg>',
   import:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M16 11h6"/></svg>',
   class:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20v-2a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v2M14 14h2a5 5 0 0 1 5 5v1"/></svg>',
-  student:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="7" r="4"/><path d="M3 21v-2a6 6 0 0 1 6-6h2a6 6 0 0 1 4 1.5"/><path d="M19 14v6M16 17h6"/></svg>'
+  student:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="7" r="4"/><path d="M3 21v-2a6 6 0 0 1 6-6h2a6 6 0 0 1 4 1.5"/><path d="M19 14v6M16 17h6"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1"/><path d="M12 16v2"/></svg>'
  };
  return icons[key]||'';
 }
@@ -47,7 +48,7 @@ async function renderTeacherHome(navigation){
  const issues=(d?.issues||[]).map(x=>add(x.label,'teacher-organization',x.kind,{organization_id:x.organization_id,class_id:x.class_id,student_name:x.student_name}));
  if(d&&!d.has_organizations)issues.unshift(add('Cadastre sua primeira instituição e turma','teacher-organization','institution'));
  const priority=d?.pending||d?.validation?'correction':d&&!d.has_organizations?'class':d?.issues?.some(x=>x.kind==='import')?'import':d?.drafts||d?.ready?'proposals':'proposal';
- const quick=[['proposal','Nova proposta','proposals','create'],['correction','Corrigir redações','correction',d?.pending?'uncorrected':d?.validation?'validation':''],['import','Importar alunos','teacher-organization','import'],['class','Nova turma','teacher-organization','class'],['student','Novo aluno','teacher-organization','student']];
+ const quick=[['proposal','Nova proposta','proposals','create'],['correction','Corrigir redações','correction',d?.pending?'uncorrected':d?.validation?'validation':''],['import','Importar alunos','teacher-organization','import'],['class','Nova turma','teacher-organization','class'],['student','Novo aluno','teacher-organization','student'],['pin','Gerar / alterar PIN','teacher-organization','pin']];
  const shortcuts=quick.map(([key,label,route,intent])=>{const id=actions.length;actions.push({route,intent,organization_id:d?.default_organization,class_id:intent==='class'?null:d?.default_class});return `<button type="button" class="home-quick-card ${key===priority?'is-primary':''}" data-home-action="${id}"><span class="home-quick-icon">${teacherHomeQuickIcon(key)}</span><span class="home-quick-label">${esc(label)}</span></button>`;}).join('');
  const activities=(d?.activities||[]).map(x=>{const date=new Date(x.at),formatted=Number.isNaN(date.getTime())?'':date.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});return `<li>${add(x.label,x.route,'activity',{target:x.target})}<time datetime="${esc(x.at)}">${esc(formatted)}</time></li>`;}).join('');
  const balance=Number(credit?.balance),hasBalance=Number.isFinite(balance),creditWidth=hasBalance?Math.max(5,Math.min(100,Math.round(balance/200*100))):0;
