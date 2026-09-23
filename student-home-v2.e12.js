@@ -50,7 +50,7 @@
 
   function scoreLabel(value){return value==null?'—':String(value)}
 
-  window.renderStudentHome=async function(navigation){
+  async function studentHomeV2(navigation){
     ensureStudentHomeV2Style();
     const d=await studentDashboard(true);
     if(!navigationCurrent(navigation))return;
@@ -61,12 +61,12 @@
     const classNames=(d.classes||[]).map(c=>c.name).filter(Boolean);
     const identity=[org,...classNames].filter(Boolean).join(' · ');
     const submissions=Array.isArray(d.submissions)?d.submissions:[];
-    const approved=submissions.filter(s=>s?.approved_score);
+    const approved=submissions.filter(s=>s?.approved_score).sort((a,b)=>new Date(b.approved_score?.approved_at||b.approved_at||b.received_at||0)-new Date(a.approved_score?.approved_at||a.approved_at||a.received_at||0));
     const latestCorrections=approved.slice(0,3);
     const evolution=Array.isArray(d.evolution)?d.evolution:[];
     const last=evolution.at(-1)||null;
     const comps=last?.competencies||approved[0]?.approved_score?.competencies||{};
-    const hasCompetencies=['C1','C2','C3','C4','C5'].some(c=>Number.isFinite(Number(comps?.[c])));
+    const hasCompetencies=['C1','C2','C3','C4','C5'].some(c=>comps?.[c]!=null&&Number.isFinite(Number(comps[c])));
 
     const metrics=[
       ['score','Nota atual',scoreLabel(summary.current_score)],
@@ -83,7 +83,7 @@
     }).join(''):`<div class="sh-empty"><h3>Você ainda não recebeu correções.</h3><p>Envie sua primeira redação para começar a acompanhar sua evolução.</p><button type="button" class="btn primary" data-sh-route="student-proposals">Enviar primeira redação</button></div>`;
 
     const competencies=['C1','C2','C3','C4','C5'].map(c=>{
-      const value=Number(comps?.[c]),valid=Number.isFinite(value),width=valid?Math.max(0,Math.min(100,value/2)):0;
+      const raw=comps?.[c],value=Number(raw),valid=raw!=null&&Number.isFinite(value),width=valid?Math.max(0,Math.min(100,value/2)):0;
       return `<div class="sh-comp"><b>${c}</b><div class="sh-track"><i style="width:${width}%"></i></div><span>${valid?value:'—'}</span></div>`;
     }).join('');
 
@@ -106,5 +106,7 @@
       if(!target)return;
       navigate(target.dataset.shRoute);
     };
-  };
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{window.renderStudentHome=studentHomeV2},{once:true});
 })();
