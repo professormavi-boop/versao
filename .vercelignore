@@ -17,6 +17,8 @@
 !student.e12.js
 !student-upload.e12.js
 !student-scanner.e12.js
+!api/
+!api/**
 !vercel.json
 !privacidade.html
 !termos.html
