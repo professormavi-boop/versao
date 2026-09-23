@@ -7,6 +7,7 @@
 !core.e12.js
 !action-alerts.e12.js
 !teacher-main.e12.js
+!teacher-credits.e12.js
 !teacher-home.e12.js
 !teacher-organization.e12.js
 !teacher-correction-shell.e12.js
