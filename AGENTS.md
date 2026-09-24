@@ -10,4 +10,4 @@
 8. Não conclua a Etapa 12 nem avance à 13 sem aprovação do usuário. Não promova produção.
 9. Economize contexto: leia resumo e módulo pertinente, evite dumps de assets, buscas repetidas e reprocessamento integral do histórico. Não use subagentes sem solicitação.
 10. Preserve o trabalho via commits; atualize CONTINUIDADE.md antes de mudar de chat ou ferramenta. O filesystem local não é garantia de transferência entre sessões.
-11. Nunca usar modais nativos do navegador (`alert`, `confirm` ou `prompt`). Mensagens devem usar componentes do VERSÃO; confirmações devem usar `appConfirm` ou controles inline; entrada de dados deve ocorrer em campos/formulários da própria interface.
+11. Nunca usar controles nativos que abram modais/pickers do navegador ou do sistema operacional na interface principal: `alert`, `confirm`, `prompt` e o picker nativo de `<select>` simples. Mensagens devem usar componentes do VERSÃO; confirmações devem usar `appConfirm` ou controles inline; escolhas devem usar o seletor próprio do VERSÃO; entrada de dados deve ocorrer em campos/formulários da própria interface.
