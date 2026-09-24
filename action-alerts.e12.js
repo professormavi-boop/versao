@@ -40,6 +40,22 @@ window.toast=function(message){
   actionAlert(text,isError?'Atenção':'Ação concluída');
 };
 
+// Regra global de interface: o VERSÃO nunca usa alert/confirm/prompt nativos do navegador.
+// alert é convertido para o componente visual do sistema. confirm/prompt são bloqueados por
+// serem APIs síncronas; fluxos de confirmação devem usar appConfirm ou controles inline.
+window.alert=function(message){
+  actionAlert(message,'Atenção');
+};
+window.confirm=function(message){
+  console.error('[VERSÃO] confirm() nativo bloqueado. Use appConfirm().',message);
+  return false;
+};
+window.prompt=function(message){
+  console.error('[VERSÃO] prompt() nativo bloqueado. Use um campo/formulário do sistema.',message);
+  return null;
+};
+window.__VERSAO_UI_RULES__=Object.freeze({nativeDialogs:false,confirmation:'appConfirm',messages:'actionAlert/toast'});
+
 // Toda Correção Inteligente que consome crédito pede confirmação no padrão grande do sistema.
 const aiActionAuthorized=new WeakSet();
 document.addEventListener('click',async event=>{
