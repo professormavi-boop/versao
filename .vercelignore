@@ -6,6 +6,7 @@
 !boot.e12.js
 !core.e12.js
 !action-alerts.e12.js
+!custom-selects.e12.js
 !teacher-main.e12.js
 !teacher-proposals-v4-select.e12.js
 !teacher-credits.e12.js
@@ -25,4 +26,4 @@
 !vercel.json
 !privacidade.html
 !termos.html
-# deploy trigger 2026-09-24 proposal-v4-select
+# deploy trigger 2026-09-24 custom-select-v1
