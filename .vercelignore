@@ -7,14 +7,7 @@
 !core.e12.js
 !action-alerts.e12.js
 !teacher-main.e12.js
-!teacher-proposals-v2.e12.js
-!teacher-proposals-v3.e12.js
-!proposal-edit-all-hotfix.e12.js
-!proposal-logical-groups.e12.js
-!proposal-redesign-v3.e12.js
-!proposal-axis-priority.e12.js
-!proposal-recipient-cards-v2.e12.js
-!proposal-ui-stability-v1.e12.js
+!teacher-proposals-v4-select.e12.js
 !teacher-credits.e12.js
 !teacher-home.e12.js
 !teacher-organization.e12.js
@@ -32,4 +25,4 @@
 !vercel.json
 !privacidade.html
 !termos.html
-# deploy trigger 2026-09-24 proposal-ui-stability-v1
+# deploy trigger 2026-09-24 proposal-v4-select
