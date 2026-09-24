@@ -1,0 +1,126 @@
+/* VERSÃO — restauração visual do fluxo aprovado de criação de propostas.
+   Mantém a lógica do editor v4 e altera somente apresentação/hierarquia visual. */
+
+.proposal-v4-editor #pv4Form > .proposal-v4-section:first-of-type {
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+/* Bloco principal de criação inteligente, como no redesign aprovado. */
+.proposal-v4-editor .proposal-v4-actions:has(#pvGenerate) {
+  order:-3;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:14px;
+  margin:0 0 4px;
+  padding:22px;
+  border:1px solid #e5aaa4;
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 10% 16%,rgba(185,17,31,.08),transparent 28%),
+    linear-gradient(180deg,#fff8f7 0%,#fff3f1 100%);
+  box-shadow:0 8px 24px rgba(122,22,28,.05);
+}
+
+.proposal-v4-editor .proposal-v4-actions:has(#pvGenerate)::before {
+  content:'✦  Criar com Inteligência';
+  display:block;
+  color:#8f1519;
+  font-size:24px;
+  line-height:1.2;
+  font-weight:850;
+  letter-spacing:-.01em;
+}
+
+.proposal-v4-editor .proposal-v4-actions:has(#pvGenerate)::after {
+  content:'Transforme uma ideia em uma proposta completa com o apoio da Inteligência VERSÃO. O conteúdo continua editável antes da publicação.';
+  display:block;
+  color:#6f747d;
+  font-size:15px;
+  line-height:1.55;
+  max-width:760px;
+}
+
+.proposal-v4-editor #pvGenerate {
+  width:100%;
+  min-height:54px;
+  margin-top:2px;
+  border-color:#b50816 !important;
+  background:#b50816 !important;
+  color:#fff !important;
+  font-size:18px;
+  font-weight:850;
+  box-shadow:0 8px 18px rgba(181,8,22,.13);
+}
+
+.proposal-v4-editor #pvGenerate:hover,
+.proposal-v4-editor #pvGenerate:focus-visible {
+  background:#970713 !important;
+  border-color:#970713 !important;
+}
+
+.proposal-v4-editor #pvCredits {
+  display:block;
+  color:#6f747d !important;
+  font-size:13px;
+  line-height:1.45;
+}
+
+.proposal-v4-editor #pvAiStatus {
+  order:-2;
+  margin:-8px 0 0;
+  min-height:0;
+  text-align:center;
+}
+
+/* Depois do bloco de IA, volta a sequência de edição aprovada. */
+.proposal-v4-editor #pv4Form > .proposal-v4-section:first-of-type > header {
+  order:-1;
+  padding-top:4px;
+}
+
+.proposal-v4-editor .proposal-v4-axis {
+  order:0;
+  padding:16px 18px;
+  border-width:1px;
+  background:#fff8f7;
+}
+
+.proposal-v4-editor .proposal-v4-axis strong {
+  display:block;
+  font-size:17px;
+}
+
+.proposal-v4-editor .proposal-v4-axis small {
+  margin:5px 0 10px;
+  font-size:12px;
+}
+
+/* O campo real continua existindo, mas o seletor customizado do VERSÃO intercepta a escolha. */
+.proposal-v4-editor .proposal-v4-axis select,
+.proposal-v4-editor #pvScopeSelect,
+.proposal-v4-toolbar #proposalFilter {
+  min-height:48px;
+}
+
+@media (max-width:760px) {
+  .proposal-v4-editor .proposal-v4-actions:has(#pvGenerate) {
+    padding:20px 16px;
+    border-radius:18px;
+    gap:12px;
+  }
+
+  .proposal-v4-editor .proposal-v4-actions:has(#pvGenerate)::before {
+    font-size:22px;
+  }
+
+  .proposal-v4-editor .proposal-v4-actions:has(#pvGenerate)::after {
+    font-size:14px;
+  }
+
+  .proposal-v4-editor #pvGenerate {
+    min-height:52px;
+    font-size:17px;
+  }
+}
