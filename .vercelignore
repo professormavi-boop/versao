@@ -14,6 +14,7 @@
 !proposal-redesign-v3.e12.js
 !proposal-axis-priority.e12.js
 !proposal-recipient-cards-v2.e12.js
+!proposal-visual-integrity.e12.js
 !teacher-credits.e12.js
 !teacher-home.e12.js
 !teacher-organization.e12.js
@@ -31,4 +32,4 @@
 !vercel.json
 !privacidade.html
 !termos.html
-# deploy trigger 2026-09-24 axis-before-theme-approved-v4
+# deploy trigger 2026-09-24 proposal-visual-integrity-v1
