@@ -3,6 +3,18 @@
  const ROOT_ID='proposalRecipientCardsV2';
  let timer=null,editingId=null,bootPromise=null;
 
+ function hideLegacySelector(){
+  const org=document.getElementById('pvOrg');
+  const orgLabel=org?.closest('label');
+  if(orgLabel)orgLabel.hidden=true;
+  const all=document.getElementById('pvAll');
+  const allLabel=all?.closest('label');
+  if(allLabel)allLabel.hidden=true;
+  const scope=document.getElementById('pvScope');
+  const section=scope?.closest('.proposal-v2-section');
+  const modeNote=section?.querySelector('.proposal-v3-mode-note');if(modeNote)modeNote.hidden=true;
+  const legacySummary=document.getElementById('proposalAllRecipientsV3');if(legacySummary)legacySummary.hidden=true;
+ }
  function apiCall(body){
   if(typeof edge!=='function'||!API?.proposal)throw Error('API de propostas indisponível.');
   return edge(API.proposal,body);
@@ -51,6 +63,7 @@
  async function render(){
   const form=document.getElementById('proposalV2Form'),scope=document.getElementById('pvScope'),classBox=document.getElementById('pvClassBox');
   if(!form||!scope||!classBox)return;
+  hideLegacySelector();
   if(document.getElementById(ROOT_ID))return;
   const data=await bootstrap();
   if(!form.isConnected||!classBox.isConnected)return;
@@ -63,10 +76,7 @@
   classBox.dataset.cardsV2='1';
   const p=section?.querySelector(':scope > header p');
   if(p)p.textContent='Selecione as instituições e as turmas que receberão esta proposta.';
-  const oldAll=document.getElementById('pvAll')?.closest('label');if(oldAll)oldAll.hidden=true;
-  const orgLabel=document.getElementById('pvOrg')?.closest('label');if(orgLabel)orgLabel.hidden=true;
-  const modeNote=section?.querySelector('.proposal-v3-mode-note');if(modeNote)modeNote.hidden=true;
-  const legacySummary=document.getElementById('proposalAllRecipientsV3');if(legacySummary)legacySummary.hidden=true;
+  hideLegacySelector();
 
   const orgs=data?.organizations||[];
   classBox.innerHTML=`<div id="${ROOT_ID}" class="proposal-recipient-cards-v2">${orgs.map((org,index)=>{
@@ -89,12 +99,12 @@
   });
   sync(root,data);
  }
- function schedule(){clearTimeout(timer);timer=setTimeout(()=>render().catch(()=>{}),50)}
+ function schedule(){clearTimeout(timer);timer=setTimeout(()=>{hideLegacySelector();render().catch(()=>{})},30)}
  document.addEventListener('click',event=>{
   const edit=event.target.closest?.('[data-edit]');if(edit?.dataset.edit)editingId=edit.dataset.edit;
   if(event.target.closest?.('#proposalNew,#proposalUiCreate,#proposalBack,#pvCancel,[data-route="proposals"]'))editingId=null;
-  schedule();
+  hideLegacySelector();schedule();
  },true);
- const view=document.getElementById('view');if(view)new MutationObserver(schedule).observe(view,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
- document.addEventListener('DOMContentLoaded',schedule,{once:true});schedule();
+ const view=document.getElementById('view');if(view)new MutationObserver(()=>{hideLegacySelector();schedule()}).observe(view,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
+ document.addEventListener('DOMContentLoaded',()=>{hideLegacySelector();schedule()},{once:true});hideLegacySelector();schedule();
 })();
