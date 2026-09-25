@@ -3,6 +3,7 @@
 !base.e12.css
 !enhancements.e12.css
 !responsive.e12.css
+!proposal-approved-v3.css
 !boot.e12.js
 !core.e12.js
 !action-alerts.e12.js
@@ -26,4 +27,4 @@
 !vercel.json
 !privacidade.html
 !termos.html
-# deploy trigger 2026-09-25 native-proposals-v3
+# deploy trigger 2026-09-25 approved-proposals-v3-visual
