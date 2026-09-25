@@ -1,0 +1,131 @@
+/* VERSÃO — visual aprovado de Propostas sobre a estrutura única V3. */
+:root{--versao-red:#8B1C1C;--versao-red-soft:#fff8f7;--versao-line:#e8d9d6;--versao-text:#172033;--versao-muted:#667085}
+
+/* Abas aprovadas: controle segmentado, não sublinhado. */
+.proposal-v3 .proposal-v3-tabs{
+  display:grid!important;grid-template-columns:1fr 1fr!important;gap:4px!important;
+  padding:4px!important;border:1px solid var(--versao-line)!important;border-radius:16px!important;
+  background:#fffafa!important;overflow:hidden!important;
+}
+.proposal-v3 .proposal-v3-tab{
+  min-height:54px!important;padding:12px 16px!important;border:0!important;border-radius:12px!important;
+  background:transparent!important;color:var(--versao-red)!important;font-weight:800!important;font-size:16px!important;
+}
+.proposal-v3 .proposal-v3-tab.active{
+  background:var(--versao-red)!important;color:#fff!important;box-shadow:0 5px 16px rgba(139,28,28,.16)!important;
+}
+
+/* A criação é a própria aba: não precisa de um segundo botão de retorno. */
+.proposal-v3 #pvBack{display:none!important}
+.proposal-v3 .proposal-v3-editor{gap:20px!important}
+.proposal-v3 .proposal-v3-section{
+  border:1px solid #e8e1de!important;border-radius:18px!important;padding:22px!important;background:#fff!important;
+  box-shadow:0 6px 22px rgba(30,36,45,.035)!important;
+}
+.proposal-v3 .proposal-v3-section>header h2{color:var(--versao-text)!important;font-size:20px!important;font-weight:800!important}
+.proposal-v3 .proposal-v3-section>header p{color:var(--versao-muted)!important;font-size:14px!important}
+
+/* Ordem aprovada: IA primeiro; depois eixo, tema e comando. */
+.proposal-v3 .proposal-v3-section:first-of-type>header{order:0}
+.proposal-v3 .proposal-v3-section:first-of-type>.proposal-v3-ai{order:1}
+.proposal-v3 .proposal-v3-section:first-of-type>.proposal-v3-axis{order:2}
+.proposal-v3 .proposal-v3-section:first-of-type>label:has(#pvTheme){order:3}
+.proposal-v3 .proposal-v3-section:first-of-type>div:has(#pvCommand){order:4}
+.proposal-v3 .proposal-v3-section:first-of-type>label:has(#pvUnderstand){order:5}
+
+/* CTA principal: vende a Inteligência VERSÃO, com a paleta oficial. */
+.proposal-v3 .proposal-v3-ai{
+  grid-template-columns:minmax(0,1fr) auto!important;gap:20px!important;align-items:center!important;
+  border:1px solid #ddb7b3!important;border-radius:18px!important;padding:20px!important;
+  background:linear-gradient(118deg,#fff7f6 0%,#fff 58%,#f8e7e5 100%)!important;
+  box-shadow:0 8px 24px rgba(139,28,28,.07)!important;
+}
+.proposal-v3 .proposal-v3-ai h3{
+  margin:0 0 6px!important;color:var(--versao-red)!important;font-size:22px!important;font-weight:850!important;
+}
+.proposal-v3 .proposal-v3-ai h3::before{
+  content:'INTELIGÊNCIA VERSÃO';display:block;margin-bottom:6px;color:var(--versao-red);font-size:11px;font-weight:900;letter-spacing:.09em;
+}
+.proposal-v3 .proposal-v3-ai p{font-size:14px!important;line-height:1.5!important;color:var(--versao-muted)!important}
+.proposal-v3 .proposal-v3-ai>div:last-child{display:grid!important;gap:8px!important;justify-items:end!important;min-width:190px!important}
+.proposal-v3 .proposal-v3-ai .btn{
+  min-height:50px!important;padding:11px 22px!important;border:1px solid var(--versao-red)!important;border-radius:13px!important;
+  background:var(--versao-red)!important;color:#fff!important;font-size:16px!important;font-weight:850!important;
+  box-shadow:0 6px 14px rgba(139,28,28,.18)!important;
+}
+.proposal-v3 .proposal-v3-ai .btn:hover{background:#771717!important;border-color:#771717!important}
+.proposal-v3 #pvCredits{color:#6e6261!important;font-size:12px!important}
+
+/* Eixo é a base da IA, por isso tem destaque próprio. */
+.proposal-v3 .proposal-v3-axis{
+  border:1px solid #dba9a4!important;border-radius:16px!important;padding:16px 18px!important;
+  background:#fff8f7!important;color:var(--versao-red)!important;font-size:16px!important;font-weight:850!important;
+}
+.proposal-v3 .proposal-v3-axis small{margin-top:7px!important;color:#756765!important;font-size:13px!important;font-weight:600!important}
+
+/* Campos e selects no mesmo padrão visual do app. */
+.proposal-v3 input[type="text"],.proposal-v3 input[type="search"],.proposal-v3 input:not([type]),.proposal-v3 select,
+.proposal-v3 textarea,.proposal-v3 .proposal-v3-axis select{
+  box-sizing:border-box!important;width:100%!important;border:1px solid #d8d1cf!important;border-radius:13px!important;
+  background:#fff!important;color:#242b36!important;font:inherit!important;
+}
+.proposal-v3 input[type="text"],.proposal-v3 input[type="search"],.proposal-v3 input:not([type]),.proposal-v3 select,.proposal-v3 .proposal-v3-axis select{
+  min-height:54px!important;padding:11px 14px!important;
+}
+.proposal-v3 .proposal-v3-axis select{margin-top:9px!important;border-color:#d6a29d!important;font-weight:650!important}
+.proposal-v3 input:focus,.proposal-v3 select:focus,.proposal-v3 textarea:focus{
+  outline:2px solid rgba(139,28,28,.2)!important;outline-offset:1px!important;border-color:var(--versao-red)!important;
+}
+.proposal-v3 .demo-editor{border-radius:14px!important;border-color:#d8d1cf!important}
+.proposal-v3 .demo-editor .item-actions{background:#fbf8f7!important;border-bottom:1px solid #e8dfdc!important;padding:10px!important}
+.proposal-v3 .demo-editor .btn{color:var(--versao-red)!important;border-color:#dfc8c5!important;background:#fff!important}
+
+/* Lista de propostas criadas igual ao padrão aprovado. */
+.proposal-v3 .proposal-v3-toolbar{grid-template-columns:minmax(0,1fr) 190px!important;gap:12px!important;margin-top:6px!important}
+.proposal-v3 .proposal-v3-list{gap:16px!important}
+.proposal-v3 .proposal-v3-card{
+  grid-template-columns:1fr!important;grid-template-areas:'main' 'status' 'actions'!important;gap:14px!important;
+  padding:22px!important;border:1px solid #e8e1de!important;border-radius:18px!important;background:#fff!important;
+  box-shadow:0 6px 20px rgba(30,36,45,.035)!important;
+}
+.proposal-v3 .proposal-v3-title{font-size:20px!important;line-height:1.3!important;font-weight:850!important;color:var(--versao-text)!important}
+.proposal-v3 .proposal-v3-command{
+  display:-webkit-box!important;-webkit-line-clamp:3!important;-webkit-box-orient:vertical!important;overflow:hidden!important;
+  margin:8px 0 0!important;padding:14px 16px!important;border:1px solid #eadedb!important;border-radius:14px!important;
+  background:#fffafa!important;color:#465266!important;font-size:14px!important;line-height:1.55!important;
+}
+.proposal-v3 .proposal-v3-status{
+  justify-self:start!important;padding:0!important;background:transparent!important;border:0!important;font-size:14px!important;font-weight:800!important;
+}
+.proposal-v3 .proposal-v3-status.ok{color:#187a48!important}.proposal-v3 .proposal-v3-status.warn{color:#9a6800!important}.proposal-v3 .proposal-v3-status.hidden{color:#667085!important}
+.proposal-v3 .proposal-v3-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;padding-top:14px!important}
+.proposal-v3 .proposal-v3-actions .btn{min-height:46px!important;border-radius:12px!important;color:var(--versao-red)!important;border-color:#e1cbc8!important;background:#fffafa!important;font-weight:800!important}
+
+/* Destinatários: sem select; todas as instituições aparecem diretamente. */
+.proposal-v3 .recipient-v3{display:flex!important;flex-direction:column!important;gap:12px!important}
+.proposal-v3 .recipient-v3-tabs{display:none!important}
+.proposal-v3 .recipient-v3>div[data-rec-list]{order:1!important;display:grid!important;gap:12px!important}
+.proposal-v3 .recipient-v3-all{order:2!important;margin-top:2px!important;border:1.5px dashed #dda7a2!important;background:#fff8f7!important;color:var(--versao-red)!important}
+.proposal-v3 .recipient-v3-all strong{font-size:0!important}
+.proposal-v3 .recipient-v3-all strong::after{content:'Selecionar todas';font-size:15px!important;font-weight:850!important}
+.proposal-v3 .recipient-v3-bottom{order:3!important}
+.proposal-v3 .recipient-v3-org{border:1px solid #e5dfdc!important;border-radius:16px!important;box-shadow:0 2px 8px rgba(16,24,40,.025)!important}
+.proposal-v3 .recipient-v3-head{padding:15px 16px!important}
+.proposal-v3 .recipient-v3-title strong{font-size:16px!important;font-weight:800!important}
+.proposal-v3 .recipient-v3-check:checked{border-color:var(--versao-red)!important;background:var(--versao-red)!important}
+.proposal-v3 .recipient-v3-class-check:checked{border-color:#2f75db!important;background:#2f75db!important}
+.proposal-v3 .recipient-v3-bottom .btn{background:var(--versao-red)!important;border-color:var(--versao-red)!important;color:#fff!important;border-radius:12px!important;font-weight:800!important}
+
+/* Loader da IA na mesma identidade. */
+.proposal-v3~.proposal-ai-loader .proposal-ai-loader-ring,.proposal-ai-loader-ring{border-top-color:var(--versao-red)!important}
+
+@media(max-width:760px){
+  .proposal-v3 .proposal-v3-tabs{border-radius:14px!important}.proposal-v3 .proposal-v3-tab{min-height:50px!important;padding:10px 8px!important;font-size:15px!important}
+  .proposal-v3 .proposal-v3-section{padding:16px!important;border-radius:16px!important}
+  .proposal-v3 .proposal-v3-ai{grid-template-columns:1fr!important;padding:17px!important}
+  .proposal-v3 .proposal-v3-ai>div:last-child{justify-items:stretch!important;min-width:0!important}.proposal-v3 .proposal-v3-ai .btn{width:100%!important}
+  .proposal-v3 .proposal-v3-toolbar{grid-template-columns:1fr!important}
+  .proposal-v3 .proposal-v3-card{padding:17px!important}.proposal-v3 .proposal-v3-title{font-size:18px!important}
+  .proposal-v3 .proposal-v3-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}.proposal-v3 .proposal-v3-actions .btn{padding:8px 5px!important;font-size:13px!important;min-width:0!important}
+  .proposal-v3 .recipient-v3-all{grid-template-columns:auto 1fr!important}.proposal-v3 .recipient-v3-all span{grid-column:2!important;text-align:left!important}
+}
