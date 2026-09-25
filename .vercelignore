@@ -9,6 +9,7 @@
 !action-alerts.e12.js
 !custom-selects.e12.js
 !teacher-main.e12.js
+!live-proposal-linkage-v2.e12.js
 !teacher-proposals-v3.e12.js
 !teacher-credits.e12.js
 !teacher-home.e12.js
@@ -27,4 +28,4 @@
 !vercel.json
 !privacidade.html
 !termos.html
-# deploy trigger 2026-09-25 approved-proposals-v3-visual
+# deploy trigger 2026-09-25 live-proposal-target-linkage-v2
