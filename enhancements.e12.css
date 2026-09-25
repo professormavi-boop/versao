@@ -94,3 +94,46 @@
 .platform-shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.platform-shortcuts .btn{white-space:normal;min-height:46px}@media(max-width:700px){.platform-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:380px){.platform-shortcuts{grid-template-columns:1fr}}
 
 .legal-links{display:flex;justify-content:center;gap:12px 24px;flex-wrap:wrap;padding:20px 16px;font-size:13px}.legal-links a{color:var(--crimson);text-decoration:underline;text-underline-offset:3px}.legal-links a:focus-visible{outline:2px solid var(--crimson);outline-offset:4px}
+
+/* Minhas instituições: navegação interna por cards, sem seletores. */
+.teacher-org-page.org-redesign{max-width:1120px;gap:18px}
+.org-redesign [hidden]{display:none!important}
+.org-redesign .org-directory-toolbar{display:flex;align-items:end;justify-content:space-between;gap:18px}
+.org-redesign .org-directory-toolbar .field{flex:1;max-width:520px;margin:0}
+.org-redesign .org-directory-toolbar .btn{flex-shrink:0}
+.org-redesign .org-directory-meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin:20px 0 14px;color:var(--muted);font-size:13px}
+.org-redesign .org-directory-meta label{display:flex;align-items:center;gap:8px;cursor:pointer}
+.org-redesign input[type=checkbox],.org-redesign input[type=radio]{accent-color:var(--crimson);width:16px;height:16px;flex:none}
+.org-redesign .org-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.org-redesign .org-institution-card{display:flex;flex-direction:column;gap:18px;min-width:0;padding:22px;text-align:left;border:1px solid var(--line);border-radius:16px;background:#fff;color:var(--ink);cursor:pointer;font:inherit;transition:border-color .15s,box-shadow .15s}
+.org-redesign .org-institution-card:hover{border-color:var(--crimson);box-shadow:0 6px 18px rgba(70,25,25,.06)}
+.org-redesign .org-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.org-redesign .org-monogram{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--soft);color:var(--crimson);font-size:19px;font-weight:800}
+.org-redesign .org-institution-card strong{font-size:17px;line-height:1.4;overflow-wrap:anywhere}
+.org-redesign .org-card-link{display:flex;justify-content:space-between;margin-top:auto;padding-top:16px;border-top:1px solid var(--line);font-size:13px;font-weight:700;color:var(--crimson)}
+.org-redesign .org-create-panel{margin:0}
+.org-redesign #orgCreatePanel{background:transparent;border-style:dashed}
+.org-redesign #orgCreatePanel:not([open]){display:none}
+.org-redesign #orgStatus:empty{display:none}
+.org-redesign #orgBack{min-height:40px}
+.org-redesign .org-context-head h2{font-size:23px;line-height:1.3}
+.org-redesign .org-class-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.org-redesign .org-class-card{display:grid;gap:6px;min-width:0;padding:15px 16px;text-align:left;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);cursor:pointer;font:inherit}
+.org-redesign .org-class-card strong{font-size:14px;overflow-wrap:anywhere}
+.org-redesign .org-class-card span{font-size:12px;color:var(--muted);line-height:1.5}
+.org-redesign .org-class-card[aria-pressed=true]{border-color:var(--crimson);background:var(--soft);box-shadow:inset 3px 0 var(--crimson)}
+.org-redesign .org-class-card[aria-pressed=true] strong{color:var(--crimson)}
+.org-redesign button:focus-visible,.org-redesign summary:focus-visible{outline:3px solid var(--crimson);outline-offset:3px}
+.org-redesign button:disabled{opacity:.6;cursor:wait}
+.org-redesign .org-students{list-style:none;padding:0;margin:0;line-height:1.5}
+.org-redesign .org-students>li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:16px 0;border-bottom:1px solid var(--line)}
+.org-redesign .org-students>li>div:first-child{flex:1;min-width:150px;overflow-wrap:anywhere}
+.org-redesign .org-students>li>small{flex-basis:100%;overflow-wrap:anywhere}
+.org-redesign .org-students .item-actions{margin:0}
+.org-redesign #orgRoster:empty{display:none}
+.org-redesign .org-roster-choices{min-width:0;margin:0;padding:12px;border:1px solid var(--line);border-radius:10px}
+.org-redesign .org-roster-choices legend{font-size:12px;color:var(--muted)}
+.org-redesign .org-roster-choices label{display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:13px;overflow-wrap:anywhere}
+@media(max-width:960px){.org-redesign .org-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.org-redesign .org-directory-toolbar{align-items:stretch;flex-direction:column;gap:12px}.org-redesign .org-directory-toolbar .field{max-width:none}.org-redesign .org-directory-toolbar .btn{align-self:flex-start;width:auto;min-height:42px}.org-redesign .org-card-grid{grid-template-columns:1fr;gap:12px}.org-redesign .org-institution-card{padding:18px;gap:14px}.org-redesign .org-class-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.org-redesign .org-context-head h2{font-size:20px}.org-redesign .org-students>li{align-items:flex-start}.org-redesign .org-students .item-actions{width:100%}.org-redesign .org-class-card{padding:12px}.org-redesign .org-directory-meta{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.org-redesign .org-institution-card{transition:none}}
