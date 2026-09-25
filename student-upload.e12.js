@@ -1,8 +1,7 @@
 'use strict';
 
-// VERSÃO — fluxo único de envio do aluno.
-// Foto/PDF/imagem: um único POST com o arquivo bruto para student-submit-v2-api.
-// Texto do Word/Google Docs: um único POST JSON para o mesmo endpoint.
+// VERSÃO — transporte do envio do aluno.
+// A interface de propostas pertence exclusivamente a student-proposals-v2.e12.js.
 const STUDENT_SUBMIT_API='student-submit-v2-api';
 const STUDENT_UPLOAD_ACCEPT='image/jpeg,image/png,image/webp,application/pdf';
 const STUDENT_UPLOAD_ACCEPTED='JPG, PNG, WEBP ou PDF';
@@ -53,9 +52,8 @@ async function studentSubmitJson(body,retried=false){
     throw error;
   }finally{clearTimeout(timer)}
 }
-async function studentSubmissionState(roundId){
-  return studentSubmitJson({action:'state',round_id:roundId});
-}
+async function studentSubmissionState(roundId){return studentSubmitJson({action:'state',round_id:roundId})}
+
 async function studentSubmitFile(roundId,file,retried=false){
   const mime=studentUploadMime(file);
   if(!mime)throw Error(`Formato não permitido. Use ${STUDENT_UPLOAD_ACCEPTED}.`);
@@ -78,7 +76,6 @@ async function studentSubmitFile(roundId,file,retried=false){
     if(!response.ok||data.error)throw Error(data.error||`Falha no envio (${response.status}).`);
     return data;
   }catch(error){
-    // Se a resposta se perdeu depois da gravação, confirme o estado antes de informar falha.
     try{
       const state=await studentSubmissionState(roundId);
       if(state?.submission?.status==='awaiting_approval'&&state?.file)return {ok:true,reconciled:true,submission:state.submission,file:state.file};
@@ -88,59 +85,6 @@ async function studentSubmitFile(roundId,file,retried=false){
     throw error;
   }finally{clearTimeout(timer)}
 }
-
-function installStudentSendMenu(){
-  if(S?.profile?.role!=='student')return;
-  const nav=document.getElementById('nav');
-  if(!nav||nav.querySelector('[data-student-send-menu]'))return;
-  const button=document.createElement('button');
-  button.type='button';
-  button.setAttribute('data-student-send-menu','');
-  button.innerHTML='<span class="dot"></span>Enviar redação';
-  const proposals=nav.querySelector('[data-route="student-proposals"]');
-  if(proposals)proposals.after(button);else nav.prepend(button);
-}
-const studentUploadBaseBuildNav=window.buildNav;
-if(typeof studentUploadBaseBuildNav==='function'){
-  window.buildNav=function(){
-    studentUploadBaseBuildNav();
-    installStudentSendMenu();
-  };
-}
-function studentSendSetActive(){
-  document.querySelectorAll('#nav button').forEach(button=>button.classList.toggle('active',button.hasAttribute('data-student-send-menu')));
-}
-
-async function renderStudentSendPage(){
-  if(S?.profile?.role!=='student')return;
-  invalidateNavigation();S.route='student-send';studentSendSetActive();closeDrawer();
-  const view=document.getElementById('view');
-  view.innerHTML='<div class="empty">Carregando propostas...</div>';
-  try{
-    const proposals=await studentProposals(true),ids=(proposals.proposals||[]).map(item=>item.id);
-    const states=ids.length?(await studentSubmitJson({action:'states',round_ids:ids})).states||[]:[];
-    const stateMap=new Map(states.map(state=>[state.round_id,state]));
-    if(S.route!=='student-send')return;
-    const cards=(proposals.proposals||[]).map(round=>{
-      const state=stateMap.get(round.id),sub=state?.submission,file=state?.file,editable=state?.editable===true;
-      const status=sub?.status==='approved'?'Aprovada':sub&&file?'Enviada':sub?'Envio incompleto':'Disponível';
-      const cls=sub?.status==='approved'?'ok':sub?'warn':'crimson';
-      return `<article class="student-card" data-send-round="${esc(round.id)}">
-        <div class="item-top"><div><div class="item-title">R${esc(round.number??'—')} · ${esc(round.theme)}</div>${round.due_date?`<div class="item-meta">Prazo: ${fmtDate(round.due_date)}</div>`:''}</div><span class="pill ${cls}">${status}</span></div>
-        <div class="item-actions">
-          <button class="btn primary" data-v2-camera="${esc(round.id)}" ${editable?'':'disabled'}>${sub?'Substituir por foto':'Tirar foto'}</button>
-          <button class="btn soft-btn" data-v2-file="${esc(round.id)}" ${editable?'':'disabled'}>${sub?'Substituir arquivo':'Selecionar arquivo'}</button>
-          <button class="btn soft-btn" data-v2-paste="${esc(round.id)}" ${editable?'':'disabled'}>Colar redação</button>
-        </div>
-        ${editable?`<div class="safe-note"><b>Arquivos aceitos:</b> ${STUDENT_UPLOAD_ACCEPTED}, até 15 MB.<br><b>Word:</b> copie o texto e escolha “Colar redação”. Não envie .DOCX.</div>`:'<div class="safe-note">A correção já começou; este envio não pode mais ser substituído.</div>'}
-      </article>`;
-    }).join('');
-    view.innerHTML=header('Enviar redação','Escolha como deseja enviar. Foto, PDF/imagem ou texto colado do Word.')+`<div class="list">${cards||'<div class="empty">Nenhuma proposta disponível para envio.</div>'}</div>`;
-  }catch(error){
-    if(S.route==='student-send')view.innerHTML=header('Enviar redação','Não foi possível carregar as propostas.')+`<div class="card"><p>${esc(error.message||error)}</p><button class="btn primary" data-student-send-menu>Tentar novamente</button></div>`;
-  }
-}
-window.renderStudentSendPage=renderStudentSendPage;
 
 function chooseStudentFile(roundId,camera=false){
   if(!roundId||S?.profile?.role!=='student')return;
@@ -202,7 +146,7 @@ function openStudentPasteV2(roundId){
       await studentSubmitJson({action:'paste',round_id:roundId,text});
       S.cache={};S.student=null;close();await navigate('student-essays');studentUploadSuccess('Redação colada e enviada para correção.');
     }catch(error){
-      textarea.disabled=false;send.disabled=false;send.textContent='Tentar novamente';studentUploadError(error.message||'Não foi possível enviar o texto.');
+      textarea.disabled=false;send.disabled=false;send.textContent='Tentar enviar novamente';studentUploadError(error.message||'Não foi possível enviar o texto.');
     }
   };
   dialog.showModal();textarea.focus();
@@ -210,8 +154,6 @@ function openStudentPasteV2(roundId){
 
 document.addEventListener('click',event=>{
   if(S?.profile?.role!=='student')return;
-  const sendMenu=event.target?.closest?.('[data-student-send-menu],#studentSendShortcut,[data-student-prop]');
-  if(sendMenu&&!sendMenu.disabled){event.preventDefault();event.stopImmediatePropagation();renderStudentSendPage();return}
   const camera=event.target?.closest?.('[data-v2-camera]');
   if(camera&&!camera.disabled){event.preventDefault();event.stopImmediatePropagation();chooseStudentFile(camera.getAttribute('data-v2-camera'),true);return}
   const file=event.target?.closest?.('[data-v2-file]');
@@ -219,5 +161,3 @@ document.addEventListener('click',event=>{
   const paste=event.target?.closest?.('[data-v2-paste]');
   if(paste&&!paste.disabled){event.preventDefault();event.stopImmediatePropagation();openStudentPasteV2(paste.getAttribute('data-v2-paste'));}
 },true);
-
-document.addEventListener('DOMContentLoaded',()=>installStudentSendMenu(),{once:true});
