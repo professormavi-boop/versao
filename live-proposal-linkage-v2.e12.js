@@ -66,6 +66,7 @@
 
   if(typeof originalRenderLive==='function'){
     window.renderLive=async function(navigation){
+      if(S.cache)delete S.cache.directory;
       await originalRenderLive(navigation);
       if(S.route!=='live')return;
       const d=S.cache.directory;
