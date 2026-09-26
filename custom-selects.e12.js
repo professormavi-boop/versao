@@ -36,6 +36,11 @@
         [...node.children].forEach(option=>rows.push({option}));
       }else if(node.tagName==='OPTION')rows.push({option:node});
     });
+    if(select.id==='lvStudent'){
+      const first=rows.filter(row=>row.option&&!row.option.value);
+      const students=rows.filter(row=>row.option&&row.option.value).sort((a,b)=>String(a.option.textContent||a.option.label||'').localeCompare(String(b.option.textContent||b.option.label||''),'pt-BR',{sensitivity:'base'}));
+      return [...first,...students];
+    }
     return rows;
   }
 
