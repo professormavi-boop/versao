@@ -103,7 +103,9 @@
   }
 
   function getSelect(target){
-    return target instanceof Element?target.closest('select:not([multiple])'):null;
+    const select=target instanceof Element?target.closest('select:not([multiple])'):null;
+    if(select?.id==='pvAxis')return null;
+    return select;
   }
 
   document.addEventListener('pointerdown',event=>{
