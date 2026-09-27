@@ -166,3 +166,10 @@ Solicitação: usar a logo existente como favicon e ícone de tela inicial.
 - [x] Verificar arquivos e entrega HTTP; registrar commit e limitações.
 
 Validação: npm run check, npm test e HTTP dos seis novos arquivos passaram; dimensões PNG e manifest conferidos. Logo original incorporada de 128px reaproveitada, sem redesenho. Commit desta seção registra a implementação. Publicação em suaversao.vercel.app conforme autorização anterior mantida na sessão; projeto prj_5OC7zfjEgapvbrapPjas2lLvvut7 confirmado. Pendente: instalação física Android/iOS; atalhos existentes podem exigir recriação por cache.
+
+## Pós-envio do aluno — 27/09/2026
+- [x] Destacar envio confirmado e redação mais recente.
+- [x] Recolher histórico e exigir abertura explícita da correção.
+- [x] Validar regressões e publicação autorizada.
+
+Testes: npm run check, npm test (assets HTTP e regressões) e DOM com redação nova pendente + antiga aprovada passaram. Confirmação persistente após envio; histórico recolhido; notas somente em Ver correção. Sem alteração de notas/backend. Validação física mobile pendente. Commit desta seção contém o ajuste; destino suaversao.vercel.app.

@@ -12,9 +12,17 @@ function studentUploadError(message){
   if(typeof window.actionAlert==='function')window.actionAlert(text,'Atenção');
   else toast(text);
 }
-function studentUploadSuccess(message='Redação enviada para correção.'){
-  if(typeof window.actionAlert==='function')window.actionAlert(message,'Ação concluída');
-  else toast(message);
+function studentUploadSuccess(){
+  const message='Redação enviada com sucesso. Aguardando correção do professor.';
+  const list=$('seList');
+  if(list){
+    const note=document.createElement('div');
+    note.className='safe-note';
+    note.setAttribute('role','status');
+    note.textContent=message;
+    list.prepend(note);
+    note.scrollIntoView?.({block:'start',behavior:'smooth'});
+  }else toast(message);
 }
 function studentUploadMime(file){
   const name=(file?.name||'').toLowerCase(),type=String(file?.type||'').toLowerCase();
