@@ -4,240 +4,66 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#8B1C1C">
-  <meta name="description" content="VERSÃO — plataforma de correção e acompanhamento de redações para professores, com correção manual gratuita e inteligência artificial opcional.">
+  <meta name="description" content="VERSÃO — plataforma de correção e acompanhamento de redações para professores.">
   <title>VERSÃO — Menos tempo corrigindo. Mais tempo para ensinar.</title>
-  <link rel="icon" href="/favicon.ico?v=20260927" sizes="16x16 32x32 48x48">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=20260927">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260927">
+  <link rel="icon" href="/favicon.ico?v=20260927">
   <link rel="stylesheet" href="/base.e12.css">
-  <link rel="stylesheet" href="/landing.e12.css?v=20260927-lp3">
+  <style>
+    :root{--v:#981828;--v2:#b5162b;--ink:#211e20;--muted:#6d6568;--line:#eadfdd;--soft:#fbefed;--green:#26734b}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#fff;color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}a{text-decoration:none;color:inherit}.wrap{width:min(1160px,calc(100% - 36px));margin:auto}.header{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:24px;min-height:74px;padding:9px max(18px,calc((100vw - 1160px)/2));background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-bottom:1px solid #eee5e3}.brand{display:flex;align-items:center;gap:10px}.brand-logo{width:50px;height:50px;border-radius:13px}.brand strong{display:block;color:var(--v);font-size:20px;font-weight:950}.brand small{display:block;margin-top:3px;color:#846d70;font-size:9px}.nav{display:flex;justify-content:center;gap:22px;flex:1;font-size:13px;font-weight:750}.nav a:hover{color:var(--v)}.actions{display:flex;gap:9px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border-radius:12px;font-size:13px;font-weight:900}.primary{background:linear-gradient(135deg,var(--v),var(--v2));color:#fff!important;box-shadow:0 8px 22px rgba(152,24,40,.18)}.ghost{border:1px solid #dcb8b7;background:#fff;color:var(--v)!important}.hero{background:radial-gradient(circle at 82% 15%,rgba(152,24,40,.10),transparent 25%),linear-gradient(150deg,#fff,#fffaf8);border-bottom:1px solid #f0e7e4}.hero-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:42px;align-items:center;padding:64px 0}.eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--v);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.05em}.eyebrow:before{content:"";width:22px;height:2px;background:var(--v)}h1{margin:18px 0;font-size:clamp(42px,5vw,68px);line-height:.98;letter-spacing:-.045em}h1 em,h2 em{font-style:normal;color:var(--v)}.lead{max-width:610px;color:#554f51;font-size:18px;line-height:1.58}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.trust{display:flex;gap:18px;flex-wrap:wrap;margin-top:26px;font-size:12px;font-weight:800}.trust span:before{content:"✓";margin-right:7px;color:var(--v)}.system-card{padding:10px;border:1px solid #e7d8d5;border-radius:26px;background:#fff;box-shadow:0 28px 65px rgba(70,30,34,.14)}.system-card svg{display:block;width:100%;height:auto}.benefits{padding:22px 0;border-bottom:1px solid #f0e7e4}.benefit-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.mini{display:flex;gap:12px;align-items:center;padding:15px;border:1px solid var(--line);border-radius:16px}.icon{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:13px;background:var(--soft);color:var(--v);font-weight:950}.mini strong{display:block;font-size:13px}.mini p{margin:4px 0 0;color:var(--muted);font-size:11px;line-height:1.35}.section{padding:78px 0}.head{text-align:center;max-width:760px;margin:0 auto 32px}.head h2,.section h2{margin:11px 0 13px;font-size:clamp(31px,4vw,47px);line-height:1.06;letter-spacing:-.035em}.section p{color:var(--muted);line-height:1.65}.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.step{padding:20px 17px;border:1px solid var(--line);border-radius:18px;background:#fff}.step b{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--soft);color:var(--v)}.step strong{display:block;margin-top:14px}.step p{margin:7px 0 0;font-size:12px;line-height:1.45}.correction{background:#fffaf8}.correction-grid,.student-grid,.time-grid{display:grid;grid-template-columns:1fr 1fr;gap:42px;align-items:center}.screen{border:1px solid var(--line);border-radius:22px;overflow:hidden;background:#fff;box-shadow:0 20px 48px rgba(70,30,34,.08)}.screen-top{display:flex;gap:7px;align-items:center;padding:13px 16px;background:#faf7f6;border-bottom:1px solid #eee4e2}.dot{width:8px;height:8px;border-radius:50%;background:#d8cbc8}.screen-body{display:grid;grid-template-columns:135px 1fr;min-height:350px}.side{padding:22px 14px;background:linear-gradient(#a90f22,#7e121b);color:#fff}.side b{display:block;margin-bottom:22px;font-size:17px}.side span{display:block;padding:8px 7px;font-size:11px}.dash{padding:22px}.dash h3{margin:0 0 16px;font-size:20px}.status-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.status{padding:8px 11px;border-radius:999px;background:#eef4fb;font-size:10px;font-weight:850}.status.ready{background:#e7f7ed;color:var(--green)}.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.box{padding:16px;border:1px solid var(--line);border-radius:15px}.score{font-size:42px;font-weight:900;color:var(--v)}.score small{font-size:15px;color:#8b8385}.bar{display:grid;grid-template-columns:26px 1fr 30px;gap:7px;align-items:center;margin:10px 0;font-size:10px}.track{height:6px;background:#f0e8e6;border-radius:99px;overflow:hidden}.fill{height:100%;background:#36b66b;border-radius:99px}.alerts li{margin:8px 0;color:#514a4c;font-size:11px}.next{margin-top:12px;padding:12px;border-radius:12px;background:#fbefed;font-size:11px;color:#5d5153}.value-list{display:grid;gap:11px;margin-top:20px}.value{display:flex;gap:12px;padding:14px;border:1px solid var(--line);border-radius:15px;background:#fff}.value i{display:grid;place-items:center;flex:0 0 36px;height:36px;border-radius:11px;background:var(--soft);color:var(--v);font-style:normal;font-size:11px;font-weight:900}.value strong{display:block}.value p{margin:4px 0 0;font-size:12px}.ai{background:#fff}.ai-card{display:grid;grid-template-columns:1.05fr .95fr;gap:38px;padding:38px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,#fff,#fff7f5)}.checks{display:grid;grid-template-columns:1fr 1fr;gap:12px}.check{display:flex;align-items:center;gap:10px;padding:15px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:13px;font-weight:800}.check:before{content:"✓";display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#e7f7ed;color:var(--green)}.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.feature{padding:24px;border:1px solid var(--line);border-radius:20px;background:#fff}.feature h3{margin:14px 0 7px;font-size:21px}.badge{display:inline-flex;padding:5px 9px;border-radius:999px;background:#e8f7ef;color:var(--green);font-size:11px;font-weight:900}.badge.ai-badge{background:#fff1da;color:#a66610}.feature p{margin-bottom:0}.ease-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}.ease{display:flex;gap:14px;padding:20px;border:1px solid var(--line);border-radius:18px;background:#fffaf8}.ease strong{display:block;margin-bottom:5px}.ease p{margin:0;font-size:13px}.axis{background:#fbf7f5}.axis-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}.tag{padding:9px 12px;border:1px solid #ded3d1;border-radius:10px;background:#fff;font-size:12px}.axis-flow{padding:24px;border:1px solid var(--line);border-radius:20px;background:#fff}.flow{display:grid;grid-template-columns:40px 1fr;gap:3px 12px;align-items:center;padding:14px;border-radius:14px;background:#fcfaf9}.flow b{grid-row:1/3;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--soft);color:var(--v)}.line{width:2px;height:18px;margin-left:34px;background:#e5d3cf}.student{background:#fff}.phone{width:min(300px,100%);margin:auto;padding:12px;border-radius:38px;background:#18181b;box-shadow:0 22px 50px rgba(0,0,0,.16)}.phone-inner{min-height:510px;padding:28px 18px;border-radius:28px;background:#fff}.phone-logo{text-align:center;color:var(--v);font-size:22px;font-weight:950}.phone h3{margin:28px 0 14px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tabs span{padding:9px;border-radius:10px;background:#f5f3f3;text-align:center;font-size:11px;font-weight:800}.tabs span:first-child{background:#fbeaec;color:var(--v)}.essay{margin-top:10px;padding:13px;border:1px solid var(--line);border-radius:12px;font-size:11px}.essay b{display:block;margin-bottom:3px}.student-points{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.student-points span{padding:12px;border:1px solid var(--line);border-radius:12px;font-size:12px;font-weight:800}.student-points span:before{content:"✓";margin-right:7px;color:var(--v)}.time{background:#fffaf8}.compare{padding:22px;border:1px solid var(--line);border-radius:20px;background:#fff}.compare-head,.compare-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}.compare-head span{padding:11px;border-radius:10px;background:#f8ecea;text-align:center;font-size:12px;font-weight:900;color:var(--v)}.compare-head span:last-child{background:#eaf6ef;color:#286d48}.compare ul{list-style:none;margin:10px 0 0;padding:0}.compare li{padding:8px 8px 8px 25px;position:relative;font-size:12px}.compare li:before{content:"✓";position:absolute;left:8px;color:var(--v)}.start{padding-top:22px}.start-card{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;padding:32px;border:1px solid var(--line);border-radius:22px;background:#fff;box-shadow:0 16px 42px rgba(70,30,34,.06)}.faq{display:grid;grid-template-columns:1fr 1fr;gap:12px}.faq details{padding:0 17px;border:1px solid var(--line);border-radius:15px;background:#fff}.faq summary{cursor:pointer;padding:18px 28px 18px 0;position:relative;font-weight:850;list-style:none}.faq summary:after{content:"+";position:absolute;right:0;color:var(--v);font-size:21px}.faq details[open] summary:after{content:"−"}.faq p{margin:0 0 17px;font-size:13px}.final{padding:48px 0;background:linear-gradient(135deg,#78131b,#a51627);color:#fff}.final-grid{display:grid;grid-template-columns:.7fr 1.4fr .8fr;gap:28px;align-items:center}.final h2{margin:0 0 8px;font-size:29px}.final p{margin:0;color:#f3d9d6}.final .btn{background:#fff;color:var(--v)!important}.footer{padding:22px 0;background:#211e20;color:#d8d0d2;font-size:11px}.footer .wrap{display:flex;justify-content:space-between;gap:18px}.footer-links{display:flex;gap:16px}
+    @media(max-width:980px){.nav{display:none}.hero-grid,.correction-grid,.student-grid,.time-grid,.axis-grid,.ai-card{grid-template-columns:1fr}.hero-copy{text-align:center}.eyebrow{justify-content:center}.lead{margin:auto}.hero-actions,.trust{justify-content:center}.benefit-grid{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr}.start-card{grid-template-columns:1fr}.final-grid{grid-template-columns:1fr}}
+    @media(max-width:700px){.wrap{width:min(100% - 28px,1160px)}.header{padding:9px 14px}.brand-logo{width:45px;height:45px}.brand small{display:none}.actions .ghost{display:none}.actions .primary{max-width:155px;text-align:center;line-height:1.12;padding:0 13px}.hero-grid{padding:38px 0}.hero h1{font-size:41px}.lead{font-size:16px}.hero-actions{display:grid;grid-template-columns:1fr 1fr}.benefit-grid,.feature-grid,.ease-grid,.faq,.checks,.student-points{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.screen-body{grid-template-columns:1fr}.side{display:none}.dash-grid{grid-template-columns:1fr}.section{padding:58px 0}.correction-grid,.student-grid{gap:28px}.ai-card{padding:24px}.final{padding:38px 0}.footer .wrap{flex-direction:column}.footer-links{flex-wrap:wrap}}
+  </style>
 </head>
-<body class="lp-body">
-  <header class="lp-header">
-    <a class="lp-brand" href="#inicio" aria-label="VERSÃO — início">
-      <span class="brand-logo lp-logo" aria-hidden="true"></span>
-      <span><strong>VERSÃO</strong><small>Escreva. Melhore. Evolua.</small></span>
-    </a>
-    <nav class="lp-nav" aria-label="Navegação principal">
-      <a href="#como-funciona">Como funciona</a>
-      <a href="#correcao">Correção</a>
-      <a href="#propostas">Propostas</a>
-      <a href="#aluno">Para o aluno</a>
-      <a href="#faq">Dúvidas</a>
-    </nav>
-    <div class="lp-header-actions">
-      <a class="lp-btn lp-btn-ghost" href="/">Já tenho conta</a>
-      <a class="lp-btn lp-btn-primary" href="/?cadastro=1">Criar conta grátis</a>
-    </div>
+<body>
+  <header class="header">
+    <a class="brand" href="#inicio"><span class="brand-logo" aria-hidden="true"></span><span><strong>VERSÃO</strong><small>Escreva. Melhore. Evolua.</small></span></a>
+    <nav class="nav"><a href="#como">Como funciona</a><a href="#correcao">Correção</a><a href="#recursos">Recursos</a><a href="#aluno">Para o aluno</a><a href="#faq">Dúvidas</a></nav>
+    <div class="actions"><a class="btn ghost" href="/">Já tenho conta</a><a class="btn primary" href="/?cadastro=1">Criar conta grátis</a></div>
   </header>
 
   <main>
-    <section class="lp-hero" id="inicio">
-      <div class="lp-wrap lp-hero-grid">
-        <div class="lp-hero-copy">
-          <span class="lp-kicker">Feito para quem ensina redação</span>
-          <h1>Menos tempo corrigindo.<br><em>Mais tempo para ensinar.</em></h1>
-          <p>O VERSÃO organiza correções, alunos, turmas e propostas em um só lugar. Você pode trabalhar manualmente de graça e usar inteligência artificial apenas quando quiser acelerar o processo.</p>
-          <div class="lp-actions">
-            <a class="lp-btn lp-btn-primary lp-btn-large" href="/?cadastro=1">Criar conta grátis</a>
-            <a class="lp-btn lp-btn-ghost lp-btn-large" href="/">Já tenho conta</a>
-          </div>
-          <div class="lp-trust-row" aria-label="Principais benefícios">
-            <span>Professor no controle</span>
-            <span>Manual sem custo</span>
-            <span>IA opcional</span>
-          </div>
-        </div>
-        <figure class="lp-hero-media">
-          <img src="/landing-mockup-versao.webp?v=20260927" width="1672" height="941" alt="VERSÃO aberto no notebook do professor e no celular do aluno">
-          <figcaption>Professor revisa no computador. Aluno acompanha pelo celular.</figcaption>
-        </figure>
-      </div>
-    </section>
-
-    <section class="lp-quick-benefits" aria-label="Diferenciais do VERSÃO">
-      <div class="lp-wrap lp-benefit-grid">
-        <article><span class="lp-symbol" aria-hidden="true">✓</span><div><strong>Correção manual grátis</strong><p>Use a plataforma sem consumir créditos.</p></div></article>
-        <article><span class="lp-symbol" aria-hidden="true">✦</span><div><strong>IA quando você quiser</strong><p>Acelere a primeira análise e revise tudo.</p></div></article>
-        <article><span class="lp-symbol" aria-hidden="true">C5</span><div><strong>Padrão ENEM</strong><p>Competências, desvios, ponto forte e próximo passo.</p></div></article>
-        <article><span class="lp-symbol" aria-hidden="true">↗</span><div><strong>Propostas por eixo</strong><p>Parta de um eixo temático e ganhe tempo.</p></div></article>
-      </div>
-    </section>
-
-    <section class="lp-section" id="como-funciona">
-      <div class="lp-wrap">
-        <div class="lp-section-head">
-          <span class="lp-section-label">Como funciona</span>
-          <h2>Do envio à devolutiva, sem tirar você do processo.</h2>
-          <p>A tecnologia organiza o fluxo. O professor continua no comando da correção.</p>
-        </div>
-        <div class="lp-steps">
-          <article><b>1</b><span>Criar proposta</span><p>Monte manualmente ou parta de um eixo temático.</p></article>
-          <article><b>2</b><span>Aluno envia</span><p>A redação chega organizada para correção.</p></article>
-          <article><b>3</b><span>IA analisa</span><p>Quando ativada, faz a primeira leitura.</p></article>
-          <article><b>4</b><span>Professor revisa</span><p>Você ajusta competências, nota e devolutiva.</p></article>
-          <article><b>5</b><span>Aluno recebe</span><p>O resultado fica disponível para acompanhamento.</p></article>
+    <section class="hero" id="inicio">
+      <div class="wrap hero-grid">
+        <div class="hero-copy"><span class="eyebrow">Feito para quem ensina redação</span><h1>Menos tempo corrigindo.<br><em>Mais tempo para ensinar.</em></h1><p class="lead">O VERSÃO organiza correções, alunos, turmas e propostas em um só lugar. Trabalhe manualmente de graça e use inteligência artificial apenas quando quiser acelerar o processo.</p><div class="hero-actions"><a class="btn primary" href="/?cadastro=1">Criar conta grátis</a><a class="btn ghost" href="/">Já tenho conta</a></div><div class="trust"><span>Professor no controle</span><span>Manual sem custo</span><span>IA opcional</span></div></div>
+        <div class="system-card" aria-label="Visão do VERSÃO para professor e aluno">
+          <svg viewBox="0 0 900 520" role="img" aria-label="Tela de correção do VERSÃO em computador e celular">
+            <rect x="20" y="28" width="700" height="418" rx="28" fill="#202024"/><rect x="36" y="44" width="668" height="380" rx="11" fill="#fff"/><rect x="36" y="44" width="150" height="380" rx="11" fill="#a80f21"/><text x="66" y="83" font-size="25" font-weight="800" fill="#fff">VERSÃO</text>
+            <g font-size="14" fill="#fff"><text x="66" y="132">Início</text><text x="66" y="169">Correções</text><text x="66" y="206">Propostas</text><text x="66" y="243">Alunos</text><text x="66" y="280">Turmas</text><text x="66" y="317">Créditos</text></g>
+            <text x="220" y="88" font-size="22" font-weight="800" fill="#262226">Correção de redação</text><rect x="220" y="110" width="100" height="32" rx="11" fill="#edf4fb"/><text x="243" y="131" font-size="11" font-weight="700" fill="#376b9b">Recebida</text><rect x="330" y="110" width="100" height="32" rx="11" fill="#f0f3f5"/><text x="350" y="131" font-size="11" font-weight="700" fill="#596671">Analisando</text><rect x="440" y="110" width="100" height="32" rx="11" fill="#e6f7ec"/><text x="470" y="131" font-size="11" font-weight="700" fill="#237a4b">Pronta</text>
+            <rect x="220" y="160" width="210" height="220" rx="17" fill="#fff" stroke="#eadfdd"/><text x="240" y="190" font-size="13" font-weight="700" fill="#6f6668">Nota final</text><text x="240" y="238" font-size="48" font-weight="850" fill="#a80f21">860</text><text x="334" y="236" font-size="22" font-weight="700" fill="#7c7476">/1000</text>
+            <g font-size="12" fill="#282428"><text x="240" y="274">C1</text><rect x="275" y="265" width="120" height="7" rx="4" fill="#eee7e5"/><rect x="275" y="265" width="92" height="7" rx="4" fill="#36b66b"/><text x="240" y="304">C2</text><rect x="275" y="295" width="120" height="7" rx="4" fill="#eee7e5"/><rect x="275" y="295" width="112" height="7" rx="4" fill="#36b66b"/><text x="240" y="334">C3</text><rect x="275" y="325" width="120" height="7" rx="4" fill="#eee7e5"/><rect x="275" y="325" width="88" height="7" rx="4" fill="#36b66b"/></g>
+            <rect x="448" y="160" width="232" height="102" rx="17" fill="#fff" stroke="#eadfdd"/><text x="468" y="190" font-size="15" font-weight="800" fill="#262226">Principais desvios</text><circle cx="470" cy="217" r="4" fill="#c41428"/><text x="484" y="222" font-size="12" fill="#554e50">Repetição de palavras</text><circle cx="470" cy="242" r="4" fill="#c41428"/><text x="484" y="247" font-size="12" fill="#554e50">Conectivos e concordância</text>
+            <rect x="448" y="278" width="232" height="102" rx="17" fill="#fff" stroke="#eadfdd"/><text x="468" y="308" font-size="15" font-weight="800" fill="#262226">Próximo passo</text><text x="468" y="337" font-size="12" fill="#5f5759">Fortalecer a coesão e a</text><text x="468" y="357" font-size="12" fill="#5f5759">proposta de intervenção.</text>
+            <rect x="86" y="446" width="570" height="16" rx="8" fill="#505054"/>
+            <rect x="682" y="135" width="194" height="348" rx="34" fill="#17171a"/><rect x="696" y="154" width="166" height="310" rx="25" fill="#fff"/><rect x="747" y="154" width="64" height="11" rx="6" fill="#17171a"/><text x="728" y="200" font-size="20" font-weight="850" fill="#a80f21">VERSÃO</text><text x="714" y="238" font-size="18" font-weight="800" fill="#262226">Minhas redações</text><rect x="714" y="257" width="63" height="27" rx="10" fill="#fbeaec"/><text x="726" y="275" font-size="10" font-weight="700" fill="#a80f21">Enviadas</text><rect x="785" y="257" width="63" height="27" rx="10" fill="#f3f3f4"/><text x="797" y="275" font-size="10" font-weight="700" fill="#555057">Corrigidas</text><g font-size="10" fill="#3f3a3c"><rect x="714" y="302" width="134" height="44" rx="9" fill="#fff" stroke="#e9e1df"/><text x="726" y="320">Redação – ENEM</text><text x="726" y="337">Nota: 860</text><rect x="714" y="354" width="134" height="44" rx="9" fill="#fff" stroke="#e9e1df"/><text x="726" y="372">Redação – Tecnologia</text><text x="726" y="389">Nota: 720</text><rect x="714" y="406" width="134" height="44" rx="9" fill="#fff" stroke="#e9e1df"/><text x="726" y="424">Redação – Educação</text><text x="726" y="441">Nota: 680</text></g>
+          </svg>
         </div>
       </div>
     </section>
 
-    <section class="lp-section lp-correction-section" id="correcao">
-      <div class="lp-wrap lp-correction-grid">
-        <div class="lp-correction-visual">
-          <div class="lp-crop lp-crop-professor">
-            <img src="/landing-mockup-versao.webp?v=20260927" alt="Detalhe da correção no VERSÃO com nota, competências e orientações">
-          </div>
-          <span class="lp-image-note">Uma visão clara para revisar antes de devolver ao aluno.</span>
-        </div>
-        <div class="lp-correction-copy">
-          <span class="lp-section-label">O que o professor recebe</span>
-          <h2>Mais do que uma nota: uma correção estruturada para orientar melhor.</h2>
-          <div class="lp-value-list">
-            <article><span class="lp-mini-icon">01</span><div><strong>Nota final e competências</strong><p>Veja rapidamente o desempenho do aluno em C1, C2, C3, C4 e C5.</p></div></article>
-            <article><span class="lp-mini-icon">02</span><div><strong>Principais desvios</strong><p>Identifique os pontos que mais precisam de atenção na revisão.</p></div></article>
-            <article><span class="lp-mini-icon">03</span><div><strong>Ponto forte</strong><p>Valorize o que o aluno já faz bem, não apenas o que precisa corrigir.</p></div></article>
-            <article><span class="lp-mini-icon">04</span><div><strong>Próximo passo</strong><p>Transforme a correção em orientação prática para a próxima produção.</p></div></article>
-          </div>
-        </div>
-      </div>
-    </section>
+    <section class="benefits"><div class="wrap benefit-grid"><article class="mini"><span class="icon">✓</span><div><strong>Correção manual grátis</strong><p>Use a plataforma sem consumir créditos.</p></div></article><article class="mini"><span class="icon">✦</span><div><strong>IA quando você quiser</strong><p>Acelere a primeira análise e revise tudo.</p></div></article><article class="mini"><span class="icon">C5</span><div><strong>Padrão ENEM</strong><p>Competências, desvios e próximo passo.</p></div></article><article class="mini"><span class="icon">↗</span><div><strong>Propostas por eixo</strong><p>Parta de um eixo temático e ganhe tempo.</p></div></article></div></section>
 
-    <section class="lp-section lp-ai-section">
-      <div class="lp-wrap lp-ai-card">
-        <div>
-          <span class="lp-section-label">A principal diferença</span>
-          <h2>A IA acelera.<br><em>O professor decide.</em></h2>
-          <p>O VERSÃO não foi criado para substituir sua leitura. A inteligência artificial organiza a primeira análise e aponta o que merece atenção. Você revisa, ajusta e aprova antes da devolutiva.</p>
-        </div>
-        <div class="lp-control-grid">
-          <article><b>✓</b><span>Você define a nota final</span></article>
-          <article><b>✓</b><span>Você ajusta as competências</span></article>
-          <article><b>✓</b><span>Você escolhe a orientação</span></article>
-          <article><b>✓</b><span>Você aprova a devolutiva</span></article>
-        </div>
-      </div>
-    </section>
+    <section class="section" id="como"><div class="wrap"><div class="head"><span class="eyebrow">Como funciona</span><h2>Do envio à devolutiva, sem tirar você do processo.</h2><p>A tecnologia organiza o fluxo. O professor continua no comando.</p></div><div class="steps"><article class="step"><b>1</b><strong>Criar proposta</strong><p>Monte manualmente ou parta de um eixo temático.</p></article><article class="step"><b>2</b><strong>Aluno envia</strong><p>A redação chega organizada para correção.</p></article><article class="step"><b>3</b><strong>IA analisa</strong><p>Quando ativada, faz a primeira leitura.</p></article><article class="step"><b>4</b><strong>Professor revisa</strong><p>Você ajusta nota, competências e devolutiva.</p></article><article class="step"><b>5</b><strong>Aluno recebe</strong><p>O resultado fica disponível para acompanhamento.</p></article></div></div></section>
 
-    <section class="lp-section" id="recursos">
-      <div class="lp-wrap">
-        <div class="lp-section-head">
-          <span class="lp-section-label">Use do seu jeito</span>
-          <h2>Quatro caminhos. Um único ambiente.</h2>
-          <p>Você não precisa usar IA para aproveitar o VERSÃO.</p>
-        </div>
-        <div class="lp-feature-grid">
-          <article class="lp-feature-card">
-            <span class="lp-feature-icon" aria-hidden="true">M</span>
-            <div class="lp-feature-title"><h3>Correção manual</h3><b class="lp-free">Grátis</b></div>
-            <p>Corrija diretamente na plataforma, registre C1–C5 e mantenha o histórico do aluno.</p>
-          </article>
-          <article class="lp-feature-card lp-feature-card-accent">
-            <span class="lp-feature-icon" aria-hidden="true">IA</span>
-            <div class="lp-feature-title"><h3>Correção inteligente</h3><b class="lp-cost">A partir de R$ 1,30 por correção</b></div>
-            <p>A IA faz a primeira análise. Você revisa tudo antes de entregar ao aluno.</p>
-          </article>
-          <article class="lp-feature-card">
-            <span class="lp-feature-icon" aria-hidden="true">P</span>
-            <div class="lp-feature-title"><h3>Proposta manual</h3><b class="lp-free">Grátis</b></div>
-            <p>Cadastre tema, comando e textos motivadores sem consumir créditos.</p>
-          </article>
-          <article class="lp-feature-card lp-feature-card-accent">
-            <span class="lp-feature-icon" aria-hidden="true">↗</span>
-            <div class="lp-feature-title"><h3>Proposta por eixo</h3><b class="lp-cost">Criação rápida com IA</b></div>
-            <p>Escolha um eixo temático e receba uma proposta estruturada para revisar e publicar.</p>
-          </article>
-        </div>
-      </div>
-    </section>
+    <section class="section correction" id="correcao"><div class="wrap correction-grid"><div class="screen"><div class="screen-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><div class="screen-body"><aside class="side"><b>VERSÃO</b><span>Início</span><span>Correções</span><span>Propostas</span><span>Alunos</span><span>Turmas</span></aside><div class="dash"><h3>Correção de redação</h3><div class="status-row"><span class="status">Recebida</span><span class="status">Analisando</span><span class="status ready">Pronta</span></div><div class="dash-grid"><div class="box"><small>Nota final</small><div class="score">860 <small>/1000</small></div><div class="bar"><b>C1</b><span class="track"><span class="fill" style="width:80%;display:block"></span></span><span>160</span></div><div class="bar"><b>C2</b><span class="track"><span class="fill" style="width:100%;display:block"></span></span><span>200</span></div><div class="bar"><b>C3</b><span class="track"><span class="fill" style="width:80%;display:block"></span></span><span>160</span></div><div class="bar"><b>C4</b><span class="track"><span class="fill" style="width:90%;display:block"></span></span><span>180</span></div></div><div><div class="box alerts"><strong>Principais desvios</strong><ul><li>Repetição de palavras</li><li>Uso inadequado de conectivos</li><li>Concordância</li></ul></div><div class="next"><strong>Próximo passo:</strong> revisar coesão e fortalecer a intervenção.</div></div></div></div></div></div><div><span class="eyebrow">O que o professor recebe</span><h2>Mais do que uma nota: uma correção estruturada para orientar melhor.</h2><div class="value-list"><article class="value"><i>01</i><div><strong>Nota final e competências</strong><p>Veja rapidamente o desempenho em C1, C2, C3, C4 e C5.</p></div></article><article class="value"><i>02</i><div><strong>Principais desvios</strong><p>Identifique os pontos que mais precisam de atenção.</p></div></article><article class="value"><i>03</i><div><strong>Ponto forte</strong><p>Valorize o que o aluno já faz bem.</p></div></article><article class="value"><i>04</i><div><strong>Próximo passo</strong><p>Transforme a correção em orientação pedagógica.</p></div></article></div></div></div></section>
 
-    <section class="lp-section lp-axis-section" id="propostas">
-      <div class="lp-wrap lp-axis-grid">
-        <div>
-          <span class="lp-section-label">Da ideia à proposta</span>
-          <h2>Escolha o eixo. O VERSÃO acelera a criação.</h2>
-          <p>Parta de um campo amplo e transforme rapidamente a ideia em uma proposta de redação estruturada, pronta para sua revisão.</p>
-          <div class="lp-axis-list"><span>Educação</span><span>Tecnologia</span><span>Meio ambiente</span><span>Saúde</span><span>Trabalho</span><span>Cidadania</span><span>Cultura</span><span>Direitos humanos</span><span>Atualidades</span></div>
-        </div>
-        <div class="lp-axis-visual">
-          <div class="lp-axis-step"><small>1</small><strong>Escolha um eixo</strong><span>Ex.: Educação</span></div>
-          <div class="lp-axis-line"></div>
-          <div class="lp-axis-step"><small>2</small><strong>O VERSÃO estrutura</strong><span>Tema, comando e textos motivadores</span></div>
-          <div class="lp-axis-line"></div>
-          <div class="lp-axis-step lp-axis-final"><small>3</small><strong>Você revisa</strong><span>e publica para as turmas</span></div>
-        </div>
-      </div>
-    </section>
+    <section class="section ai"><div class="wrap ai-card"><div><span class="eyebrow">A principal diferença</span><h2>A IA acelera.<br><em>O professor decide.</em></h2><p>O VERSÃO não substitui sua leitura. A inteligência artificial organiza a primeira análise e aponta o que merece atenção. Você revisa, ajusta e aprova antes da devolutiva.</p></div><div class="checks"><div class="check">Você define a nota final</div><div class="check">Você ajusta as competências</div><div class="check">Você escolhe a orientação</div><div class="check">Você aprova a devolutiva</div></div></div></section>
 
-    <section class="lp-section lp-student-section" id="aluno">
-      <div class="lp-wrap lp-student-grid">
-        <div class="lp-student-copy">
-          <span class="lp-section-label">Experiência do aluno</span>
-          <h2>O aluno acompanha tudo pelo celular.</h2>
-          <p>As redações enviadas e corrigidas ficam organizadas em um ambiente simples e acessível, facilitando o acompanhamento da evolução.</p>
-          <div class="lp-student-points">
-            <span>Redações enviadas</span>
-            <span>Correções recebidas</span>
-            <span>Notas registradas</span>
-            <span>Acesso mobile</span>
-          </div>
-        </div>
-        <div class="lp-student-visual">
-          <div class="lp-crop lp-crop-phone">
-            <img src="/landing-mockup-versao.webp?v=20260927" alt="Tela do aluno no celular mostrando suas redações no VERSÃO">
-          </div>
-        </div>
-      </div>
-    </section>
+    <section class="section" id="recursos"><div class="wrap"><div class="head"><span class="eyebrow">Use do seu jeito</span><h2>Recursos que se adaptam à sua rotina.</h2><p>Você não precisa usar IA para aproveitar o VERSÃO.</p></div><div class="feature-grid"><article class="feature"><span class="icon">M</span><h3>Correção manual <span class="badge">Grátis</span></h3><p>Corrija diretamente na plataforma, registre C1–C5 e mantenha o histórico do aluno.</p></article><article class="feature"><span class="icon">IA</span><h3>Correção inteligente <span class="badge ai-badge">A partir de R$ 1,30</span></h3><p>A IA faz a análise inicial. Você revisa antes de entregar ao aluno.</p></article><article class="feature"><span class="icon">P</span><h3>Proposta manual <span class="badge">Grátis</span></h3><p>Cadastre tema, comando e textos motivadores sem consumir créditos.</p></article><article class="feature"><span class="icon">↗</span><h3>Proposta por eixo <span class="badge ai-badge">Com IA</span></h3><p>Escolha um eixo e receba uma proposta estruturada para revisar e publicar.</p></article></div><div class="ease-grid"><article class="ease"><span class="icon">⇩</span><div><strong>Importe sua turma de uma vez</strong><p>Cole uma lista de alunos ou importe um CSV, confira os dados e conclua. Nada de cadastrar aluno por aluno.</p></div></article><article class="ease"><span class="icon">PIN</span><div><strong>Acesso simples para o aluno</strong><p>O aluno entra com o código da turma e um PIN individual. Sem e-mail e sem precisar criar outra senha.</p></div></article></div></div></section>
 
-    <section class="lp-section lp-time-section" id="tempo">
-      <div class="lp-wrap lp-time-grid">
-        <div>
-          <span class="lp-section-label">Tempo é recurso pedagógico</span>
-          <h2>Corrigir redação exige tempo. <em>Muito tempo.</em></h2>
-          <p>Ler, identificar desvios, avaliar competências, organizar observações e preparar uma devolutiva útil se repete em cada texto de cada turma.</p>
-          <p class="lp-emphasis">O VERSÃO reduz o trabalho repetitivo para você concentrar tempo onde ele realmente importa: <strong>ler, decidir, orientar e ensinar.</strong></p>
-        </div>
-        <div class="lp-role-card">
-          <div class="lp-role-head"><span>O VERSÃO acelera</span><span>Você continua decidindo</span></div>
-          <div class="lp-role-columns">
-            <ul><li>Primeira leitura</li><li>Organização dos critérios</li><li>Pontos de atenção</li><li>Estrutura da devolutiva</li></ul>
-            <ul><li>Nota final</li><li>Ajustes nas competências</li><li>Orientação ao aluno</li><li>Aprovação da correção</li></ul>
-          </div>
-        </div>
-      </div>
-    </section>
+    <section class="section axis"><div class="wrap axis-grid"><div><span class="eyebrow">Da ideia à proposta</span><h2>Escolha o eixo. O VERSÃO acelera a criação.</h2><p>Parta de um campo amplo e transforme rapidamente a ideia em uma proposta estruturada, pronta para sua revisão.</p><div class="tags"><span class="tag">Educação</span><span class="tag">Tecnologia</span><span class="tag">Meio ambiente</span><span class="tag">Saúde</span><span class="tag">Trabalho</span><span class="tag">Cidadania</span><span class="tag">Cultura</span><span class="tag">Direitos humanos</span></div></div><div class="axis-flow"><div class="flow"><b>1</b><strong>Escolha um eixo</strong><span>Ex.: Educação</span></div><div class="line"></div><div class="flow"><b>2</b><strong>O VERSÃO estrutura</strong><span>Tema, comando e textos motivadores</span></div><div class="line"></div><div class="flow"><b>3</b><strong>Você revisa</strong><span>e publica para as turmas</span></div></div></div></section>
 
-    <section class="lp-section lp-start-section">
-      <div class="lp-wrap lp-start-card">
-        <div><span class="lp-section-label">Comece sem compromisso</span><h2>Crie sua conta e conheça o VERSÃO na sua própria rotina.</h2><p>Correções e propostas manuais são gratuitas. Os recursos com IA ficam disponíveis quando você quiser acelerar.</p></div>
-        <div class="lp-start-actions"><a class="lp-btn lp-btn-primary lp-btn-large" href="/?cadastro=1">Criar conta grátis</a><a class="lp-text-link" href="/">Já tenho conta →</a></div>
-      </div>
-    </section>
+    <section class="section student" id="aluno"><div class="wrap student-grid"><div><span class="eyebrow">Experiência do aluno</span><h2>O aluno acompanha tudo pelo celular.</h2><p>As redações enviadas e corrigidas ficam organizadas em um ambiente simples e acessível.</p><div class="student-points"><span>Redações enviadas</span><span>Correções recebidas</span><span>Notas registradas</span><span>Acesso mobile</span></div></div><div class="phone"><div class="phone-inner"><div class="phone-logo">VERSÃO</div><h3>Minhas redações</h3><div class="tabs"><span>Enviadas</span><span>Corrigidas</span></div><div class="essay"><b>Redação – ENEM</b>Meio ambiente · Nota 860</div><div class="essay"><b>Redação – Tecnologia</b>Nota 720</div><div class="essay"><b>Redação – Educação</b>Nota 680</div><div class="essay"><b>Redação – Saúde</b>Nota 700</div></div></div></div></section>
 
-    <section class="lp-section" id="faq">
-      <div class="lp-wrap">
-        <div class="lp-section-head"><span class="lp-section-label">Perguntas frequentes</span><h2>Antes de começar.</h2></div>
-        <div class="lp-faq-grid">
-          <details><summary>A IA define a nota do aluno?</summary><p>Não. O professor revisa a análise e decide a nota final antes da devolutiva.</p></details>
-          <details><summary>Posso usar o VERSÃO sem IA?</summary><p>Sim. Correção manual e criação manual de propostas são gratuitas.</p></details>
-          <details><summary>Quanto custa uma correção inteligente?</summary><p>Com os pacotes atuais, o custo pode chegar a R$ 1,30 por correção. A compra e a gestão dos créditos ficam dentro da sua conta.</p></details>
-          <details><summary>Preciso instalar alguma coisa?</summary><p>Não. O VERSÃO funciona pelo navegador, inclusive no celular.</p></details>
-          <details><summary>O aluno também acessa a plataforma?</summary><p>Sim. O aluno pode enviar redações e acompanhar as correções pelo próprio celular.</p></details>
-        </div>
-      </div>
-    </section>
+    <section class="section time"><div class="wrap time-grid"><div><span class="eyebrow">Tempo é recurso pedagógico</span><h2>Corrigir redação exige tempo. <em>Muito tempo.</em></h2><p>Ler, identificar desvios, avaliar competências, organizar observações e preparar uma devolutiva útil se repete em cada texto de cada turma.</p><p><strong>O VERSÃO reduz o trabalho repetitivo para você concentrar tempo em ler, decidir, orientar e ensinar.</strong></p></div><div class="compare"><div class="compare-head"><span>O VERSÃO acelera</span><span>Você continua decidindo</span></div><div class="compare-cols"><ul><li>Primeira leitura</li><li>Organização dos critérios</li><li>Pontos de atenção</li><li>Estrutura da devolutiva</li></ul><ul><li>Nota final</li><li>Ajustes nas competências</li><li>Orientação ao aluno</li><li>Aprovação da correção</li></ul></div></div></div></section>
 
-    <section class="lp-final-cta">
-      <div class="lp-wrap lp-final-grid">
-        <div class="lp-final-brand"><span class="brand-logo lp-logo" aria-hidden="true"></span><div><strong>VERSÃO</strong><small>Escreva. Melhore. Evolua.</small></div></div>
-        <div><h2>Seu tempo deve estar na aula, não em tarefas repetitivas.</h2><p>A tecnologia acelera o processo. Sua experiência continua no comando.</p></div>
-        <div class="lp-final-actions"><a class="lp-btn lp-btn-light lp-btn-large" href="/?cadastro=1">Criar conta grátis</a><a href="/">Já tenho conta</a></div>
-      </div>
-    </section>
+    <section class="section start"><div class="wrap start-card"><div><span class="eyebrow">Comece sem compromisso</span><h2>Crie sua conta e conheça o VERSÃO na sua própria rotina.</h2><p>Correções e propostas manuais são gratuitas. Os recursos com IA ficam disponíveis quando você quiser acelerar.</p></div><div><a class="btn primary" href="/?cadastro=1">Criar conta grátis</a><p style="text-align:center;margin:10px 0 0"><a href="/" style="color:var(--v);font-weight:800;font-size:12px">Já tenho conta →</a></p></div></div></section>
+
+    <section class="section" id="faq"><div class="wrap"><div class="head"><span class="eyebrow">Perguntas frequentes</span><h2>Antes de começar.</h2></div><div class="faq"><details><summary>A IA define a nota do aluno?</summary><p>Não. O professor revisa a análise e decide a nota final antes da devolutiva.</p></details><details><summary>Posso usar o VERSÃO sem IA?</summary><p>Sim. Correção manual e criação manual de propostas são gratuitas.</p></details><details><summary>Quanto custa uma correção inteligente?</summary><p>Com os pacotes atuais, o custo pode chegar a R$ 1,30 por correção. A compra e a gestão dos créditos ficam dentro da sua conta.</p></details><details><summary>Como funciona o acesso do aluno por PIN?</summary><p>O professor cria a turma e cada aluno recebe um PIN individual. Para entrar, basta informar o código da turma e o PIN — sem e-mail e sem criar uma senha. Se necessário, o professor pode redefinir o PIN sem perder o histórico do aluno.</p></details><details><summary>Preciso cadastrar os alunos um por um?</summary><p>Não. Você pode colar uma lista de alunos ou importar um arquivo CSV. O VERSÃO permite conferir os dados antes de concluir a importação e ajuda a tratar duplicidades.</p></details><details><summary>O aluno também acessa a plataforma?</summary><p>Sim. O aluno pode enviar redações e acompanhar correções pelo próprio celular.</p></details><details><summary>Preciso instalar alguma coisa?</summary><p>Não. O VERSÃO funciona pelo navegador, inclusive no celular.</p></details></div></div></section>
+
+    <section class="final"><div class="wrap final-grid"><div><div class="brand"><span class="brand-logo"></span><span><strong style="color:#fff;font-size:25px">VERSÃO</strong><small style="color:#f3d8d5">Escreva. Melhore. Evolua.</small></span></div></div><div><h2>Seu tempo deve estar na aula, não em tarefas repetitivas.</h2><p>A tecnologia acelera o processo. Sua experiência continua no comando.</p></div><div><a class="btn" href="/?cadastro=1">Criar conta grátis</a></div></div></section>
   </main>
-
-  <footer class="lp-footer">
-    <div class="lp-wrap"><span>© 2026 VERSÃO</span><div><a href="/privacidade.html">Política de Privacidade</a><a href="/termos.html">Termos de Uso</a><a href="/">Entrar</a></div></div>
-  </footer>
+  <footer class="footer"><div class="wrap"><span>© 2026 VERSÃO</span><div class="footer-links"><a href="/privacidade.html">Política de Privacidade</a><a href="/termos.html">Termos de Uso</a><a href="/">Entrar</a></div></div></footer>
 </body>
 </html>
