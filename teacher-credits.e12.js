@@ -35,6 +35,7 @@
   const ref=String(row.external_reference||'');
   const service=String(row.metadata?.service||'');
   if(row.event_type==='freemium')return 'Saldo inicial';
+  if(row.event_type==='purchase')return 'Compra de créditos';
   if(row.event_type==='refund')return 'Crédito devolvido';
   if(service==='proposal'||ref.startsWith('proposal-reserve:'))return 'Proposta com IA';
   if(ref.startsWith('correction-reserve:')||row.metadata?.submission_id)return 'Correção';
@@ -71,7 +72,7 @@
    <section class="box credit-history" aria-labelledby="purchaseHistoryTitle"><div class="box-head"><h2 id="purchaseHistoryTitle">Histórico de compras</h2><p>Consulte data, créditos, valor e status dos pagamentos.</p></div><div class="box-body list" id="purchaseHistoryList"><div class="empty">Abra esta aba para carregar suas compras.</div></div><div class="credit-more"><button type="button" class="btn ghost" id="purchaseHistoryMore" data-credit-more="history" hidden>Ver mais</button></div></section>
   </div>
   <div class="credit-panel" id="creditUsagePanel" role="tabpanel" aria-labelledby="creditUsageTab" hidden>
-   <section class="box credit-history" aria-labelledby="creditUsageTitle"><div class="box-head"><h2 id="creditUsageTitle">Consumo de créditos</h2><p>Veja o saldo inicial, correções, propostas com IA e créditos devolvidos.</p></div><div class="box-body list" id="creditUsageList"><div class="empty">Abra esta aba para carregar seu consumo.</div></div><div class="credit-more"><button type="button" class="btn ghost" id="creditUsageMore" data-credit-more="usage" hidden>Ver mais</button></div></section>
+   <section class="box credit-history" aria-labelledby="creditUsageTitle"><div class="box-head"><h2 id="creditUsageTitle">Consumo de créditos</h2><p>Veja o saldo inicial, compras, correções, propostas com IA e créditos devolvidos.</p></div><div class="box-body list" id="creditUsageList"><div class="empty">Abra esta aba para carregar seu consumo.</div></div><div class="credit-more"><button type="button" class="btn ghost" id="creditUsageMore" data-credit-more="usage" hidden>Ver mais</button></div></section>
   </div></div>`;
 
   const loadHistory=async()=>{
@@ -97,7 +98,7 @@
    if(usageOffset===0)list.innerHTML='<div class="empty">Carregando consumo…</div>';
    const remaining=MAX_RECORDS-usageOffset;
    const queryLimit=remaining>PAGE_SIZE?PAGE_SIZE+1:PAGE_SIZE;
-   const rows=await rest(`correction_credit_ledger?select=id,event_type,delta,balance_after,external_reference,metadata,created_at&event_type=in.(freemium,reservation,refund)&order=created_at.desc&limit=${queryLimit}&offset=${usageOffset}`);
+   const rows=await rest(`correction_credit_ledger?select=id,event_type,delta,balance_after,external_reference,metadata,created_at&event_type=in.(freemium,purchase,reservation,refund)&order=created_at.desc&limit=${queryLimit}&offset=${usageOffset}`);
    if(!navigationCurrent(navigation)||!$('creditUsageList'))return;
    const page=(Array.isArray(rows)?rows:[]).slice(0,Math.min(PAGE_SIZE,remaining));
    const hasMore=usageOffset+page.length<MAX_RECORDS&&Array.isArray(rows)&&rows.length>PAGE_SIZE;
