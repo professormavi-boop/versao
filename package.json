@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "check": "node scripts/check.cjs"
+    "check": "node scripts/check.cjs",
+    "test": "node tests/audit-regressions.cjs && node tests/http-smoke.cjs"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0"
   }
 }
