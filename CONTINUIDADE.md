@@ -173,3 +173,10 @@ Validação: npm run check, npm test e HTTP dos seis novos arquivos passaram; di
 - [x] Validar regressões e publicação autorizada.
 
 Testes: npm run check, npm test (assets HTTP e regressões) e DOM com redação nova pendente + antiga aprovada passaram. Confirmação persistente após envio; histórico recolhido; notas somente em Ver correção. Sem alteração de notas/backend. Validação física mobile pendente. Commit desta seção contém o ajuste; destino suaversao.vercel.app.
+
+## Ao Vivo — captura e lista (27/09/2026)
+- [x] Remover checkbox e liberar envio após imagem válida.
+- [x] Manter avisos de qualidade sem bloqueio silencioso; ordenar nomes pt-BR.
+- [x] Validar e publicar conforme autorização da sessão.
+
+Validação: check e testes HTTP/regressão passaram; DOM confirma ausência de checkbox, envio habilitado com aviso e arquivo inválido bloqueado. Ordenação pt-BR aplicada antes das opções em ambos os preenchimentos. Câmera física mobile ainda depende de reteste no aparelho. Nenhum backend ou nota alterado.

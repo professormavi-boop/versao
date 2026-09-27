@@ -39,7 +39,7 @@
     const eligibleStudentIds=cid
       ?new Set((d.enr||[]).filter(e=>String(e.class_id)===String(cid)).map(e=>String(e.student_id)))
       :orgStudentIds;
-    const eligibleStudents=orgStudents.filter(s=>eligibleStudentIds.has(String(s.id)));
+    const eligibleStudents=orgStudents.filter(s=>eligibleStudentIds.has(String(s.id))).sort((a,b)=>String(a.full_name||'').localeCompare(String(b.full_name||''),'pt-BR',{sensitivity:'base',numeric:true}));
 
     if(change!=='student'){
       stSel.innerHTML='<option value="">Selecione</option>'+eligibleStudents.map(s=>`<option value="${esc(s.id)}">${esc(s.full_name)}</option>`).join('');
