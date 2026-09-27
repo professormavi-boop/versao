@@ -14,7 +14,8 @@
  .credit-tab:focus-visible{outline:2px solid var(--crimson);outline-offset:2px}
  .credit-panel[hidden]{display:none!important}
  .credit-history{margin-top:0}
- @media(max-width:700px){.credit-package.credit-featured{padding:23px}.credit-tabs{width:100%}.credit-tab{flex:1;padding:0 10px;white-space:normal}}
+ .credit-delta{font-weight:850}.credit-delta.is-debit{color:var(--crimson)}.credit-delta.is-credit{color:#2f6f4e}
+ @media(max-width:700px){.credit-package.credit-featured{padding:23px}.credit-tabs{width:100%;overflow-x:auto}.credit-tab{flex:1;padding:0 10px;white-space:normal;min-width:92px}}
  `;
  document.head.appendChild(style);
 
@@ -29,12 +30,27 @@
   if(!rows.length)return '<div class="empty">Nenhuma compra registrada.</div>';
   return rows.map(row=>{const status=String(row.status||'').toLowerCase(),credits=Number(row.credits||0);return `<article class="list-item"><div class="item-top"><div><div class="item-title">${esc(paymentDate(row.created_at))}</div><div class="item-meta">${credits} ${credits===1?'crédito':'créditos'} · ${esc(paymentMoney(row.amount_cents))}</div></div><span class="pill ${paymentPills[status]||'warn'}">${esc(paymentLabels[status]||'Em processamento')}</span></div></article>`}).join('');
  };
+ const usageLabel=row=>{
+  const ref=String(row.external_reference||'');
+  const service=String(row.metadata?.service||'');
+  if(row.event_type==='refund')return 'Crédito devolvido';
+  if(service==='proposal'||ref.startsWith('proposal-reserve:'))return 'Proposta com IA';
+  if(ref.startsWith('correction-reserve:')||row.metadata?.submission_id)return 'Correção';
+  return 'Uso de crédito';
+ };
+ const usageHistory=rows=>{
+  if(!rows.length)return '<div class="empty">Nenhum consumo registrado.</div>';
+  return rows.map(row=>{
+   const delta=Number(row.delta||0),credit=delta>0;
+   return `<article class="list-item"><div class="item-top"><div><div class="item-title">${esc(usageLabel(row))}</div><div class="item-meta">${esc(paymentDate(row.created_at))} · Saldo após o movimento: ${Number(row.balance_after||0)}</div></div><span class="credit-delta ${credit?'is-credit':'is-debit'}">${delta>0?'+':''}${delta}</span></div></article>`;
+  }).join('');
+ };
 
  window.renderTeacherAccount=async function(navigation){
   const data=await edge(API.credit,{action:'packages'});if(!navigationCurrent(navigation))return;
   const balance=Number(data.balance||0),lowCredit=balance<=200;
   const money=value=>Number(value).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  let historyLoaded=false;
+  let historyLoaded=false,usageLoaded=false;
   $('view').innerHTML=header('Conta e créditos','Seu saldo, seus dados e mais tempo para ensinar.')+`<div class="credit-page">
   <section class="credit-summary" aria-label="Resumo da conta">
   <div class="credit-balance"><span>Créditos disponíveis</span><strong>${balance}</strong><p>1 crédito por correção ou proposta com IA</p></div>
@@ -44,6 +60,7 @@
   <div class="credit-tabs" role="tablist" aria-label="Conta e créditos">
    <button type="button" class="credit-tab" id="creditBuyTab" role="tab" aria-selected="true" aria-controls="creditBuyPanel" data-credit-tab="buy">Comprar créditos</button>
    <button type="button" class="credit-tab" id="creditHistoryTab" role="tab" aria-selected="false" aria-controls="creditHistoryPanel" data-credit-tab="history">Histórico de compras</button>
+   <button type="button" class="credit-tab" id="creditUsageTab" role="tab" aria-selected="false" aria-controls="creditUsagePanel" data-credit-tab="usage">Consumo</button>
   </div>
   <div class="credit-panel" id="creditBuyPanel" role="tabpanel" aria-labelledby="creditBuyTab">
    <section class="credit-shop" aria-labelledby="creditShopTitle"><div class="credit-shop-heading"><h2 id="creditShopTitle">Mais correções, no seu ritmo</h2><p>Escolha o pacote que acompanha sua rotina.</p></div>
@@ -53,26 +70,39 @@
   </div>
   <div class="credit-panel" id="creditHistoryPanel" role="tabpanel" aria-labelledby="creditHistoryTab" hidden>
    <section class="box credit-history" aria-labelledby="purchaseHistoryTitle"><div class="box-head"><h2 id="purchaseHistoryTitle">Histórico de compras</h2><p>Consulte data, créditos, valor e status dos pagamentos.</p></div><div class="box-body list" id="purchaseHistoryList"><div class="empty">Abra esta aba para carregar suas compras.</div></div></section>
+  </div>
+  <div class="credit-panel" id="creditUsagePanel" role="tabpanel" aria-labelledby="creditUsageTab" hidden>
+   <section class="box credit-history" aria-labelledby="creditUsageTitle"><div class="box-head"><h2 id="creditUsageTitle">Consumo de créditos</h2><p>Veja correções, propostas com IA e créditos devolvidos.</p></div><div class="box-body list" id="creditUsageList"><div class="empty">Abra esta aba para carregar seu consumo.</div></div></section>
   </div></div>`;
 
   const showTab=async name=>{
-   const history=name==='history';
-   const buyTab=$('creditBuyTab'),historyTab=$('creditHistoryTab'),buyPanel=$('creditBuyPanel'),historyPanel=$('creditHistoryPanel');
-   if(!buyTab||!historyTab||!buyPanel||!historyPanel)return;
-   buyTab.setAttribute('aria-selected',String(!history));
-   historyTab.setAttribute('aria-selected',String(history));
-   buyPanel.hidden=history;
-   historyPanel.hidden=!history;
-   if(!history||historyLoaded)return;
-   historyLoaded=true;
-   $('purchaseHistoryList').innerHTML='<div class="empty">Carregando compras…</div>';
-   try{
-    const rows=await rest('correction_payment_orders?select=id,credits,amount_cents,status,created_at,approved_at&order=created_at.desc&limit=20');
-    if(!navigationCurrent(navigation)||!$('purchaseHistoryList'))return;
-    $('purchaseHistoryList').innerHTML=purchaseHistory(Array.isArray(rows)?rows:[]);
-   }catch(error){
-    historyLoaded=false;
-    if(navigationCurrent(navigation)&&$('purchaseHistoryList'))$('purchaseHistoryList').innerHTML='<div class="empty">Não foi possível carregar o histórico agora.</div>';
+   const tabs={buy:$('creditBuyTab'),history:$('creditHistoryTab'),usage:$('creditUsageTab')};
+   const panels={buy:$('creditBuyPanel'),history:$('creditHistoryPanel'),usage:$('creditUsagePanel')};
+   if(!tabs.buy||!tabs.history||!tabs.usage||!panels.buy||!panels.history||!panels.usage)return;
+   Object.keys(tabs).forEach(key=>{tabs[key].setAttribute('aria-selected',String(key===name));panels[key].hidden=key!==name;});
+   if(name==='history'&&!historyLoaded){
+    historyLoaded=true;
+    $('purchaseHistoryList').innerHTML='<div class="empty">Carregando compras…</div>';
+    try{
+     const rows=await rest('correction_payment_orders?select=id,credits,amount_cents,status,created_at,approved_at&order=created_at.desc&limit=20');
+     if(!navigationCurrent(navigation)||!$('purchaseHistoryList'))return;
+     $('purchaseHistoryList').innerHTML=purchaseHistory(Array.isArray(rows)?rows:[]);
+    }catch(error){
+     historyLoaded=false;
+     if(navigationCurrent(navigation)&&$('purchaseHistoryList'))$('purchaseHistoryList').innerHTML='<div class="empty">Não foi possível carregar o histórico agora.</div>';
+    }
+   }
+   if(name==='usage'&&!usageLoaded){
+    usageLoaded=true;
+    $('creditUsageList').innerHTML='<div class="empty">Carregando consumo…</div>';
+    try{
+     const rows=await rest('correction_credit_ledger?select=id,event_type,delta,balance_after,external_reference,metadata,created_at&event_type=in.(reservation,refund)&order=created_at.desc&limit=50');
+     if(!navigationCurrent(navigation)||!$('creditUsageList'))return;
+     $('creditUsageList').innerHTML=usageHistory(Array.isArray(rows)?rows:[]);
+    }catch(error){
+     usageLoaded=false;
+     if(navigationCurrent(navigation)&&$('creditUsageList'))$('creditUsageList').innerHTML='<div class="empty">Não foi possível carregar o consumo agora.</div>';
+    }
    }
   };
 
