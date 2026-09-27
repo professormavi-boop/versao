@@ -22,6 +22,7 @@
  document.head.appendChild(style);
 
  const PAGE_SIZE=10;
+ const MAX_RECORDS=50;
  const paymentLabels={created:'Iniciado',pending:'Pendente',approved:'Aprovado',rejected:'Recusado',cancelled:'Cancelado',refunded:'Reembolsado'};
  const paymentPills={approved:'ok',created:'warn',pending:'warn',rejected:'warn',cancelled:'warn',refunded:'warn'};
  const paymentMoney=cents=>(Number(cents||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -33,6 +34,7 @@
  const usageLabel=row=>{
   const ref=String(row.external_reference||'');
   const service=String(row.metadata?.service||'');
+  if(row.event_type==='freemium')return 'Saldo inicial';
   if(row.event_type==='refund')return 'Crédito devolvido';
   if(service==='proposal'||ref.startsWith('proposal-reserve:'))return 'Proposta com IA';
   if(ref.startsWith('correction-reserve:')||row.metadata?.submission_id)return 'Correção';
@@ -51,7 +53,7 @@
   $('view').innerHTML=header('Conta e créditos','Seu saldo, seus dados e mais tempo para ensinar.')+`<div class="credit-page">
   <section class="credit-summary" aria-label="Resumo da conta">
   <div class="credit-balance"><span>Créditos disponíveis</span><strong>${balance}</strong><p>1 crédito por correção ou proposta com IA</p></div>
-  <div class="credit-person"><strong>${esc(S.profile.full_name||'Professor')}</strong><p>${esc(S.profile.email||'')}</p><span class="credit-gift">Seu início na Versão inclui ${Number(data.freemium||20)} créditos gratuitos.</span></div>
+  <div class="credit-person"><strong>${esc(S.profile.full_name||'Professor')}</strong><p>${esc(S.profile.email||'')}</p></div>
   </section>
   ${lowCredit?`<p class="credit-notice" role="status">${balance===0?'Seu saldo acabou. Escolha um pacote para continuar corrigindo.':`Você tem ${balance} créditos disponíveis. Quando precisar, adicione mais créditos abaixo.`}</p>`:''}
   <div class="credit-tabs" role="tablist" aria-label="Conta e créditos">
@@ -69,15 +71,19 @@
    <section class="box credit-history" aria-labelledby="purchaseHistoryTitle"><div class="box-head"><h2 id="purchaseHistoryTitle">Histórico de compras</h2><p>Consulte data, créditos, valor e status dos pagamentos.</p></div><div class="box-body list" id="purchaseHistoryList"><div class="empty">Abra esta aba para carregar suas compras.</div></div><div class="credit-more"><button type="button" class="btn ghost" id="purchaseHistoryMore" data-credit-more="history" hidden>Ver mais</button></div></section>
   </div>
   <div class="credit-panel" id="creditUsagePanel" role="tabpanel" aria-labelledby="creditUsageTab" hidden>
-   <section class="box credit-history" aria-labelledby="creditUsageTitle"><div class="box-head"><h2 id="creditUsageTitle">Consumo de créditos</h2><p>Veja correções, propostas com IA e créditos devolvidos.</p></div><div class="box-body list" id="creditUsageList"><div class="empty">Abra esta aba para carregar seu consumo.</div></div><div class="credit-more"><button type="button" class="btn ghost" id="creditUsageMore" data-credit-more="usage" hidden>Ver mais</button></div></section>
+   <section class="box credit-history" aria-labelledby="creditUsageTitle"><div class="box-head"><h2 id="creditUsageTitle">Consumo de créditos</h2><p>Veja o saldo inicial, correções, propostas com IA e créditos devolvidos.</p></div><div class="box-body list" id="creditUsageList"><div class="empty">Abra esta aba para carregar seu consumo.</div></div><div class="credit-more"><button type="button" class="btn ghost" id="creditUsageMore" data-credit-more="usage" hidden>Ver mais</button></div></section>
   </div></div>`;
 
   const loadHistory=async()=>{
    const list=$('purchaseHistoryList'),more=$('purchaseHistoryMore');if(!list||!more)return;
+   if(historyOffset>=MAX_RECORDS){more.hidden=true;return;}
    if(historyOffset===0)list.innerHTML='<div class="empty">Carregando compras…</div>';
-   const rows=await rest(`correction_payment_orders?select=id,credits,amount_cents,status,created_at,approved_at&order=created_at.desc&limit=${PAGE_SIZE+1}&offset=${historyOffset}`);
+   const remaining=MAX_RECORDS-historyOffset;
+   const queryLimit=remaining>PAGE_SIZE?PAGE_SIZE+1:PAGE_SIZE;
+   const rows=await rest(`correction_payment_orders?select=id,credits,amount_cents,status,created_at,approved_at&order=created_at.desc&limit=${queryLimit}&offset=${historyOffset}`);
    if(!navigationCurrent(navigation)||!$('purchaseHistoryList'))return;
-   const page=(Array.isArray(rows)?rows:[]).slice(0,PAGE_SIZE),hasMore=Array.isArray(rows)&&rows.length>PAGE_SIZE;
+   const page=(Array.isArray(rows)?rows:[]).slice(0,Math.min(PAGE_SIZE,remaining));
+   const hasMore=historyOffset+page.length<MAX_RECORDS&&Array.isArray(rows)&&rows.length>PAGE_SIZE;
    if(historyOffset===0)list.innerHTML='';
    if(!page.length&&historyOffset===0)list.innerHTML='<div class="empty">Nenhuma compra registrada.</div>';
    else if(page.length)list.insertAdjacentHTML('beforeend',purchaseHistory(page));
@@ -87,10 +93,14 @@
 
   const loadUsage=async()=>{
    const list=$('creditUsageList'),more=$('creditUsageMore');if(!list||!more)return;
+   if(usageOffset>=MAX_RECORDS){more.hidden=true;return;}
    if(usageOffset===0)list.innerHTML='<div class="empty">Carregando consumo…</div>';
-   const rows=await rest(`correction_credit_ledger?select=id,event_type,delta,balance_after,external_reference,metadata,created_at&event_type=in.(reservation,refund)&order=created_at.desc&limit=${PAGE_SIZE+1}&offset=${usageOffset}`);
+   const remaining=MAX_RECORDS-usageOffset;
+   const queryLimit=remaining>PAGE_SIZE?PAGE_SIZE+1:PAGE_SIZE;
+   const rows=await rest(`correction_credit_ledger?select=id,event_type,delta,balance_after,external_reference,metadata,created_at&event_type=in.(freemium,reservation,refund)&order=created_at.desc&limit=${queryLimit}&offset=${usageOffset}`);
    if(!navigationCurrent(navigation)||!$('creditUsageList'))return;
-   const page=(Array.isArray(rows)?rows:[]).slice(0,PAGE_SIZE),hasMore=Array.isArray(rows)&&rows.length>PAGE_SIZE;
+   const page=(Array.isArray(rows)?rows:[]).slice(0,Math.min(PAGE_SIZE,remaining));
+   const hasMore=usageOffset+page.length<MAX_RECORDS&&Array.isArray(rows)&&rows.length>PAGE_SIZE;
    if(usageOffset===0)list.innerHTML='';
    if(!page.length&&usageOffset===0)list.innerHTML='<div class="empty">Nenhum consumo registrado.</div>';
    else if(page.length)list.insertAdjacentHTML('beforeend',usageHistory(page));
