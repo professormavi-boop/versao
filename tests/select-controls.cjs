@@ -1,0 +1,10 @@
+const {JSDOM}=require('jsdom'),fs=require('fs'),assert=require('assert/strict');
+const dom=new JSDOM('<label for="pvAxis">Eixo temático</label><select id="pvAxis"><option value="a">Ambiente</option><optgroup label="Bloqueados" disabled><option value="b">Bloqueado</option></optgroup><option hidden>Oculto</option><option value="c">Cultura</option></select>',{runScripts:'outside-only'});
+const w=dom.window,d=w.document;w.eval(fs.readFileSync('custom-selects.e12.js','utf8'));
+const select=d.querySelector('select');let changes=0;select.addEventListener('change',()=>changes++);
+select.dispatchEvent(new w.MouseEvent('pointerdown',{bubbles:true,cancelable:true}));
+let menu=d.querySelector('[role=listbox]');assert(menu);assert.equal(select.getAttribute('aria-expanded'),'true');assert.equal(menu.getAttribute('aria-label'),'Eixo temático');assert.equal(menu.querySelectorAll('[role=option]').length,3);assert(menu.querySelectorAll('button')[1].disabled);
+menu.dispatchEvent(new w.Event('scroll'));assert(d.querySelector('[role=listbox]'),'scrolling options keeps menu open');
+d.activeElement.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true}));assert.equal(d.activeElement.textContent,'Cultura');d.activeElement.click();assert.equal(select.value,'c');assert.equal(changes,1);assert.equal(select.getAttribute('aria-expanded'),'false');assert(!d.querySelector('[role=listbox]'));
+select.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));assert(d.querySelector('[role=listbox]'));d.activeElement.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));assert(!d.querySelector('[role=listbox]'));assert.equal(d.activeElement,select);
+select.disabled=true;select.dispatchEvent(new w.MouseEvent('pointerdown',{bubbles:true,cancelable:true}));assert(!d.querySelector('[role=listbox]'));dom.window.close();console.log('PASS: thematic axis, keyboard, disabled groups, hidden options, scrolling and change events');

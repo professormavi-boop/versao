@@ -63,19 +63,8 @@
 }
 .proposal-v3 .proposal-v3-axis small{margin-top:7px!important;color:#756765!important;font-size:13px!important;font-weight:600!important}
 
-/* Campos e selects no mesmo padrão visual do app. */
-.proposal-v3 input[type="text"],.proposal-v3 input[type="search"],.proposal-v3 input:not([type]),.proposal-v3 select,
-.proposal-v3 textarea,.proposal-v3 .proposal-v3-axis select{
-  box-sizing:border-box!important;width:100%!important;border:1px solid #d8d1cf!important;border-radius:13px!important;
-  background:#fff!important;color:#242b36!important;font:inherit!important;
-}
-.proposal-v3 input[type="text"],.proposal-v3 input[type="search"],.proposal-v3 input:not([type]),.proposal-v3 select,.proposal-v3 .proposal-v3-axis select{
-  min-height:54px!important;padding:11px 14px!important;
-}
-.proposal-v3 .proposal-v3-axis select{margin-top:9px!important;border-color:#d6a29d!important;font-weight:650!important}
-.proposal-v3 input:focus,.proposal-v3 select:focus,.proposal-v3 textarea:focus{
-  outline:2px solid rgba(139,28,28,.2)!important;outline-offset:1px!important;border-color:var(--versao-red)!important;
-}
+/* Campos seguem o padrão compartilhado em responsive.e12.css. */
+.proposal-v3 .proposal-v3-axis select{margin-top:9px;font-weight:650}
 .proposal-v3 .demo-editor{border-radius:14px!important;border-color:#d8d1cf!important}
 .proposal-v3 .demo-editor .item-actions{background:#fbf8f7!important;border-bottom:1px solid #e8dfdc!important;padding:10px!important}
 .proposal-v3 .demo-editor .btn{color:var(--versao-red)!important;border-color:#dfc8c5!important;background:#fff!important}

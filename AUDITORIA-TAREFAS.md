@@ -1,5 +1,10 @@
 # Estabilização após auditoria — 26/09/2026
 
+## Padronização visual — 27/09/2026
+- [x] Unificar campos e seletores, incluindo eixo temático, sem alterar logo ou navegação.
+- [x] Conferir teclado, opções desabilitadas, rolagem e limites da tela.
+- [ ] Validar sintaxe, regressões e assets HTTP; publicar conforme autorização vigente.
+
 ## Retomada autorizada — 27/09/2026
 
 - [x] Conferir produção e HEAD remoto: 4701bdf.
