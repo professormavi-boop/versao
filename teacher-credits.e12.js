@@ -8,9 +8,22 @@
  .credit-badge{display:inline-flex;align-items:center;margin:0 0 12px;padding:6px 10px;border-radius:999px;background:#8b1c1c;color:#fff;font-size:12px;font-weight:800}
  .credit-package.credit-featured .credit-buy{background:#8b1c1c;color:#fff;border-color:#8b1c1c}
  .credit-package .credit-unit{font-weight:700;color:#424a56}
+ .credit-history{margin-top:18px}
  @media(max-width:700px){.credit-package.credit-featured{padding:23px}}
  `;
  document.head.appendChild(style);
+
+ const paymentLabels={created:'Iniciado',pending:'Pendente',approved:'Aprovado',rejected:'Recusado',cancelled:'Cancelado',refunded:'Reembolsado'};
+ const paymentPills={approved:'ok',created:'warn',pending:'warn',rejected:'warn',cancelled:'warn',refunded:'warn'};
+ const paymentMoney=cents=>(Number(cents||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+ const paymentDate=value=>{
+  const date=new Date(value);
+  return Number.isNaN(date.getTime())?'Data não informada':date.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
+ };
+ const purchaseHistory=rows=>{
+  if(!rows.length)return '<div class="empty">Nenhuma compra registrada.</div>';
+  return rows.map(row=>{const status=String(row.status||'').toLowerCase(),credits=Number(row.credits||0);return `<article class="list-item"><div class="item-top"><div><div class="item-title">${esc(paymentDate(row.created_at))}</div><div class="item-meta">${credits} ${credits===1?'crédito':'créditos'} · ${esc(paymentMoney(row.amount_cents))}</div></div><span class="pill ${paymentPills[status]||'warn'}">${esc(paymentLabels[status]||'Em processamento')}</span></div></article>`}).join('');
+ };
 
  window.renderTeacherAccount=async function(navigation){
   const data=await edge(API.credit,{action:'packages'});if(!navigationCurrent(navigation))return;
@@ -25,7 +38,15 @@
   <section class="credit-shop" aria-labelledby="creditShopTitle"><div class="credit-shop-heading"><h2 id="creditShopTitle">Mais correções, no seu ritmo</h2><p>Escolha o pacote que acompanha sua rotina.</p></div>
   <div class="credit-packages">${(data.packages||[]).map(p=>{const unit=Number(p.unit_price_cents??(p.amount_cents/Math.max(1,p.credits)))/100;return `<article class="credit-package${p.featured?' credit-featured':''}">${p.badge?`<span class="credit-badge">${esc(p.badge)}</span>`:''}<p class="credit-plan-name">${esc(p.plan||'Pacote')}</p><h3>${Number(p.credits)} <span>correções</span></h3><p class="credit-price"><span>R$</span> ${money(p.amount_cents/100)}</p><p class="credit-unit">R$ ${money(unit)} por correção</p><button class="credit-buy" data-buy-credit="${esc(p.code)}">Comprar créditos<span class="sr-only"> · ${Number(p.credits)} correções · R$ ${money(unit)} por correção</span></button></article>`}).join('')}</div>
   <p class="credit-footnote">Pagamento pelo Mercado Pago · Pix ou cartão</p>
-  <p class="credit-footnote">Se a correção ou a criação da proposta falhar, o crédito é devolvido.</p></section></div>`;
+  <p class="credit-footnote">Se a correção ou a criação da proposta falhar, o crédito é devolvido.</p></section>
+  <section class="box credit-history" aria-labelledby="purchaseHistoryTitle"><div class="box-head"><h2 id="purchaseHistoryTitle">Histórico de compras</h2><p>Consulte data, créditos, valor e status dos pagamentos.</p></div><div class="box-body list" id="purchaseHistoryList"><div class="empty">Carregando compras…</div></div></section></div>`;
   $('view').onclick=async e=>{const button=e.target.closest('[data-buy-credit]');if(!button||button.disabled)return;button.disabled=true;const old=button.textContent;button.textContent='Abrindo pagamento…';try{const result=await edge(API.credit,{action:'checkout',package_code:button.dataset.buyCredit});if(!/^https:\/\//.test(result.checkout_url||''))throw Error('O servidor não retornou um checkout seguro.');location.assign(result.checkout_url)}catch(error){toast(error.message||'Não foi possível abrir o pagamento.');button.disabled=false;button.textContent=old}};
+  try{
+   const rows=await rest('correction_payment_orders?select=id,credits,amount_cents,status,created_at,approved_at&order=created_at.desc&limit=20');
+   if(!navigationCurrent(navigation)||!$('purchaseHistoryList'))return;
+   $('purchaseHistoryList').innerHTML=purchaseHistory(Array.isArray(rows)?rows:[]);
+  }catch(error){
+   if(navigationCurrent(navigation)&&$('purchaseHistoryList'))$('purchaseHistoryList').innerHTML='<div class="empty">Não foi possível carregar o histórico agora.</div>';
+  }
  };
 })();

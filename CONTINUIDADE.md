@@ -1,5 +1,13 @@
 # VERSÃO — continuidade da Etapa 12
 
+## Retomada da auditoria — 27/09/2026
+
+O usuário autorizou a aplicação do pacote de auditoria e solicitou continuidade. A produção atual foi identificada pelo domínio suaversao.vercel.app: projeto prj_5OC7zfjEgapvbrapPjas2lLvvut7, deployment dpl_4BLgbQx2vfJrKxz7TVZzRoceiPQQ, commit 4701bdf. Os IDs de produção congelada abaixo são históricos.
+
+As sete funções do pacote já estavam implantadas ao retomar; seus conteúdos coincidem com o pacote, desconsiderando espaços finais. RPC save_proposal_atomic e expire_proposal_reservations confirmadas, execução restrita ao backend. Frontend recuperado do bundle ffa7fb2a0c75570da5e6f1da4f9775ef1a624448, incorporando 4701bdf. Check, regressões e 27 assets por HTTP aprovados novamente.
+
+Próximo passo autorizado: publicar o frontend compatível e verificar deployment e conteúdo servido. Login autenticado indisponível nesta sessão; não declarar jornadas reais homologadas. Nenhuma IA paga ou publicação de notas deve ser executada automaticamente. Pagamentos, OCR, mobile físico e restauração de backup continuam pendentes para prontidão comercial.
+
 Atualizado em 11/09/2026. Comece por este arquivo e por AGENTS.md.
 
 ## Onde está o código
@@ -126,3 +134,35 @@ Issue rastreável: #1 — Scanner de redação no envio do aluno.
 - Preview Vercel criado automaticamente no projeto autorizado `versao-teste-etapa12-consolidada`; deployment `dpl_HCnnRBuiwoV2k4CJQ6iUTNuqH43g` ficou READY para o commit `2b22e80cd11bd1e0c6f525a26fb266fc5a0ff2c2`.
 - Produção não foi promovida nem alterada.
 - Pendente: validação física no celular da câmera, detecção de bordas, disponibilidade do flash e envio real a partir da foto processada. O preview está protegido pela Vercel e deve ser aberto pelo link compartilhável do deployment.
+
+## Atualização — correções da auditoria (26/09/2026)
+
+Branch: `fix/auditoria-comercial`, baseada em `bc21335f76decc49c34a98f8293ca40eef574e85`.
+
+- Nota oficial unificada entre resumo e detalhamento; relatório não mistura feedback de análise anterior.
+- Campo de desvios ausente é informado como indisponível; uma lista vazia confirmada permanece distinta.
+- Relatório essencial do aluno consolidado no módulo, sem redefinição inline no index.
+- Proposta com erro de leitura não abre para edição. IDs distintos não são agrupados pelo texto.
+- Salvamento envia todos os destinatários em uma operação, com request_id reaproveitado no retry; depende do pacote privado de backend.
+- Ordem alfabética dos alunos aplicada antes de renderizar; removido observer corretivo.
+- Removidos 14 assets sem referência no aplicativo/configuração atual; recuperáveis pelo histórico Git.
+- `npm run check` corrigido para querystrings; `npm test` cobre regressões da auditoria e assets/relatório via HTTP com DOM simulado.
+- Produção e banco compartilhado não alterados. Backend preparado e testado em pacote privado; não versionar fontes privadas nesta origem pública.
+- Validação: check, regressões de interface e HTTP passaram. Testes locais de backend/SQL passaram. Não equivale a validação visual mobile, OCR, pagamento real ou login da versão modificada.
+- Não publicar somente este frontend: aplicar/homologar backend correspondente antes.
+- Link público de teste desta branch ainda não criado; testes HTTP locais são reprodutíveis por `npm test`.
+
+- Integração posterior: branch atualizada sobre `4701bdf` (patch de nota oficial recebido durante a tarefa). O wrapper `correction-consistency-fix.e12.js` foi consolidado nos módulos e removido: sua mesclagem com a análise antiga não deve prevalecer sobre o contrato oficial. Base de revisão para o pacote final: `4701bdf`.
+
+## Padronização de controles — 27/09/2026
+
+Solicitada pelo usuário após a publicação 152e9eb. Campos e seletores compartilham bordas, tipografia, foco, estados desabilitados e altura mínima; botões de ação têm alvo mínimo de 44px. Logo e navegação preservados. Removida a exceção de pvAxis; menu compartilhado contempla opções ocultas/grupos desabilitados, teclado e rolagem interna. Teste select-controls.cjs e regressões existentes aprovados. CSS mobile usa fonte 16px e menu limitado à tela; validação física Android/iOS ainda não realizada. Nenhuma alteração de backend ou pagamentos. Publicação autorizada na mesma sessão, destino suaversao.vercel.app.
+
+## Ícones de atalho — 27/09/2026
+
+Solicitação: usar a logo existente como favicon e ícone de tela inicial.
+- [x] Extrair a logo existente sem redesenhar; gerar formatos necessários.
+- [x] Declarar favicon, apple-touch-icon e manifest; incluir no pacote de deploy.
+- [x] Verificar arquivos e entrega HTTP; registrar commit e limitações.
+
+Validação: npm run check, npm test e HTTP dos seis novos arquivos passaram; dimensões PNG e manifest conferidos. Logo original incorporada de 128px reaproveitada, sem redesenho. Commit desta seção registra a implementação. Publicação em suaversao.vercel.app conforme autorização anterior mantida na sessão; projeto prj_5OC7zfjEgapvbrapPjas2lLvvut7 confirmado. Pendente: instalação física Android/iOS; atalhos existentes podem exigir recriação por cache.

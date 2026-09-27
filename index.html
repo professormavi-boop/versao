@@ -5,15 +5,20 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#8B1C1C">
   <title>VERSÃO</title>
+  <link rel="icon" href="/favicon.ico?v=20260927" sizes="16x16 32x32 48x48">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=20260927">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260927">
+  <link rel="manifest" href="/site.webmanifest?v=20260927">
+  <meta name="apple-mobile-web-app-title" content="VERSÃO">
   <link rel="stylesheet" href="/base.e12.css">
   <link rel="stylesheet" href="/enhancements.e12.css">
-  <link rel="stylesheet" href="/responsive.e12.css">
-  <link rel="stylesheet" href="/proposal-approved-v3.css?v=20260925-approved-v1">
+  <link rel="stylesheet" href="/responsive.e12.css?v=20260927-controls">
+  <link rel="stylesheet" href="/proposal-approved-v3.css?v=20260927-controls">
   <script src="/student-home-v2.e12.js?v=20260923-home-v2" defer></script>
   <script src="/boot.e12.js" defer></script>
   <script src="/core.e12.js" defer></script>
   <script src="/action-alerts.e12.js?v=20260924-no-native-dialogs-v1" defer></script>
-  <script src="/custom-selects.e12.js?v=20260924-select-fix-v1" defer></script>
+  <script src="/custom-selects.e12.js?v=20260927-selects-v2" defer></script>
   <script src="/teacher-main.e12.js" defer></script>
   <script src="/live-proposal-linkage-v2.e12.js?v=20260925-targets-v2" defer></script>
   <script src="/teacher-proposals-v3.e12.js?v=20260925-native-recipients-v1" defer></script>
@@ -23,20 +28,12 @@
   <script src="/teacher-correction-shell.e12.js" defer></script>
   <script src="/correction.e12.js" defer></script>
   <script src="/correction-redesign.e12.js?v=20260922-redesign-v1" defer></script>
-  <script src="/correction-consistency-fix.e12.js?v=20260926-consistency-v1" defer></script>
   <script src="/ranking-management.e12.js" defer></script>
   <script src="/student.e12.js" defer></script>
   <script src="/student-upload.e12.js?v=20260922-upload-v2" defer></script>
   <script src="/student-proposals-v2.e12.js?v=20260923-proposals-v2" defer></script>
   <script src="/student-scanner.e12.js?v=20260922-scanner-v1" defer></script>
-  <script>
-    document.addEventListener('DOMContentLoaded',()=>{
-      window.studentEssentialReport=function(a){
-        const d=a.detailed_analysis||{},codes=['C1','C2','C3','C4','C5'];
-        return `<section class="ai-section"><h4>Nota e competências</h4><div class="student-score">${Number(a.total_score)} / 1000</div><div class="ai-competencies">${codes.map(c=>`<div class="ai-comp"><div class="ai-comp-head"><b>${c}</b><span>${Number(a.competencies?.[c])}</span></div><p>${esc(a.competency_justifications?.[c]||'Sem justificativa registrada.')}</p></div>`).join('')}</div><h4>C5</h4>${[['action','Ação'],['agent','Agente'],['means','Meio/modo'],['purpose','Finalidade/efeito'],['detail','Detalhamento']].map(([k,l])=>`<p>${l}: ${esc(d.c5_check?.[k]||'Não informado')}</p>`).join('')}</section><section class="ai-section"><h4>Ponto forte</h4><p>${esc(d.main_strength||'Não informado')}</p></section><section class="ai-section"><h4>Prioridade de melhoria</h4><p>${esc(a.improvement_priority||'Não informada')}</p></section><section class="ai-section"><h4>Desvios</h4>${(d.c1_deviations||[]).map(x=>`<p><b>Trecho:</b> ${esc(x.original)}<br><b>Tipo:</b> ${esc(x.category)}<br><b>Explicação:</b> ${esc(x.rule)}<br><b>Sugestão:</b> ${esc(x.correction)}</p>`).join('')||'<p>Nenhum desvio confirmado.</p>'}</section><section class="ai-section"><h4>Próximo passo</h4><p>${esc(a.feedback||d.next_step||'Não informado')}</p></section>`;
-      };
-    },{once:true});
-  </script>
+
 </head>
 <body>
   <noscript><div class="card" role="alert">Ative o JavaScript no navegador para acessar o VERSÃO.</div></noscript>
