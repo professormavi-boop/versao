@@ -157,3 +157,12 @@ Branch: `fix/auditoria-comercial`, baseada em `bc21335f76decc49c34a98f8293ca40ee
 ## Padronização de controles — 27/09/2026
 
 Solicitada pelo usuário após a publicação 152e9eb. Campos e seletores compartilham bordas, tipografia, foco, estados desabilitados e altura mínima; botões de ação têm alvo mínimo de 44px. Logo e navegação preservados. Removida a exceção de pvAxis; menu compartilhado contempla opções ocultas/grupos desabilitados, teclado e rolagem interna. Teste select-controls.cjs e regressões existentes aprovados. CSS mobile usa fonte 16px e menu limitado à tela; validação física Android/iOS ainda não realizada. Nenhuma alteração de backend ou pagamentos. Publicação autorizada na mesma sessão, destino suaversao.vercel.app.
+
+## Ícones de atalho — 27/09/2026
+
+Solicitação: usar a logo existente como favicon e ícone de tela inicial.
+- [x] Extrair a logo existente sem redesenhar; gerar formatos necessários.
+- [x] Declarar favicon, apple-touch-icon e manifest; incluir no pacote de deploy.
+- [x] Verificar arquivos e entrega HTTP; registrar commit e limitações.
+
+Validação: npm run check, npm test e HTTP dos seis novos arquivos passaram; dimensões PNG e manifest conferidos. Logo original incorporada de 128px reaproveitada, sem redesenho. Commit desta seção registra a implementação. Publicação em suaversao.vercel.app conforme autorização anterior mantida na sessão; projeto prj_5OC7zfjEgapvbrapPjas2lLvvut7 confirmado. Pendente: instalação física Android/iOS; atalhos existentes podem exigir recriação por cache.
