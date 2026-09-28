@@ -180,3 +180,10 @@ Testes: npm run check, npm test (assets HTTP e regressões) e DOM com redação 
 - [x] Validar e publicar conforme autorização da sessão.
 
 Validação: check e testes HTTP/regressão passaram; DOM confirma ausência de checkbox, envio habilitado com aviso e arquivo inválido bloqueado. Ordenação pt-BR aplicada antes das opções em ambos os preenchimentos. Câmera física mobile ainda depende de reteste no aparelho. Nenhum backend ou nota alterado.
+
+## Paginação de filas — 27/09/2026
+- [x] Buscar correções em lotes de 10 no servidor.
+- [x] Preservar filtros globais e permissões; carregar mais sem duplicar.
+- [x] Validar comportamento e publicar.
+
+Fila de Correções: nova ação queue_page busca páginas de 10 no banco; filtros de status varrem lotes limitados, sem carregar todos os relatórios. Backend live-correction-beta-api v6 ativo, JWT mantido. Testes com 37 registros: paginação, status, busca vazia e permissão aprovados. Check e regressões HTTP aprovados. Revisão aberta é preservada ao carregar mais. Paginação não aplicada ao painel inicial nem ao histórico do aluno nesta alteração. Sem benchmark de grande volume ou login visual novo.
