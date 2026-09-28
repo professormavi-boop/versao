@@ -3,6 +3,10 @@
   "framework": null,
   "buildCommand": null,
   "outputDirectory": ".",
+  "alias": [
+    "versaoprofessor.com",
+    "www.versaoprofessor.com"
+  ],
   "rewrites": [
     {
       "source": "/",
