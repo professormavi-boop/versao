@@ -74,7 +74,7 @@
   }
   function wireAccount(){
     if(!element('registerLink'))return;
-    element('registerLink').onclick=()=>accountView('register');
+    element('registerLink').onclick=()=>location.assign('/cadastro-professor.html');
     element('forgotLink').onclick=()=>{accountView('forgot');element('accountEmail').value=element('email').value};
     element('backToLogin').onclick=()=>accountView('login');
     element('accountForm').onsubmit=async event=>{
@@ -89,7 +89,7 @@
         if(mode==='register'){
           await accountRequest('signup?redirect_to='+callback,{email,password,data:{full_name:element('registerName').value.trim()}});
           if(version!==accountVersion)return;
-          element('accountStatus').textContent='Solicitação enviada. Verifique seu e-mail para confirmar o cadastro, se solicitado. O acesso depende da aprovação do administrador.';
+          element('accountStatus').textContent='Cadastro enviado. Confirme seu e-mail para acessar o VERSÃO.';
         }else if(mode==='forgot'){
           await accountRequest('recover?redirect_to='+callback,{email});
           if(version!==accountVersion)return;
@@ -115,7 +115,7 @@
     if(params.has('error_description')){accountView('forgot','O link expirou ou é inválido. Solicite uma nova recuperação.');return true}
     if(params.get('type')==='recovery'){
       accountView('reset');recoveryToken=params.get('access_token');
-    }else{accountView('login');element('loginStatus').textContent='E-mail confirmado. Entre quando seu cadastro estiver aprovado.'}
+    }else{accountView('login');element('loginStatus').textContent='E-mail confirmado. Entre com seu e-mail e senha.'}
     return true;
   }
   async function initialize(){
@@ -153,9 +153,10 @@
     const token=begin();
     try{
       let session=readSession();
+      if(wantsRegister&&!session){clearTimeout(timer);location.replace('/cadastro-professor.html');return}
       if(session&&(!session.expires_at||session.expires_at<Math.floor(Date.now()/1000)+60))session=await refreshSession(session);
       if(token!==attempt)return;
-      if(!session){clearTimeout(timer);loginScreen('',true);if(wantsRegister)accountView('register');return}
+      if(!session){clearTimeout(timer);loginScreen('',true);return}
       S.session=session;await profile();if(token!==attempt)return;start(token);
     }catch(error){if(token===attempt)fail(error.message||'Não foi possível recuperar a sessão. Entre novamente.')}
   }
