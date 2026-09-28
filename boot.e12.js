@@ -143,7 +143,9 @@
       element('password').value='';element('studentPin').value='';element('loginStatus').textContent='';
     }
     element('loginAccessType').onchange=()=>chooseLogin(element('loginAccessType').value==='student');
-    if(new URLSearchParams(location.search).get('acesso')==='aluno')chooseLogin(true);
+    const query=new URLSearchParams(location.search);
+    if(query.get('acesso')==='aluno')chooseLogin(true);
+    const wantsRegister=query.get('cadastro')==='1';
     element('loginForm').onsubmit=enter;
     element('logoutBtn').onclick=()=>{ready=false;fail('');element('password').value='';element('studentPin').value='';};
     element('menuBtn').onclick=openDrawer;element('drawerShade').onclick=closeDrawer;
@@ -153,7 +155,7 @@
       let session=readSession();
       if(session&&(!session.expires_at||session.expires_at<Math.floor(Date.now()/1000)+60))session=await refreshSession(session);
       if(token!==attempt)return;
-      if(!session){clearTimeout(timer);loginScreen('',true);return}
+      if(!session){clearTimeout(timer);loginScreen('',true);if(wantsRegister)accountView('register');return}
       S.session=session;await profile();if(token!==attempt)return;start(token);
     }catch(error){if(token===attempt)fail(error.message||'Não foi possível recuperar a sessão. Entre novamente.')}
   }
