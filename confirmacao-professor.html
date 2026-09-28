@@ -24,6 +24,12 @@
     const SESSION_KEY='versao-e12-session-v1';
     const title=document.getElementById('title'),message=document.getElementById('message'),spinner=document.getElementById('spinner'),loginLink=document.getElementById('loginLink');
     function fail(text){title.textContent='Não foi possível confirmar';message.textContent=text;spinner.classList.add('hidden');loginLink.classList.remove('hidden');}
+    function decodePayload(token){
+      const raw=token.split('.')[1];if(!raw)throw Error('Token inválido');
+      const normalized=raw.replace(/-/g,'+').replace(/_/g,'/');
+      const padded=normalized.padEnd(Math.ceil(normalized.length/4)*4,'=');
+      return JSON.parse(atob(padded));
+    }
     (async()=>{
       const hash=new URLSearchParams(location.hash.replace(/^#/,''));
       if(hash.get('error_description')){fail(decodeURIComponent(hash.get('error_description')));return}
@@ -31,7 +37,7 @@
       if(!accessToken||!refreshToken){fail('O link é inválido ou expirou. Tente entrar; se necessário, solicite um novo cadastro.');return}
       const expiresIn=Number(hash.get('expires_in'))||3600;
       try{
-        const payload=JSON.parse(atob(accessToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+        const payload=decodePayload(accessToken);
         const session={access_token:accessToken,refresh_token:refreshToken,expires_at:Math.floor(Date.now()/1000)+expiresIn,user:{id:payload.sub,email:payload.email||'',aud:payload.aud,role:payload.role}};
         localStorage.setItem(SESSION_KEY,JSON.stringify(session));
         history.replaceState(null,'',location.pathname);
