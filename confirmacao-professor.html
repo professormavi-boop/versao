@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#8B1C1C">
+  <title>Confirmando sua conta — VERSÃO</title>
+  <link rel="icon" href="/favicon.ico?v=20260928">
+  <link rel="stylesheet" href="/base.e12.css">
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:linear-gradient(150deg,#fff,#fff7f5);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#211e20}.card{width:min(520px,calc(100% - 28px));padding:32px;border:1px solid #eadfdd;border-radius:24px;background:#fff;box-shadow:0 24px 65px rgba(65,25,30,.12);text-align:center}.brand-logo{width:62px;height:62px;border-radius:17px;margin:0 auto 18px}.card h1{margin:0 0 10px;font-size:30px;letter-spacing:-.03em}.card p{margin:0;color:#6b6264;line-height:1.6}.spinner{width:34px;height:34px;border:3px solid #eadfdd;border-top-color:#8B1C1C;border-radius:50%;margin:24px auto;animation:spin .8s linear infinite}.btn{display:inline-flex;min-height:46px;padding:0 18px;align-items:center;justify-content:center;border-radius:12px;background:#8B1C1C;color:#fff;text-decoration:none;font-weight:850;margin-top:20px}.hidden{display:none}@keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="brand-logo" aria-label="VERSÃO"></div>
+    <h1 id="title">Confirmando seu e-mail...</h1>
+    <p id="message">Só um instante. Estamos preparando seu acesso de professor.</p>
+    <div id="spinner" class="spinner" aria-hidden="true"></div>
+    <a id="loginLink" class="btn hidden" href="/">Ir para o VERSÃO</a>
+  </main>
+  <script>
+    'use strict';
+    const SESSION_KEY='versao-e12-session-v1';
+    const title=document.getElementById('title'),message=document.getElementById('message'),spinner=document.getElementById('spinner'),loginLink=document.getElementById('loginLink');
+    function fail(text){title.textContent='Não foi possível confirmar';message.textContent=text;spinner.classList.add('hidden');loginLink.classList.remove('hidden');}
+    (async()=>{
+      const hash=new URLSearchParams(location.hash.replace(/^#/,''));
+      if(hash.get('error_description')){fail(decodeURIComponent(hash.get('error_description')));return}
+      const accessToken=hash.get('access_token'),refreshToken=hash.get('refresh_token');
+      if(!accessToken||!refreshToken){fail('O link é inválido ou expirou. Tente entrar; se necessário, solicite um novo cadastro.');return}
+      const expiresIn=Number(hash.get('expires_in'))||3600;
+      try{
+        const payload=JSON.parse(atob(accessToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+        const session={access_token:accessToken,refresh_token:refreshToken,expires_at:Math.floor(Date.now()/1000)+expiresIn,user:{id:payload.sub,email:payload.email||'',aud:payload.aud,role:payload.role}};
+        localStorage.setItem(SESSION_KEY,JSON.stringify(session));
+        history.replaceState(null,'',location.pathname);
+        title.textContent='E-mail confirmado';message.textContent='Sua conta está pronta. Abrindo o VERSÃO...';
+        setTimeout(()=>location.replace('/?onboarding=1'),900);
+      }catch(error){fail('Seu e-mail foi confirmado, mas não conseguimos abrir a sessão automaticamente. Entre com seu e-mail e senha.');}
+    })();
+  </script>
+</body>
+</html>
