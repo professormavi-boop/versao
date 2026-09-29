@@ -31,13 +31,15 @@
 !student-proposals-v2.e12.js
 !student-scanner.e12.js
 !material-retry-beta.e12.js
+!material-retry-beta-v3.e12.js
+!material-failure-view-beta.e12.js
 !student-replacement-ui-beta.e12.js
 !api/
 !api/**
 !vercel.json
 !privacidade.html
 !termos.html
-# deploy trigger 2026-09-25 audit-student-proposal-linkage-final
+# deploy trigger 2026-09-29 material-retry-validation
 
 !favicon.ico
 !favicon-32.png
