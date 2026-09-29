@@ -85,7 +85,7 @@
       }
       button.disabled=true;element('accountStatus').textContent='Enviando...';
       try{
-        const callback=encodeURIComponent(location.origin+'/');
+        const callback=encodeURIComponent('https://app.versaoprofessor.com/');
         if(mode==='register'){
           await accountRequest('signup?redirect_to='+callback,{email,password,data:{full_name:element('registerName').value.trim()}});
           if(version!==accountVersion)return;
@@ -169,4 +169,3 @@
   if(document.readyState!=='complete')document.addEventListener('DOMContentLoaded',initialize,{once:true});
   else initialize();
 })();
-
