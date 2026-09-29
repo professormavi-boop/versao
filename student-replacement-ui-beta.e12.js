@@ -98,7 +98,7 @@
         pill.classList.remove('ok');pill.classList.add('warn');
       }
       const generic=[...card.querySelectorAll('.safe-note')].find(x=>/Nota, competências e devolutiva/i.test(x.textContent||''));
-      if(generic)generic.innerHTML='<b>Nova imagem necessária.</b><br>Seu professor solicitou uma nova foto desta redação para continuar a correção.';
+      if(generic&&!generic.dataset.replacementPatched){generic.dataset.replacementPatched='1';generic.innerHTML='<b>Nova imagem necessária.</b><br>Seu professor solicitou uma nova foto desta redação para continuar a correção.';}
       let actions=card.querySelector('.item-actions');
       if(!actions){actions=document.createElement('div');actions.className='item-actions';card.appendChild(actions);}
       if(!actions.querySelector('[data-resend-round]')){
@@ -122,7 +122,7 @@
       const host=view.querySelector('.student-home-v2');
       if(host)host.prepend(banner);else view.prepend(banner);
     }
-    banner.innerHTML='<b>Ação necessária: refaça a imagem da redação.</b><br>Seu professor solicitou uma nova foto para que a correção possa continuar.<div style="margin-top:10px"><button type="button" class="btn primary" data-resend-round="'+esc(roundId)+'">Refazer envio</button></div>';
+    if(banner.dataset.replacementReady!=='1'){banner.dataset.replacementReady='1';banner.innerHTML='<b>Ação necessária: refaça a imagem da redação.</b><br>Seu professor solicitou uma nova foto para que a correção possa continuar.<div style="margin-top:10px"><button type="button" class="btn primary" data-resend-round="'+esc(roundId)+'">Refazer envio</button></div>';}
   }
 
   function patchAll(){patchProposalUI();patchEssayCards();patchHome();}
