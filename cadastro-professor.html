@@ -65,7 +65,7 @@
       if(!document.getElementById('terms').checked){show('Aceite os Termos de Uso e a Política de Privacidade para continuar.','error');return}
       button.disabled=true;button.textContent='Criando conta...';show('Enviando seus dados...');
       const acceptedAt=new Date().toISOString();
-      const callback=location.origin+'/confirmacao-professor.html';
+      const callback='https://app.versaoprofessor.com/confirmacao-professor.html';
       try{
         const response=await fetch(BASE+'/auth/v1/signup?redirect_to='+encodeURIComponent(callback),{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password,data:{full_name:fullName,requested_role:'teacher',signup_source:'teacher_self_service',terms_accepted_at:acceptedAt,privacy_accepted_at:acceptedAt,legal_version:'2026-09-28'}})});
         const data=await response.json().catch(()=>({}));
