@@ -34,6 +34,7 @@
 !material-retry-beta-v3.e12.js
 !material-failure-view-beta.e12.js
 !student-replacement-ui-beta.e12.js
+!replacement-click-fix-beta.e12.js
 !api/
 !api/**
 !vercel.json
