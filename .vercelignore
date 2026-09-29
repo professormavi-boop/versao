@@ -35,12 +35,13 @@
 !material-failure-view-beta.e12.js
 !student-replacement-ui-beta.e12.js
 !replacement-click-fix-beta.e12.js
+!student-replacement-flow-beta.e12.js
 !api/
 !api/**
 !vercel.json
 !privacidade.html
 !termos.html
-# deploy trigger 2026-09-29 replacement-simple-v4
+# deploy trigger 2026-09-29 replacement-flow-v1
 
 !favicon.ico
 !favicon-32.png
