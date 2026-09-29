@@ -29,7 +29,7 @@
 
   function shell(id){
     const row=rowFor(id);
-    $('view').innerHTML=`<section class="cx-flow"><button class="btn ghost cx-back" id="mfBack">← Voltar para correções</button><div class="cx-panel"><div class="cx-name">${esc(row.student_name||'Redação')}</div><div class="cx-theme">${esc(row.theme||'')}</div><div id="mfBox" class="box"><div class="box-body"><div class="cx-process"><div class="cx-ring"></div><h2>Carregando tentativa</h2><p>Consultando o estado da correção.</p></div></div></div></div></section>`;
+    $('view').innerHTML=`<section class="cx-flow"><button class="btn ghost cx-back" id="mfBack">← Voltar para correções</button><div class="cx-panel"><div class="cx-name">${esc(row.student_name||'Redação')}</div><div class="cx-theme">${esc(row.theme||'')}</div><div id="slot-${esc(id)}"><div id="mfBox" class="box"><div class="box-body"><div class="cx-process"><div class="cx-ring"></div><h2>Carregando tentativa</h2><p>Consultando o estado da correção.</p></div></div></div></div></div></section>`;
     $('mfBack').onclick=()=>navigate('correction');
     return $('mfBox');
   }
