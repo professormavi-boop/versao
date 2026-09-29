@@ -35,11 +35,12 @@
   const ref=String(row.external_reference||'');
   const service=String(row.metadata?.service||'');
   const milestone=String(row.metadata?.milestone||'');
+  const onboardingEvent=row.event_type==='onboarding_reward'||row.event_type==='adjustment';
   if(row.event_type==='freemium'&&milestone==='email_confirmed')return 'Boas-vindas: e-mail confirmado';
   if(row.event_type==='freemium')return 'Saldo inicial';
-  if(row.event_type==='onboarding_reward'&&milestone==='first_class_with_5_students')return 'Bônus: primeira turma com 5 alunos';
-  if(row.event_type==='onboarding_reward'&&milestone==='first_student_submission')return 'Bônus: primeira redação recebida';
-  if(row.event_type==='onboarding_reward')return 'Bônus de primeiros passos';
+  if(onboardingEvent&&milestone==='first_class_with_5_students')return 'Bônus: primeira turma com 5 alunos';
+  if(onboardingEvent&&milestone==='first_student_submission')return 'Bônus: primeira redação recebida';
+  if(onboardingEvent&&String(row.metadata?.campaign||'')==='teacher_onboarding_v2')return 'Bônus de primeiros passos';
   if(row.event_type==='purchase')return 'Compra de créditos';
   if(row.event_type==='refund')return 'Crédito devolvido';
   if(service==='proposal'||ref.startsWith('proposal-reserve:'))return 'Proposta com IA';
@@ -103,7 +104,7 @@
    if(usageOffset===0)list.innerHTML='<div class="empty">Carregando consumo…</div>';
    const remaining=MAX_RECORDS-usageOffset;
    const queryLimit=remaining>PAGE_SIZE?PAGE_SIZE+1:PAGE_SIZE;
-   const rows=await rest(`correction_credit_ledger?select=id,event_type,delta,balance_after,external_reference,metadata,created_at&event_type=in.(freemium,onboarding_reward,purchase,reservation,refund)&order=created_at.desc&limit=${queryLimit}&offset=${usageOffset}`);
+   const rows=await rest(`correction_credit_ledger?select=id,event_type,delta,balance_after,external_reference,metadata,created_at&event_type=in.(freemium,onboarding_reward,adjustment,purchase,reservation,refund)&order=created_at.desc&limit=${queryLimit}&offset=${usageOffset}`);
    if(!navigationCurrent(navigation)||!$('creditUsageList'))return;
    const page=(Array.isArray(rows)?rows:[]).slice(0,Math.min(PAGE_SIZE,remaining));
    const hasMore=usageOffset+page.length<MAX_RECORDS&&Array.isArray(rows)&&rows.length>PAGE_SIZE;
