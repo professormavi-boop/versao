@@ -2,49 +2,64 @@
 (function(){
   const MATERIAL_AI='ai-correction-material-beta-api';
   let homePending=false;
+  let replacementSuccessPending=false;
 
-  function closeDialog(dialog){
-    try{dialog.close()}catch{}
-    dialog.remove();
+  const originalStudentSubmitFile=studentSubmitFile;
+  const originalStudentUploadSuccess=studentUploadSuccess;
+
+  function isReplacementState(state){
+    return !!state&&(state.replacement_requested===true||!!state.replacement_submission_id);
   }
 
-  function openReplacementChoice(roundId){
+  studentSubmitFile=async function(roundId,file,retried=false){
+    const before=await studentSubmissionState(roundId).catch(()=>null);
+    const replacement=isReplacementState(before);
+    const result=await originalStudentSubmitFile(roundId,file,retried);
+    if(!replacement)return result;
+
+    const after=await studentSubmissionState(roundId).catch(()=>null);
+    if(!after||isReplacementState(after)){
+      throw Error('A nova imagem não foi salva. Tente novamente. A imagem anterior foi mantida.');
+    }
+    replacementSuccessPending=true;
+    return {...result,replacement:true};
+  };
+
+  studentUploadSuccess=function(message='Redação enviada para correção.'){
+    if(replacementSuccessPending){
+      replacementSuccessPending=false;
+      return originalStudentUploadSuccess('Nova imagem salva e enviada ao professor.');
+    }
+    return originalStudentUploadSuccess(message);
+  };
+
+  function openReplacementPage(roundId,backRoute){
     if(!roundId||S?.profile?.role!=='student')return;
     if(typeof chooseStudentFile!=='function'){
       toast('O envio por imagem não está disponível neste momento.');
       return;
     }
-    document.querySelectorAll('dialog[data-replacement-choice]').forEach(dialog=>closeDialog(dialog));
-    const dialog=document.createElement('dialog');
-    dialog.className='app-confirm student-photo-confirm';
-    dialog.dataset.replacementChoice='1';
-    dialog.innerHTML=`<h2>Refazer imagem</h2><p>Envie uma nova imagem completa e legível da redação.</p><div class="safe-note"><b>Antes de enviar:</b> use boa iluminação e foco, mostre todas as linhas e evite cortes, sombras e reflexos.</div><div class="item-actions"><button type="button" class="btn primary" data-replacement-camera>Tirar nova foto</button><button type="button" class="btn soft-btn" data-replacement-file>Selecionar novo arquivo</button><button type="button" class="btn ghost" data-replacement-cancel>Cancelar</button></div>`;
-    document.body.appendChild(dialog);
-    dialog.oncancel=event=>{event.preventDefault();closeDialog(dialog)};
-    dialog.querySelector('[data-replacement-cancel]').onclick=()=>closeDialog(dialog);
-    dialog.querySelector('[data-replacement-camera]').onclick=()=>{
-      closeDialog(dialog);
-      chooseStudentFile(String(roundId),true);
+    const route=backRoute||'student-proposals';
+    $('view').innerHTML=header('Refazer imagem','Envie uma nova foto completa e legível da redação.')+`<section class="spv" data-replacement-page="${esc(roundId)}"><article class="spv-panel"><div class="safe-note"><b>Antes de enviar</b><br>Use boa iluminação e foco, mostre todas as linhas e evite cortes, sombras e reflexos.</div><div class="spv-actions" style="margin-top:16px"><button type="button" class="btn primary spv-primary" data-v2-camera="${esc(roundId)}">Tirar nova foto</button><button type="button" class="btn soft-btn" data-v2-file="${esc(roundId)}">Selecionar novo arquivo</button><button type="button" class="btn ghost" data-replacement-back>Voltar</button></div></article></section>`;
+    $('view').onclick=event=>{
+      const back=event.target.closest('[data-replacement-back]');
+      if(back)navigate(route);
     };
-    dialog.querySelector('[data-replacement-file]').onclick=()=>{
-      closeDialog(dialog);
-      chooseStudentFile(String(roundId),false);
-    };
-    dialog.showModal();
   }
 
-  document.addEventListener('click',event=>{
+  // Captura no window para executar antes dos listeners antigos do fluxo de aluno.
+  window.addEventListener('click',event=>{
     if(S?.profile?.role!=='student')return;
     const home=event.target?.closest?.('[data-resend-round]');
     if(home){
       event.preventDefault();event.stopImmediatePropagation();
-      openReplacementChoice(home.dataset.resendRound);
+      openReplacementPage(home.dataset.resendRound,S.route==='student-home'?'student-home':'student-essays');
       return;
     }
     const proposal=event.target?.closest?.('[data-spv-send]');
     if(!proposal||!/refazer envio/i.test(String(proposal.textContent||'')))return;
     event.preventDefault();event.stopImmediatePropagation();
-    openReplacementChoice(proposal.dataset.spvSend);
+    openReplacementPage(proposal.dataset.spvSend,'student-proposals');
   },true);
 
   async function replacementRequests(roundIds){
