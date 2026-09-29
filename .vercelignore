@@ -31,6 +31,7 @@
 !student-proposals-v2.e12.js
 !student-scanner.e12.js
 !material-retry-beta.e12.js
+!student-replacement-ui-beta.e12.js
 !api/
 !api/**
 !vercel.json
