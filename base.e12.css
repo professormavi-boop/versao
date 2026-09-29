@@ -1,11 +1,11 @@
 @import url('/base-original.e12.css');
 
-/* Landing beta: visual realista da jornada de correção */
+/* Landing beta: telas reais da experiência do aluno */
 .correction .correction-grid{display:grid!important;grid-template-columns:1fr!important;gap:24px!important;align-items:start!important}
 .correction .correction-grid>div:last-child{display:contents!important}
 .correction .correction-grid>div:last-child>.eyebrow{order:1;justify-self:center!important;text-align:center!important}
 .correction .correction-grid>div:last-child>h2{order:2;text-align:center!important;max-width:860px!important;margin:10px auto 4px!important}
-.correction .screen{order:3!important;width:100%!important;aspect-ratio:1400/788!important;min-height:0!important;border:1px solid #eadfdd!important;border-radius:24px!important;background:#fff url('/landing-mockup-versao.webp?v=20260928-real') center/cover no-repeat!important;box-shadow:0 20px 48px rgba(70,30,34,.10)!important;overflow:hidden!important}
+.correction .screen{order:3!important;width:100%!important;aspect-ratio:700/394!important;min-height:0!important;border:1px solid #eadfdd!important;border-radius:24px!important;background:#fff url('/api/landing-real-image?v=20260928') center/cover no-repeat!important;box-shadow:0 20px 48px rgba(70,30,34,.10)!important;overflow:hidden!important}
 .correction .screen>*{display:none!important}
 .correction .correction-grid>div:last-child>.value-list{order:4!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:11px!important;margin-top:0!important}
 @media(max-width:800px){.correction .screen{border-radius:18px!important}.correction .correction-grid>div:last-child>.value-list{grid-template-columns:1fr!important}.correction .correction-grid>div:last-child>h2{font-size:clamp(30px,8vw,42px)!important}}
