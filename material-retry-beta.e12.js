@@ -171,15 +171,16 @@
 
   function patchStudentDom(){
     if(S?.profile?.role!=='student')return;
-    for(const [roundId,request] of replacementRounds){
-      const card=document.querySelector(`[data-spv-open="${CSS.escape(roundId)}"]`);
+    for(const [roundId] of replacementRounds){
+      const escaped=CSS.escape(roundId);
+      const card=document.querySelector(`[data-spv-open="${escaped}"]`);
       if(card&&!card.dataset.materialPatched){
         card.dataset.materialPatched='1';
-        const status=card.querySelector('.spv-status');if(status)status.textContent='Refazer imagem';
-        const p=card.querySelector('.spv-card-main>p');if(p)p.textContent='Seu professor solicitou uma nova imagem da redação.';
+        const status=card.querySelector('.spv-status');if(status&&status.textContent!=='Refazer imagem')status.textContent='Refazer imagem';
+        const p=card.querySelector('.spv-card-main>p');if(p&&p.textContent!=='Seu professor solicitou uma nova imagem da redação.')p.textContent='Seu professor solicitou uma nova imagem da redação.';
       }
-      document.querySelectorAll(`[data-spv-send="${CSS.escape(roundId)}"]`).forEach(button=>{
-        button.textContent='Refazer envio';
+      document.querySelectorAll(`[data-spv-send="${escaped}"]`).forEach(button=>{
+        if(button.textContent!=='Refazer envio')button.textContent='Refazer envio';
         const panel=button.closest('.spv-panel');
         if(panel&&!panel.querySelector('[data-material-student-note]')){
           const note=document.createElement('div');note.className='safe-note';note.dataset.materialStudentNote='1';
@@ -187,16 +188,16 @@
           button.closest('.spv-actions')?.before(note);
         }
       });
-      const camera=document.querySelector(`[data-v2-camera="${CSS.escape(roundId)}"]`);
+      const camera=document.querySelector(`[data-v2-camera="${escaped}"]`);
       if(camera){
         const grid=camera.closest('.spv-send-grid');
-        const paste=document.querySelector(`[data-v2-paste="${CSS.escape(roundId)}"]`);if(paste)paste.style.display='none';
+        const paste=document.querySelector(`[data-v2-paste="${escaped}"]`);if(paste&&paste.style.display!=='none')paste.style.display='none';
         if(grid&&!grid.parentElement.querySelector('[data-material-resend-note]')){
           const note=document.createElement('div');note.className='safe-note';note.dataset.materialResendNote='1';
           note.innerHTML='<b>Refaça a imagem.</b> Garanta boa iluminação, foco e todas as linhas visíveis. Use flash apenas se necessário e evite reflexos.';
           grid.before(note);
         }
-        const span=camera.querySelector('span');if(span)span.textContent='Tirar nova foto';
+        const span=camera.querySelector('span');if(span&&span.textContent!=='Tirar nova foto')span.textContent='Tirar nova foto';
       }
     }
   }
@@ -212,9 +213,9 @@
       try{
         const proposals=await studentProposals(true),ids=(proposals.proposals||[]).map(x=>x.id);
         if(ids.length)await studentSubmitJson({action:'states',round_ids:ids});
-        if(S.route!=='student-home'||!replacementRounds.size)return;
+        if(S.route!=='student-home'||!replacementRounds.size||$('view')?.querySelector('[data-material-home-note]'))return;
         const first=[...replacementRounds.keys()][0];
-        const banner=document.createElement('div');banner.className='safe-note';banner.style.marginBottom='16px';
+        const banner=document.createElement('div');banner.className='safe-note';banner.dataset.materialHomeNote='1';banner.style.marginBottom='16px';
         banner.innerHTML='<b>Nova imagem solicitada.</b><br>Seu professor pediu que você refaça a imagem de uma redação para permitir a correção segura.<div style="margin-top:10px"><button type="button" class="btn primary" data-material-student-open="'+esc(first)+'">Refazer envio</button></div>';
         const head=$('view')?.querySelector('.page-head');if(head)head.after(banner);else $('view')?.prepend(banner);
       }catch(error){console.warn('student replacement notice',error)}
