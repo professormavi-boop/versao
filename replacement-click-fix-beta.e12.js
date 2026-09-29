@@ -66,6 +66,14 @@
     input.click();
   }
 
+  function renderReplacementSuccess(){
+    $('view').innerHTML=header('Nova imagem enviada','O reenvio foi concluído com sucesso.')+`<section class="spv"><article class="spv-panel"><div class="safe-note" style="background:#f3fbf5;border-color:#cfe7d5"><b>Nova imagem salva com sucesso.</b><br>O professor já pode continuar a correção desta mesma redação.</div><div class="spv-actions" style="margin-top:16px"><button type="button" class="btn primary spv-primary" data-replacement-success-home>Voltar ao início</button><button type="button" class="btn soft-btn" data-replacement-success-essays>Minhas redações</button></div></article></section>`;
+    $('view').onclick=event=>{
+      if(event.target.closest('[data-replacement-success-home]')){navigate('student-home');return}
+      if(event.target.closest('[data-replacement-success-essays]'))navigate('student-essays');
+    };
+  }
+
   function renderReplacementPreview(roundId,file,camera,backRoute){
     const mime=mimeOf(file),objectUrl=mime.startsWith('image/')?URL.createObjectURL(file):'';
     const preview=objectUrl
@@ -87,8 +95,7 @@
       try{
         await uploadReplacement(roundId,file);
         S.cache={};S.student=null;revoke();
-        await navigate('student-essays');
-        studentUploadSuccess('Nova imagem salva e enviada ao professor.');
+        renderReplacementSuccess();
       }catch(error){
         send.disabled=false;send.textContent='Enviar nova imagem';
         if(errorBox){errorBox.style.display='block';errorBox.textContent=error.message||'Não foi possível salvar a nova imagem.'}
