@@ -21,11 +21,11 @@
     dialog.querySelector('[data-replacement-cancel]').onclick=()=>closeDialog(dialog);
     dialog.querySelector('[data-replacement-camera]').onclick=()=>{
       closeDialog(dialog);
-      setTimeout(()=>chooseStudentFile(String(roundId),true),0);
+      chooseStudentFile(String(roundId),true);
     };
     dialog.querySelector('[data-replacement-file]').onclick=()=>{
       closeDialog(dialog);
-      setTimeout(()=>chooseStudentFile(String(roundId),false),0);
+      chooseStudentFile(String(roundId),false);
     };
     dialog.showModal();
   }
