@@ -7,6 +7,16 @@
   <title>Confirmando sua conta — VERSÃO</title>
   <link rel="icon" href="/favicon.ico?v=20260928">
   <link rel="stylesheet" href="/base.e12.css">
+  <script>
+    (function(w,d,s,u){
+      if(w.oaiq)return;
+      var q=function(){q.q.push(arguments)};
+      q.q=[];w.oaiq=q;
+      var js=d.createElement(s);js.async=true;js.src=u;
+      var f=d.getElementsByTagName(s)[0];f.parentNode.insertBefore(js,f);
+    })(window,document,"script","https://bzrcdn.openai.com/sdk/oaiq.min.js");
+    oaiq("init",{pixelId:"5PmywfWA6aueuW7cBSwvdL"});
+  </script>
   <style>
     *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:linear-gradient(150deg,#fff,#fff7f5);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#211e20}.card{width:min(520px,calc(100% - 28px));padding:32px;border:1px solid #eadfdd;border-radius:24px;background:#fff;box-shadow:0 24px 65px rgba(65,25,30,.12);text-align:center}.brand-logo{width:62px;height:62px;border-radius:17px;margin:0 auto 18px}.card h1{margin:0 0 10px;font-size:30px;letter-spacing:-.03em}.card p{margin:0;color:#6b6264;line-height:1.6}.spinner{width:34px;height:34px;border:3px solid #eadfdd;border-top-color:#8B1C1C;border-radius:50%;margin:24px auto;animation:spin .8s linear infinite}.btn{display:inline-flex;min-height:46px;padding:0 18px;align-items:center;justify-content:center;border-radius:12px;background:#8B1C1C;color:#fff;text-decoration:none;font-weight:850;margin-top:20px}.hidden{display:none}@keyframes spin{to{transform:rotate(360deg)}}
   </style>
@@ -31,6 +41,12 @@
       const padded=normalized.padEnd(Math.ceil(normalized.length/4)*4,'=');
       return JSON.parse(atob(padded));
     }
+    async function registrationEventId(profileId){
+      const input=new TextEncoder().encode('versao:registration_completed:'+profileId);
+      const digest=await crypto.subtle.digest('SHA-256',input);
+      const hex=Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
+      return 'versao_registration_'+hex;
+    }
     (async()=>{
       const hash=new URLSearchParams(location.hash.replace(/^#/,''));
       if(hash.get('error_description')){fail(decodeURIComponent(hash.get('error_description')));return}
@@ -43,6 +59,10 @@
         localStorage.setItem(SESSION_KEY,JSON.stringify(session));
         history.replaceState(null,'',location.pathname+location.search);
         window.VersaoFunnel?.track('signup_complete',{page:'confirmation'});
+        const eventId=payload.sub?await registrationEventId(payload.sub):'';
+        if(eventId&&window.oaiq){
+          oaiq('measure','registration_completed',{type:'customer_action'},{event_id:eventId});
+        }
         const attribution=window.VersaoFunnel?.attribution?.()||{};
         if(attribution.oppref&&payload.sub){
           fetch('/api/openai-conversion',{
