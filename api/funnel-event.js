@@ -1,7 +1,7 @@
 'use strict';
 
 const ALLOWED_EVENTS=new Set(['landing_view','click_signup','signup_started','signup_complete']);
-const SAFE_KEYS=new Set(['utm_source','utm_medium','utm_campaign','utm_content','utm_term','page','cta','path']);
+const SAFE_KEYS=new Set(['utm_source','utm_medium','utm_campaign','utm_content','utm_term','oppref','page','cta','path']);
 
 function clean(value,max=160){
   if(value===undefined||value===null)return '';
@@ -28,7 +28,8 @@ module.exports=async function handler(req,res){
 
   const payload={event};
   for(const key of SAFE_KEYS){
-    const value=clean(body[key],key==='path'?160:120);
+    const max=key==='path'?160:key==='oppref'?512:120;
+    const value=clean(body[key],max);
     if(value)payload[key]=value;
   }
 
