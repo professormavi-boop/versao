@@ -2,7 +2,7 @@
 (function(){
   const STORAGE_KEY='versao-funnel-attribution-v1';
   const ATTRIBUTION_TTL_MS=30*24*60*60*1000;
-  const UTM_KEYS=['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
+  const ATTRIBUTION_KEYS=['utm_source','utm_medium','utm_campaign','utm_content','utm_term','oppref'];
   const ALLOWED_EVENTS=new Set(['landing_view','click_signup','signup_started','signup_complete']);
 
   function clean(value,max=120){
@@ -10,11 +10,13 @@
     return String(value).trim().slice(0,max);
   }
 
+  function attributionMax(key){return key==='oppref'?512:120}
+
   function readCurrentAttribution(){
     const params=new URLSearchParams(location.search);
     const data={};
-    for(const key of UTM_KEYS){
-      const value=clean(params.get(key),120);
+    for(const key of ATTRIBUTION_KEYS){
+      const value=clean(params.get(key),attributionMax(key));
       if(value)data[key]=value;
     }
     return data;
@@ -29,8 +31,8 @@
         return {};
       }
       const data={};
-      for(const key of UTM_KEYS){
-        const value=clean(parsed[key],120);
+      for(const key of ATTRIBUTION_KEYS){
+        const value=clean(parsed[key],attributionMax(key));
         if(value)data[key]=value;
       }
       return data;
@@ -64,7 +66,7 @@
     const safeExtra=extra&&typeof extra==='object'?extra:{};
     for(const [key,value] of Object.entries(safeExtra)){
       if(!/^[a-z0-9_]{1,40}$/i.test(key))continue;
-      const cleaned=clean(value,120);
+      const cleaned=clean(value,key==='oppref'?512:120);
       if(cleaned)out[key]=cleaned;
     }
     return out;
@@ -90,7 +92,7 @@
     try{
       const target=new URL(url,location.href);
       const data=attribution();
-      for(const key of UTM_KEYS){if(data[key]&&!target.searchParams.has(key))target.searchParams.set(key,data[key])}
+      for(const key of ATTRIBUTION_KEYS){if(data[key]&&!target.searchParams.has(key))target.searchParams.set(key,data[key])}
       return target.toString();
     }catch(_error){return url}
   }
@@ -103,7 +105,7 @@
         const target=new URL(link.href,location.href);
         const isSignup=target.searchParams.get('cadastro')==='1'||target.pathname.endsWith('/cadastro-professor.html');
         if(!isSignup)return;
-        for(const key of UTM_KEYS){if(data[key]&&!target.searchParams.has(key))target.searchParams.set(key,data[key])}
+        for(const key of ATTRIBUTION_KEYS){if(data[key]&&!target.searchParams.has(key))target.searchParams.set(key,data[key])}
         link.href=target.toString();
       }catch(_error){}
     });
