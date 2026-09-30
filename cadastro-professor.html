@@ -42,11 +42,13 @@
       <p class="login-link">Já tem uma conta? <a href="/">Entrar</a></p>
     </section>
   </main>
+  <script src="/funnel-analytics.js?v=20260930-ads-v1"></script>
   <script>
     'use strict';
     const BASE='https://huccxcpwoydwuisrmboc.supabase.co';
     const KEY='sb_publishable_KzojVBVP3GvVbSgO_w0mUA_-s8r7VdR';
     const form=document.getElementById('teacherSignup'),button=document.getElementById('submitBtn'),statusBox=document.getElementById('status');
+    window.VersaoFunnel?.markSignupStarted(form);
     const show=(message,type='')=>{statusBox.textContent=message;statusBox.className='status '+type;};
     function messageFor(data){
       const code=String(data?.code||data?.error_code||'');
@@ -65,7 +67,8 @@
       if(!document.getElementById('terms').checked){show('Aceite os Termos de Uso e a Política de Privacidade para continuar.','error');return}
       button.disabled=true;button.textContent='Criando conta...';show('Enviando seus dados...');
       const acceptedAt=new Date().toISOString();
-      const callback='https://app.versaoprofessor.com/confirmacao-professor.html';
+      const rawCallback='https://app.versaoprofessor.com/confirmacao-professor.html';
+      const callback=window.VersaoFunnel?.withAttribution(rawCallback)||rawCallback;
       try{
         const response=await fetch(BASE+'/auth/v1/signup?redirect_to='+encodeURIComponent(callback),{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password,data:{full_name:fullName,requested_role:'teacher',signup_source:'teacher_self_service',terms_accepted_at:acceptedAt,privacy_accepted_at:acceptedAt,legal_version:'2026-09-28'}})});
         const data=await response.json().catch(()=>({}));

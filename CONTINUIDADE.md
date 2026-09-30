@@ -1,5 +1,33 @@
 # VERSÃO — continuidade da Etapa 12
 
+## Instrumentação do funil ChatGPT Ads — 30/09/2026
+
+Branch: `feat/funil-chatgpt-ads`. Issue rastreável: #7 — Instrumentar funil da landing para campanha ChatGPT Ads.
+
+Objetivo: medir o caminho anúncio → landing → CTA → início do cadastro → cadastro confirmado, preservando UTMs da campanha `chatgpt / paid / professores_redacao` e sem alterar o Supabase compartilhado.
+
+Implementado:
+- `funnel-analytics.js`: atribuição UTM em `localStorage` por até 30 dias; eventos `landing_view`, `click_signup`, `signup_started` e `signup_complete`; integração com Vercel Web Analytics; envio adicional sanitizado para `/api/funnel-event`.
+- `api/funnel-event.js`: endpoint serverless POST com allowlist de eventos/campos e log `[VERSAO_FUNNEL]`; payload não lê nem registra nome, e-mail, senha ou token.
+- `landing.html`: carrega o módulo sem alterar o conteúdo aprovado; CTAs de cadastro recebem UTMs preservadas e geram `click_signup`.
+- `index.html`: carrega o módulo antes do fluxo `?cadastro=1`, para não perder a atribuição ao redirecionar para o cadastro.
+- `cadastro-professor.html`: registra `signup_started` no primeiro uso do formulário e inclui as UTMs no `redirect_to` da confirmação por e-mail.
+- `confirmacao-professor.html`: registra `signup_complete` apenas após token válido, sessão criada e e-mail confirmado.
+- `tests/funnel-analytics.cjs`: invariantes dos quatro eventos, UTM, endpoint e ausência de leitura de e-mail/senha no payload.
+
+Segurança/limites:
+- Nenhuma alteração de schema, Edge Function, permissões ou dados administrativos do Supabase `huccxcpwoydwuisrmboc`.
+- Nenhuma alteração ou promoção para produção.
+- O endpoint sanitizado foi criado para permitir acompanhamento posterior via logs da Vercel mesmo quando a API de Web Analytics não estiver exposta pelo conector do chat.
+
+Validação:
+- Diff contra `main`: branch 8 commits à frente, zero atrás; `landing.html` e `index.html` receberam somente a inclusão do script de analytics; cadastro e confirmação tiveram mudanças mínimas.
+- Deployment de teste `dpl_H2KFv8ag9CgQr13E6aVPo1jjKiw2`, projeto autorizado `prj_7mEBS5QDaBWrG4hjnBKelNkU90OY`, estado READY, commit `1bb4318e1735f5fbe4ef04262cfceebd2683d77e`.
+- Landing com UTMs respondeu HTTP 200 no deployment final e contém o carregamento de `funnel-analytics.js`.
+- Limitação de homologação: o preview está protegido pela Vercel Authentication; leituras automatizadas diretas de assets/endpoint retornam o gate 302. Portanto, a ingestão real dos eventos no navegador e o POST do endpoint ainda precisam de homologação em ambiente acessível. Não declarar o funil end-to-end homologado até isso ocorrer.
+
+Próximo passo: após autorização explícita, promover o pacote para o domínio comercial e fazer um teste sintético com UTM para confirmar os quatro eventos antes de ativar a campanha ChatGPT Ads.
+
 ## Retomada da auditoria — 27/09/2026
 
 O usuário autorizou a aplicação do pacote de auditoria e solicitou continuidade. A produção atual foi identificada pelo domínio suaversao.vercel.app: projeto prj_5OC7zfjEgapvbrapPjas2lLvvut7, deployment dpl_4BLgbQx2vfJrKxz7TVZzRoceiPQQ, commit 4701bdf. Os IDs de produção congelada abaixo são históricos.
