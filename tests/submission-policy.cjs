@@ -12,6 +12,8 @@ assert(feature.includes('Manuscrita ou digitada'),'editor deve preservar a opç�
 assert(feature.includes("body?.action==='paste'"),'envio digitado deve ter bloqueio no cliente');
 assert(feature.includes("button.remove()"),'botão de colar texto deve ser removido da interface manuscrita');
 assert(feature.includes('MANUSCRIPT_MARKER'),'preferência deve ser persistida no proposal_html');
+assert(feature.includes("#pvDraft,#pvPreviewDraft,#pvPreviewPublish"),'marcador só deve ser sincronizado antes de salvar/publicar');
+assert(!feature.includes("document.addEventListener('click',()=>{\n    syncTeacherMarker()"),'cliques comuns não podem reescrever o editor');
 assert(!feature.includes('MutationObserver'),'recurso não deve depender de observer corretivo');
 assert(!feature.includes('alert(')&&!feature.includes('confirm(')&&!feature.includes('prompt('),'recurso não deve introduzir diálogos nativos');
 console.log('submission-policy: ok');
