@@ -9,7 +9,7 @@
     (()=>{
       const host=location.hostname.toLowerCase();
       if((host==='versaoprofessor.com'||host==='www.versaoprofessor.com')&&location.pathname==='/'){
-        location.replace('/landing.html');
+        location.replace('/landing.html'+location.search+location.hash);
       }
     })();
   </script>
