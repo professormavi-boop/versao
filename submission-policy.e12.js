@@ -149,8 +149,8 @@
     };
   }
 
-  document.addEventListener('click',()=>{
-    syncTeacherMarker();
+  document.addEventListener('click',event=>{
+    if(event.target?.closest?.('#pvDraft,#pvPreviewDraft,#pvPreviewPublish'))syncTeacherMarker();
     scheduleSync();
   },true);
   document.addEventListener('change',event=>{
