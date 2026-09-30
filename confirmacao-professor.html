@@ -19,7 +19,7 @@
     <div id="spinner" class="spinner" aria-hidden="true"></div>
     <a id="loginLink" class="btn hidden" href="/">Ir para o VERSÃO</a>
   </main>
-  <script src="/funnel-analytics.js?v=20260930-ads-v1"></script>
+  <script src="/funnel-analytics.js?v=20260930-conversions-v1"></script>
   <script>
     'use strict';
     const SESSION_KEY='versao-e12-session-v1';
@@ -43,6 +43,16 @@
         localStorage.setItem(SESSION_KEY,JSON.stringify(session));
         history.replaceState(null,'',location.pathname+location.search);
         window.VersaoFunnel?.track('signup_complete',{page:'confirmation'});
+        const attribution=window.VersaoFunnel?.attribution?.()||{};
+        if(attribution.oppref&&payload.sub){
+          fetch('/api/openai-conversion',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({profile_id:payload.sub,oppref:attribution.oppref}),
+            keepalive:true,
+            credentials:'same-origin'
+          }).catch(()=>{});
+        }
         title.textContent='E-mail confirmado';message.textContent='Sua conta está pronta. Abrindo o VERSÃO...';
         setTimeout(()=>location.replace('/?onboarding=1'),900);
       }catch(error){fail('Seu e-mail foi confirmado, mas não conseguimos abrir a sessão automaticamente. Entre com seu e-mail e senha.');}
