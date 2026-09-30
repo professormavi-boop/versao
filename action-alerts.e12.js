@@ -56,6 +56,18 @@ window.prompt=function(message){
 };
 window.__VERSAO_UI_RULES__=Object.freeze({nativeDialogs:false,confirmation:'appConfirm',messages:'actionAlert/toast'});
 
+// Compatibilidade temporária com rotas antigas ainda referenciadas pelo bootstrap/core.
+// A gestão atual passa por renderPlatformPage; estas aliases evitam bloquear o login
+// enquanto as referências legadas são removidas em uma limpeza posterior.
+async function renderManagement(navigation){
+  if(typeof renderPlatformPage==='function')return renderPlatformPage(navigation);
+  throw Error('Gestão da plataforma indisponível.');
+}
+async function renderAdminAccounts(navigation){
+  if(typeof renderPlatformPage==='function')return renderPlatformPage(navigation);
+  throw Error('Gestão da plataforma indisponível.');
+}
+
 // Toda Correção Inteligente que consome crédito pede confirmação no padrão grande do sistema.
 const aiActionAuthorized=new WeakSet();
 document.addEventListener('click',async event=>{
