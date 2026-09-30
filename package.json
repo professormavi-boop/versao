@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "check": "node scripts/check.cjs",
-    "test": "node tests/audit-regressions.cjs && node tests/http-smoke.cjs && node tests/select-controls.cjs"
+    "test": "node tests/audit-regressions.cjs && node tests/http-smoke.cjs && node tests/select-controls.cjs && node tests/funnel-analytics.cjs"
   },
   "devDependencies": {
     "jsdom": "26.1.0"
