@@ -218,3 +218,4 @@
   if(document.readyState!=='loading')initialize();
   else document.addEventListener('DOMContentLoaded',initialize,{once:true});
 })();
+// deploy: loginfix2-20260930
