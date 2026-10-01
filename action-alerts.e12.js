@@ -66,32 +66,31 @@ if(baseBuildNav){
     if(S?.profile?.role!=='teacher')return;
     const nav=document.getElementById('nav');
     if(!nav||nav.querySelector('.teacher-nav-group'))return;
-    const schoolButton=nav.querySelector('button[data-route="teacher-organization"]');
     const items=[
+      [nav.querySelector('button[data-route="teacher-organization"]'),'Gerenciar escolas'],
       [nav.querySelector('button[data-route="teacher-classes"]'),'Turmas'],
       [nav.querySelector('button[data-route="teacher-students"]'),'Alunos'],
       [nav.querySelector('button[data-route="teacher-import"]'),'Importar alunos']
     ];
-    if(!schoolButton||items.some(([button])=>!button))return;
+    if(items.some(([button])=>!button))return;
     if(!document.getElementById('teacherNavStyles')){
       const style=document.createElement('style');
       style.id='teacherNavStyles';
-      style.textContent='.nav .teacher-nav-group>summary{display:flex;align-items:center;gap:10px;border-radius:12px;color:#4E4B4D;list-style:none}.nav .teacher-nav-group>summary::-webkit-details-marker{display:none}.nav .teacher-nav-group>summary:hover{background:#FAF5F4}.nav .teacher-nav-group>summary.active{background:#F8ECEB;color:var(--crimson)}.nav .teacher-nav-group>button{padding-left:30px!important}';
+      style.textContent='.nav .teacher-nav-group>summary{display:flex;align-items:center;gap:10px;border-radius:12px;color:#4E4B4D;list-style:none}.nav .teacher-nav-group>summary::-webkit-details-marker{display:none}.nav .teacher-nav-group>summary:hover{background:#FAF5F4}.nav .teacher-nav-group>button{padding-left:30px!important}';
       document.head.appendChild(style);
     }
     const group=document.createElement('details');
     group.className='admin-nav-group teacher-nav-group';
     group.open=teacherSchoolRoutes.has(S.route);
     const summary=document.createElement('summary');
-    summary.dataset.route='teacher-organization';
     summary.innerHTML='<span class="dot"></span><span>Escolas</span>';
     group.appendChild(summary);
+    const firstButton=items[0][0];
+    firstButton.before(group);
     for(const [button,label] of items){
       button.textContent=label;
       group.appendChild(button);
     }
-    schoolButton.before(group);
-    schoolButton.remove();
   };
 }
 if(baseSetActive){
