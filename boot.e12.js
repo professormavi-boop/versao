@@ -20,6 +20,7 @@
     element('shell')?.classList.add('hidden');
     element('auth')?.classList.remove('hidden');
     const status=element('loginStatus'),button=element('loginBtn');
+    if(!pinMode)window.VersaoCaptcha?.mount('loginCaptcha');
     if(status)status.textContent=message;
     if(button){button.disabled=!enabled;button.textContent='Entrar';}
   }
@@ -66,7 +67,8 @@
         if(typeof signInPin!=='function')throw Error('O acesso do aluno não terminou de carregar. Atualize a página.');
         session=await signInPin(element('classCode').value,element('studentPin').value);
       }else{
-        session=await signIn(element('email').value.trim(),element('password').value,true);
+        const captchaToken=window.VersaoCaptcha.token('loginCaptcha');
+        session=await signIn(element('email').value.trim(),element('password').value,true,captchaToken);
       }
       if(token!==attempt)return;
       S.session=session;
@@ -76,13 +78,18 @@
     }catch(error){
       if(token===attempt)fail(error.message||'Não foi possível entrar.');
     }finally{
+      if(!pinMode)window.VersaoCaptcha?.reset('loginCaptcha');
       if(token===attempt){clearTimeout(timer);button.disabled=false;button.textContent='Entrar';}
     }
   }
 
   let accountMode='login',accountVersion=0,recoveryToken=null;
+  const emailSendAfter=new Map();
   function accountView(mode,message=''){
+    if(mode==='register'){location.assign('/cadastro-professor.html');return;}
     accountMode=mode;accountVersion++;
+    element('accountCaptcha')?.classList.toggle('hidden',mode!=='forgot');
+    if(mode==='forgot')window.VersaoCaptcha?.mount('accountCaptcha');
     if(mode!=='reset')recoveryToken=null;
     const form=element('accountForm');if(!form)return;
     element('loginForm').classList.toggle('hidden',mode!=='login');
@@ -120,17 +127,19 @@
       if(typeof accountRequest!=='function'){
         element('accountStatus').textContent='A área de conta ainda não terminou de carregar. Atualize a página.';return;
       }
+      const sendKey=mode+':'+email.toLowerCase();
+      const remaining=Math.ceil(((emailSendAfter.get(sendKey)||0)-Date.now())/1000);
+      if(remaining>0){element('accountStatus').textContent='Aguarde '+remaining+' segundos para reenviar.';return;}
       button.disabled=true;element('accountStatus').textContent='Enviando...';
       try{
         const callback=encodeURIComponent('https://app.versaoprofessor.com/');
-        if(mode==='register'){
-          await accountRequest('signup?redirect_to='+callback,{email,password,data:{full_name:element('registerName').value.trim()}});
+        if(mode==='forgot'){
+          const captchaToken=window.VersaoCaptcha.token('accountCaptcha');
+          await accountRequest('recover?redirect_to='+callback,{email,gotrue_meta_security:{captcha_token:captchaToken}});
           if(version!==accountVersion)return;
-          element('accountStatus').textContent='Cadastro enviado. Confirme seu e-mail para acessar o VERSÃO.';
-        }else if(mode==='forgot'){
-          await accountRequest('recover?redirect_to='+callback,{email});
-          if(version!==accountVersion)return;
-          element('accountStatus').textContent='Se houver uma conta para esse e-mail, você receberá as instruções de recuperação. Confira também o spam.';
+          emailSendAfter.set(sendKey,Date.now()+60000);
+          button.textContent='Reenviar e-mail de recuperação';
+          element('accountStatus').textContent='Se houver uma conta para esse e-mail, você receberá as instruções de recuperação. Confira também o spam. Você pode reenviar após 60 segundos.';
         }else if(mode==='reset'){
           if(!recoveryToken)throw Error('Link inválido. Solicite outra recuperação.');
           await accountRequest('user',{password},recoveryToken);
@@ -142,6 +151,7 @@
       }catch(error){
         if(version===accountVersion)element('accountStatus').textContent=error.message||'Não foi possível concluir.';
       }finally{
+        if(mode==='forgot')window.VersaoCaptcha?.reset('accountCaptcha');
         if(version===accountVersion)button.disabled=false;
       }
     };
@@ -166,6 +176,8 @@
 
   function chooseLogin(student){
     pinMode=student;accountView('login');
+    element('loginCaptcha')?.classList.toggle('hidden',student);
+    if(!student)window.VersaoCaptcha?.mount('loginCaptcha');
     for(const id of ['emailField','passwordField'])element(id).classList.toggle('hidden',student);
     for(const id of ['classCodeField','studentPinField','pinHelp'])element(id).classList.toggle('hidden',!student);
     element('email').required=!student;element('password').required=!student;

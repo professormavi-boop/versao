@@ -215,3 +215,26 @@ Validação: check e testes HTTP/regressão passaram; DOM confirma ausência de 
 - [x] Validar comportamento e publicar.
 
 Fila de Correções: nova ação queue_page busca páginas de 10 no banco; filtros de status varrem lotes limitados, sem carregar todos os relatórios. Backend live-correction-beta-api v6 ativo, JWT mantido. Testes com 37 registros: paginação, status, busca vazia e permissão aprovados. Check e regressões HTTP aprovados. Revisão aberta é preservada ao carregar mais. Paginação não aplicada ao painel inicial nem ao histórico do aluno nesta alteração. Sem benchmark de grande volume ou login visual novo.
+
+
+## Acesso imediato — 30/09/2026
+Solicitação explícita do usuário: remover confirmação obrigatória de e-mail em produção.
+- [x] Conferir cadastro e funções de créditos atuais.
+- [x] Preparar texto e sessão de acesso imediato no cadastro, preservando validações.
+- [ ] Desativar confirmação de e-mail nas configurações do Supabase Auth. Conector não expõe configuração; depende de acesso ao painel.
+- [ ] Validar cadastro e login reais, bônus único e publicar frontend.
+Não publicar este frontend antes de desativar a confirmação. Bônus atual: 3 iniciais, +2 e +5 por marcos; não alterar nesta tarefa.
+
+Validação local: 6 cenários simulados (sucesso com sessão, senhas diferentes, termos ausentes, conta duplicada, resposta sem sessão e armazenamento indisponível); teste de analytics atualizado para conversão no cadastro. O check geral existente falha por proibir roteamento já presente na main; não alterado nesta tarefa.
+Nova orientação: incluir somente CAPTCHA como proteção adicional, sem confirmação por e-mail. Precisa de chaves reais do provedor e habilitação no Supabase. CAPTCHA global também deve ser integrado ao login/recuperação antes de habilitar para evitar bloqueios. Não ativado nem publicado.
+
+## Turnstile e recuperação — 30/09/2026
+- [x] Chave pública fornecida pelo usuário integrada ao componente compartilhado de CAPTCHA.
+- [x] Token enviado a signup, login por senha e recuperação; PIN do aluno e refresh preservados.
+- [x] Reenvio de recuperação após 60 segundos; confirmação não é oferecida, conforme correção explícita do usuário.
+- [x] Cadastro direto: 7 cenários simulados e analytics aprovados; sintaxe dos módulos aprovada.
+- [ ] Inserir Secret Key diretamente no painel, selecionar Turnstile e ativar proteção em conjunto com publicação.
+- [ ] Desativar confirmação obrigatória e testar cadastro real sem envio de e-mail.
+Nenhuma chave secreta armazenada no frontend. Produção ainda não alterada.
+
+Pré-publicação: npm test passou (regressões de notas/propostas, 33 assets HTTP, seletores e analytics); token CAPTCHA conferido contra contrato oficial auth-js. Allowlist Vercel inclui captcha.e12.js. PIN utiliza generateLink + verifyOtp, sem login por senha.

@@ -17,60 +17,75 @@
       <div class="brand-row"><span class="brand-logo" aria-hidden="true"></span><span><span class="brand-name">VERSÃO</span><span class="brand-tag">Escreva. Melhore. Evolua.</span></span></div>
       <span class="eyebrow">Comece em poucos minutos</span>
       <h1 id="pageTitle">Crie sua conta de professor.</h1>
-      <p>Organize turmas, propostas e correções em um só lugar. Depois de confirmar seu e-mail, você já pode entrar e começar a configurar seu espaço.</p>
+      <p>Organize turmas, propostas e correções em um só lugar. Cadastre-se e comece a configurar seu espaço imediatamente.</p>
       <div class="benefits">
         <div class="benefit">Correção manual e criação manual de propostas sem custo.</div>
         <div class="benefit">Importe listas de alunos sem cadastrar um por um.</div>
         <div class="benefit">O aluno acessa com código da turma e PIN individual.</div>
-        <div class="benefit">Você recebe 3 créditos após confirmar o e-mail e pode ganhar mais conforme começa a usar o VERSÃO.</div>
+        <div class="benefit">Você recebe 3 créditos ao criar sua conta e pode ganhar mais conforme começa a usar o VERSÃO.</div>
       </div>
     </section>
 
     <section class="signup-card" aria-labelledby="formTitle">
       <h2 id="formTitle">Seus dados</h2>
-      <p>Use um e-mail que você acessa. Enviaremos a confirmação para ele.</p>
+      <p>Use um e-mail que você acessa para entrar e recuperar sua senha quando precisar.</p>
       <form id="teacherSignup">
         <label class="field"><span>Nome completo</span><input id="fullName" autocomplete="name" minlength="2" maxlength="160" required></label>
         <label class="field"><span>E-mail</span><input id="email" type="email" autocomplete="email" maxlength="254" required></label>
         <label class="field"><span>Senha</span><input id="password" type="password" autocomplete="new-password" minlength="8" required></label>
         <label class="field"><span>Confirmar senha</span><input id="passwordConfirm" type="password" autocomplete="new-password" minlength="8" required></label>
         <label class="terms"><input id="terms" type="checkbox" required><span>Li e aceito os <a href="/termos.html" target="_blank" rel="noopener">Termos de Uso</a> e a <a href="/privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span></label>
+        <div id="signupCaptcha" style="margin:12px 0;min-height:65px"></div>
         <button class="submit" id="submitBtn" type="submit">Criar minha conta</button>
         <div class="status" id="status" role="status" aria-live="polite"></div>
       </form>
-      <div class="credit-note"><strong>Créditos de boas-vindas:</strong> 3 após confirmar o e-mail, +2 ao ter a primeira turma com pelo menos 5 alunos e +5 ao receber a primeira redação enviada por um aluno. Cada bônus é concedido uma única vez. Correções e propostas manuais continuam gratuitas.</div>
+      <div class="credit-note"><strong>Créditos de boas-vindas:</strong> 3 ao criar sua conta, +2 ao ter a primeira turma com pelo menos 5 alunos e +5 ao receber a primeira redação enviada por um aluno. Cada bônus é concedido uma única vez. Correções e propostas manuais continuam gratuitas.</div>
       <p class="login-link">Já tem uma conta? <a href="/">Entrar</a></p>
     </section>
   </main>
   <script src="/funnel-analytics.js?v=20260930-ads-v1"></script>
+  <script src="/captcha.e12.js?v=20261001-direct1"></script>
   <script>
     'use strict';
     const BASE='https://huccxcpwoydwuisrmboc.supabase.co';
     const KEY='sb_publishable_KzojVBVP3GvVbSgO_w0mUA_-s8r7VdR';
     const form=document.getElementById('teacherSignup'),button=document.getElementById('submitBtn'),statusBox=document.getElementById('status');
     window.VersaoFunnel?.markSignupStarted(form);
+    window.VersaoCaptcha?.mount('signupCaptcha');
     const show=(message,type='')=>{statusBox.textContent=message;statusBox.className='status '+type;};
     function messageFor(data){
       const code=String(data?.code||data?.error_code||'');
       const msg=String(data?.msg||data?.message||data?.error_description||'');
+      if(code==='captcha_failed'||/captcha/i.test(msg))return 'A verificação de segurança expirou ou falhou. Confirme novamente e tente outra vez.';
       if(['email_exists','user_already_exists'].includes(code)||/already registered|already exists/i.test(msg))return 'Já existe uma conta com este e-mail. Entre ou recupere sua senha.';
       if(code==='over_email_send_rate_limit'||/rate limit/i.test(msg))return 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.';
-      if(/error sending|smtp|failed to send/i.test(msg))return 'Não foi possível enviar o e-mail de confirmação. Tente novamente mais tarde.';
+      if(/error sending|smtp|failed to send/i.test(msg))return 'Não foi possível concluir o cadastro. Tente novamente mais tarde.';
       return 'Não foi possível criar a conta. Confira os dados e tente novamente.';
+    }
+    async function trackRegistration(profileId){
+      try{
+        const input=new TextEncoder().encode('versao:registration_completed:'+profileId);
+        const digest=await crypto.subtle.digest('SHA-256',input);
+        const eventId='versao_registration_'+Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
+        if(window.oaiq)window.oaiq('measure','registration_completed',{type:'customer_action'},{event_id:eventId});
+        const attribution=window.VersaoFunnel?.attribution?.()||{};
+        if(attribution.oppref)fetch('/api/openai-conversion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profile_id:profileId,oppref:attribution.oppref}),keepalive:true,credentials:'same-origin'}).catch(()=>{});
+      }catch(error){/* Analytics must not interrupt access. */}
     }
     form.addEventListener('submit',async event=>{
       event.preventDefault();
+      if(button.disabled)return;
       const fullName=document.getElementById('fullName').value.trim(),email=document.getElementById('email').value.trim().toLowerCase(),password=document.getElementById('password').value,confirmation=document.getElementById('passwordConfirm').value;
       if(fullName.length<2){show('Informe seu nome completo.','error');return}
       if(password.length<8){show('A senha precisa ter pelo menos 8 caracteres.','error');return}
       if(password!==confirmation){show('As senhas não coincidem.','error');return}
       if(!document.getElementById('terms').checked){show('Aceite os Termos de Uso e a Política de Privacidade para continuar.','error');return}
+      let captchaToken;
+      try{captchaToken=window.VersaoCaptcha.token('signupCaptcha');}catch(error){show(error.message,'error');return;}
       button.disabled=true;button.textContent='Criando conta...';show('Enviando seus dados...');
       const acceptedAt=new Date().toISOString();
-      const rawCallback='https://app.versaoprofessor.com/confirmacao-professor.html';
-      const callback=window.VersaoFunnel?.withAttribution(rawCallback)||rawCallback;
       try{
-        const response=await fetch(BASE+'/auth/v1/signup?redirect_to='+encodeURIComponent(callback),{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password,data:{full_name:fullName,requested_role:'teacher',signup_source:'teacher_self_service',terms_accepted_at:acceptedAt,privacy_accepted_at:acceptedAt,legal_version:'2026-09-28'}})});
+        const response=await fetch(BASE+'/auth/v1/signup',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password,gotrue_meta_security:{captcha_token:captchaToken},data:{full_name:fullName,requested_role:'teacher',signup_source:'teacher_self_service',terms_accepted_at:acceptedAt,privacy_accepted_at:acceptedAt,legal_version:'2026-09-28'}})});
         const data=await response.json().catch(()=>({}));
         if(!response.ok)throw Object.assign(new Error(messageFor(data)),{data});
         if(Array.isArray(data?.identities)&&data.identities.length===0){
@@ -78,10 +93,26 @@
           button.disabled=false;button.textContent='Criar minha conta';
           return;
         }
+        if(!data.access_token||!data.refresh_token||!data.user?.id){
+          show('Sua conta foi registrada, mas o acesso imediato não está disponível. Entre em contato com o suporte.','error');
+          button.textContent='Conta registrada';
+          return;
+        }
+        try{
+          localStorage.setItem('versao-e12-session-v1',JSON.stringify({access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Number(data.expires_at)||(Math.floor(Date.now()/1000)+(Number(data.expires_in)||3600)),user:data.user}));
+        }catch(error){
+          show('Conta criada. Acesse a página de entrada com seu e-mail e senha.','ok');
+          button.textContent='Conta criada';
+          return;
+        }
         form.reset();
-        show('Conta criada. Enviamos um e-mail de confirmação. Depois de confirmar, você entrará direto no VERSÃO. Confira também a pasta de spam.','ok');
-        button.textContent='E-mail enviado';
+        try{window.VersaoFunnel?.track('signup_complete',{page:'signup'});}catch(error){}
+        void trackRegistration(data.user.id);
+        show('Conta criada. Abrindo seu espaço no VERSÃO...','ok');
+        button.textContent='Conta criada';
+        setTimeout(()=>location.replace('/?onboarding=1'),600);
       }catch(error){show(error.message||messageFor(error.data),'error');button.disabled=false;button.textContent='Criar minha conta';}
+      finally{window.VersaoCaptcha?.reset('signupCaptcha');}
     });
   </script>
 </body>

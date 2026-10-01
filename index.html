@@ -24,9 +24,10 @@
   <link rel="stylesheet" href="/proposal-approved-v3.css?v=20260927-controls">
   <script src="/funnel-analytics.js?v=20260930-ads-v1" defer></script>
   <script src="/student-home-v2.e12.js?v=20260923-home-v2" defer></script>
-  <script src="/core.e12.js?v=20260930-loginfix3" defer></script>
-  <script src="/boot.e12.js?v=20260930-loginfix3" defer></script>
-  <script src="/action-alerts.e12.js?v=20260930-loginfix3" defer></script>
+  <script src="/captcha.e12.js?v=20261001-direct1" defer></script>
+  <script src="/core.e12.js?v=20261001-direct1" defer></script>
+  <script src="/boot.e12.js?v=20261001-direct1" defer></script>
+  <script src="/action-alerts.e12.js?v=20261001-direct1" defer></script>
   <script src="/custom-selects.e12.js?v=20260927-selects-v2" defer></script>
   <script src="/teacher-main.e12.js" defer></script>
   <script src="/live-proposal-linkage-v2.e12.js?v=20260925-targets-v2" defer></script>
@@ -64,6 +65,7 @@
         <label id="classCodeField" class="hidden">Código da turma<input id="classCode" autocomplete="username" maxlength="12" pattern="[a-fA-F0-9]{12}"></label>
         <label id="studentPinField" class="hidden">PIN individual<input id="studentPin" type="password" inputmode="numeric" autocomplete="current-password" pattern="[0-9]{8}" minlength="8" maxlength="8"></label>
         <p id="pinHelp" class="muted hidden">Peça ao professor o código da turma e seu PIN de 8 números.</p>
+        <div id="loginCaptcha" style="margin:12px 0;min-height:65px"></div>
         <button id="loginBtn" class="btn primary full" type="submit" disabled>Entrar</button>
         <div id="loginStatus" class="form-status" role="status" aria-live="polite">Preparando acesso. Se esta mensagem permanecer, atualize a página.</div>
       </form>
@@ -76,6 +78,7 @@
         <label id="accountEmailField">E-mail<input id="accountEmail" type="email" autocomplete="email" required></label>
         <label id="newPasswordField" class="hidden">Nova senha<input id="newPassword" type="password" autocomplete="new-password" minlength="8"></label>
         <label id="confirmPasswordField" class="hidden">Confirmar senha<input id="confirmPassword" type="password" autocomplete="new-password" minlength="8"></label>
+        <div id="accountCaptcha" class="hidden" style="margin:12px 0;min-height:65px"></div>
         <button id="accountSubmit" class="btn primary full" type="submit">Continuar</button>
         <div id="accountStatus" class="form-status" role="status" aria-live="polite"></div>
         <button id="backToLogin" class="btn ghost full" type="button">Voltar para entrar</button>
