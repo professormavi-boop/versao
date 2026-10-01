@@ -28,8 +28,8 @@
   <script src="/funnel-analytics.js?v=20260930-ads-v1" defer></script>
   <script src="/student-home-v2.e12.js?v=20260923-home-v2" defer></script>
   <script src="/captcha.e12.js?v=20261001-direct1" defer></script>
-  <script src="/core.e12.js?v=20261001-google1" defer></script>
-  <script src="/boot.e12.js?v=20261001-google1" defer></script>
+  <script src="/core.e12.js?v=20261001-google-direct" defer></script>
+  <script src="/boot.e12.js?v=20261001-google-direct" defer></script>
   <script src="/action-alerts.e12.js?v=20261001-ai1" defer></script>
   <script src="/custom-selects.e12.js?v=20260927-selects-v2" defer></script>
   <script src="/teacher-main.e12.js" defer></script>
@@ -80,14 +80,6 @@
         <button id="registerLink" class="btn ghost" type="button">Quero me cadastrar</button>
         <button id="forgotLink" class="btn ghost" type="button">Esqueci minha senha</button>
       </div>
-      <form id="googleSignupForm" class="google-consent hidden">
-        <p class="muted">Falta só confirmar seu nome e aceitar os termos para começar como professor.</p>
-        <label>Nome completo<input id="googleName" autocomplete="name" minlength="2" maxlength="160" required></label>
-        <label class="terms"><input id="googleTerms" type="checkbox" required><span>Li e aceito os <a href="/termos.html" target="_blank" rel="noopener">Termos de Uso</a> e a <a href="/privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span></label>
-        <button id="googleComplete" class="btn primary full" type="submit">Começar a usar o VERSÃO</button>
-        <div id="googleStatus" class="form-status" role="status" aria-live="polite"></div>
-        <button id="googleCancel" class="btn ghost" type="button">Voltar à entrada</button>
-      </form>
       <form id="accountForm" class="hidden">
         <label id="nameField" class="hidden">Nome completo<input id="registerName" autocomplete="name"></label>
         <label id="accountEmailField">E-mail<input id="accountEmail" type="email" autocomplete="email" required></label>
