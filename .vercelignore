@@ -44,6 +44,8 @@
 !site.webmanifest
 
 !captcha.e12.js
+!google-auth.e12.js
+!google-auth.e12.css
 
 !teacher-import.e12.js
 !teacher-import.e12.css

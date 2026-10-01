@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#8B1C1C">
   <title>VERSÃO</title>
+  <meta name="referrer" content="no-referrer">
+  <link rel="stylesheet" href="/google-auth.e12.css?v=20261001-google1">
+  <script src="/google-auth.e12.js?v=20261001-google1"></script>
   <script>
     (()=>{
       const host=location.hostname.toLowerCase();
@@ -25,8 +28,8 @@
   <script src="/funnel-analytics.js?v=20260930-ads-v1" defer></script>
   <script src="/student-home-v2.e12.js?v=20260923-home-v2" defer></script>
   <script src="/captcha.e12.js?v=20261001-direct1" defer></script>
-  <script src="/core.e12.js?v=20261001-import-activate" defer></script>
-  <script src="/boot.e12.js?v=20261001-direct1" defer></script>
+  <script src="/core.e12.js?v=20261001-google1" defer></script>
+  <script src="/boot.e12.js?v=20261001-google1" defer></script>
   <script src="/action-alerts.e12.js?v=20261001-ai1" defer></script>
   <script src="/custom-selects.e12.js?v=20260927-selects-v2" defer></script>
   <script src="/teacher-main.e12.js" defer></script>
@@ -62,6 +65,7 @@
       <h1 id="authTitle">Entrar</h1>
       <p>Cada texto pode ir mais longe.</p>
       <label id="loginChoice" for="loginAccessType">Tipo de acesso<select id="loginAccessType"><option value="teacher">Professor</option><option value="student">Aluno</option></select></label>
+      <div id="googleAccess" class="google-access"><button id="googleLogin" class="google-button" type="button" hidden><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.78-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.53 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>Continuar com Google</span></button></div>
       <form id="loginForm">
         <label id="emailField">E-mail<input id="email" type="email" autocomplete="username" required></label>
         <label id="passwordField">Senha<input id="password" type="password" autocomplete="current-password" required></label>
@@ -76,6 +80,14 @@
         <button id="registerLink" class="btn ghost" type="button">Quero me cadastrar</button>
         <button id="forgotLink" class="btn ghost" type="button">Esqueci minha senha</button>
       </div>
+      <form id="googleSignupForm" class="google-consent hidden">
+        <p class="muted">Falta só confirmar seu nome e aceitar os termos para começar como professor.</p>
+        <label>Nome completo<input id="googleName" autocomplete="name" minlength="2" maxlength="160" required></label>
+        <label class="terms"><input id="googleTerms" type="checkbox" required><span>Li e aceito os <a href="/termos.html" target="_blank" rel="noopener">Termos de Uso</a> e a <a href="/privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span></label>
+        <button id="googleComplete" class="btn primary full" type="submit">Começar a usar o VERSÃO</button>
+        <div id="googleStatus" class="form-status" role="status" aria-live="polite"></div>
+        <button id="googleCancel" class="btn ghost" type="button">Voltar à entrada</button>
+      </form>
       <form id="accountForm" class="hidden">
         <label id="nameField" class="hidden">Nome completo<input id="registerName" autocomplete="name"></label>
         <label id="accountEmailField">E-mail<input id="accountEmail" type="email" autocomplete="email" required></label>
