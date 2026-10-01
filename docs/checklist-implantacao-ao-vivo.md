@@ -74,10 +74,12 @@ Marcação significa conclusão somente do item descrito. Prévia, código prepa
 - [ ] Revisar textos de termos/privacidade conforme cadastro independente, pagamento e compartilhamento.
 - [ ] Preservar frontend no Git e backend privado, com fontes anteriores para rollback.
 - [ ] Homologar em ambiente isolado e apresentar link de teste válido.
-- [ ] Verificar novamente disponibilidade de deploy: a última tentativa registrada estava bloqueada por limite da Vercel; estado atual não verificado neste checklist.
+- [x] Verificar deploy do commit b101820: teste READY (dpl_6EKmMS3rFrarzWKURjMb9N29TX7q); projeto de produção ainda falhou por build-rate-limit. Página devolutiva.html retornou HTTP 200; acesso aos demais assets pelo conector oscilou com proteção Vercel. Isso não valida login nem backend.
 - [ ] Apresentar resultado, plano de ativação e rollback e obter autorização produtiva específica, conforme AGENTS.md.
 - [ ] Aplicar migrações/funções aprovadas, publicar e conferir domínio e jornada completa.
 
 ## Critério de conclusão
 
 Não marcar implantação concluída com base apenas em HTML, testes simulados ou HTTP 200. Exige persistência real, controle de créditos, acesso correto por perfil, compartilhamento e validação da versão publicada. Backend e interface do professor preparados e testados com serviços simulados/SQL isolado. Homologação real e ativação ainda pendentes; aluno e venda de créditos não concluídos.
+
+Próxima fronteira de autorização: a execução real requer aplicar o schema e publicar o roteador/funções no Supabase compartilhado. Etapa1 privada salva em versao-ao-vivo-backend-etapa1.zip. Router desta etapa NÃO inclui cadastro aluno, que ainda está em rascunho. Sem ativação até autorização específica conforme AGENTS.md.
