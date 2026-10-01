@@ -47,6 +47,7 @@
     const p=await studentProposals(true),rounds=p.proposals||[],ids=rounds.map(r=>r.id);
     let states=[];
     try{states=ids.length?(await studentSubmitJson({action:'states',round_ids:ids})).states||[]:[]}catch{states=[]}
+    window.studentHandwrittenRounds=new Set(rounds.filter(r=>r.handwritten_only===true).map(r=>String(r.id)));
     spvData={rounds,stateMap:new Map(states.map(s=>[s.round_id,s]))};
     return spvData;
   }
@@ -82,7 +83,8 @@
     if(S.route!=='student-proposals')return;
     const state=spvData?.stateMap.get(round.id),info=stateInfo(state),sub=state?.submission;
     if(!info.editable){navigate('student-essays');return}
-    $('view').innerHTML=header('Enviar redação','Escolha uma das formas de envio.')+`<section class="spv"><button type="button" class="spv-back" data-spv-summary="${esc(round.id)}">← Voltar ao resumo</button><article class="spv-panel"><div class="spv-title-row"><div><span class="spv-round">R${esc(round.number??'—')}</span><h2>${esc(round.theme||'Proposta de redação')}</h2></div><span class="spv-status ${info.cls}">${esc(info.label)}</span></div><div class="spv-send-grid"><button type="button" class="spv-send-option primary" data-v2-camera="${esc(round.id)}">${icons.camera}<span>${sub?'Substituir por foto':'Tirar foto'}</span></button><button type="button" class="spv-send-option" data-v2-file="${esc(round.id)}">${icons.file}<span>${sub?'Substituir arquivo':'Selecionar arquivo'}</span></button><button type="button" class="spv-send-option" data-v2-paste="${esc(round.id)}">${icons.paste}<span>Colar redação</span></button></div><div class="safe-note spv-lock"><b>Arquivos:</b> JPG, PNG, WEBP ou PDF de uma página, até 15 MB.<br><b>Texto:</b> copie do Word ou Google Docs e escolha “Colar redação”.</div><button type="button" class="btn ghost full spv-send-back" data-spv-summary="${esc(round.id)}">Voltar ao resumo</button></article></section>`;
+    const handwritten=round.handwritten_only===true;
+    $('view').innerHTML=header('Enviar redação','Escolha uma das formas de envio.')+`<section class="spv"><button type="button" class="spv-back" data-spv-summary="${esc(round.id)}">← Voltar ao resumo</button><article class="spv-panel"><div class="spv-title-row"><div><span class="spv-round">R${esc(round.number??'—')}</span><h2>${esc(round.theme||'Proposta de redação')}</h2></div><span class="spv-status ${info.cls}">${esc(info.label)}</span></div><div class="spv-send-grid"${handwritten?' style="grid-template-columns:repeat(2,minmax(0,1fr))"':''}><button type="button" class="spv-send-option primary" data-v2-camera="${esc(round.id)}">${icons.camera}<span>${sub?'Substituir por foto':'Tirar foto'}</span></button><button type="button" class="spv-send-option" data-v2-file="${esc(round.id)}">${icons.file}<span>${handwritten?(sub?'Substituir imagem':'Selecionar imagem'):(sub?'Substituir arquivo':'Selecionar arquivo')}</span></button>${handwritten?'':`<button type="button" class="spv-send-option" data-v2-paste="${esc(round.id)}">${icons.paste}<span>Colar redação</span></button>`}</div><div class="safe-note spv-lock">${handwritten?'<b>Apenas redações manuscritas.</b> Tire uma foto ou selecione uma imagem em JPG, PNG ou WEBP, até 15 MB.':'<b>Arquivos:</b> JPG, PNG, WEBP ou PDF de uma página, até 15 MB.<br><b>Texto:</b> copie do Word ou Google Docs e escolha “Colar redação”.'}</div><button type="button" class="btn ghost full spv-send-back" data-spv-summary="${esc(round.id)}">Voltar ao resumo</button></article></section>`;
     bindClicks();
   }
 
