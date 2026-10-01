@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict');
+const names=require('../school-name.e12.js');
+assert.equal(names.match('  marista  ',['Marista']).label,'Marista');
+assert.equal(names.key(' Escola   Municipal '),'escola municipal');
+assert.deepEqual(names.match('maresta',['Marista']).suggestions,['Marista']);
+assert.equal(names.match('maresta',['Marista']).label,'maresta');
+assert.equal(names.match('',['Marista']).label,'');
+assert.equal(names.match('Marista Centro',['Marista Norte']).exact,null);
+assert.deepEqual(names.match('maresta',[]).suggestions,[]);
+assert.equal(names.match('Sao José',['São José']).exact,null);
+assert.deepEqual(names.match('Marista',['Marista','MARISTA']).suggestions,[]);
+console.log('PASS: school matching, optional name, no silent typo merge, caller-scoped catalog');
