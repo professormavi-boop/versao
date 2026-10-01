@@ -452,3 +452,22 @@ Esta atualização documental não modifica database, Auth, Storage, funções o
 - [x] Incluir etapa própria de Ao Vivo aluno, atendendo avulso e base via PIN.
 - [x] Separar cadastro independente de acesso à ferramenta e venda de créditos.
 Arquivos desta atualização: docs/checklist-implantacao-ao-vivo.md e CONTINUIDADE.md. Database nenhum impacto; atualização documental, sem produção. Ordem: professor → Ao Vivo aluno → cadastro avulso → créditos → homologação/publicação.
+
+### Execução etapa 1 — backend Ao Vivo
+- [ ] Preparar handlers privados de criação, início, consulta e histórico, reaproveitando protocolo.
+- [ ] Testar débito/estorno, concorrência lógica, posse da redação e preservação de análises anteriores.
+- [ ] Conectar revisão/compartilhamento e frontend após concluir base.
+Arquivos privados: migration.sql, prepared/live.ts, prepared/live-ai.ts, prepared/index.ts e testes; público somente checklist/continuidade. Migração não aplicada, IA paga não executada.
+
+### Avanço concreto do Ao Vivo — implementação local, não ativada
+- [x] Preparar handler de texto/upload, tema, início, consulta e histórico com protocolo atual.
+- [x] Preparar revisão e compartilhamento por token aleatório, snapshot, expiração de 7 dias e revogação.
+- [x] Integrar rota teacher-live, card câmera na inicial sem exigir turma e rótulo Receber redações.
+- [x] Testar SQL isolado: posse, confirmação de tema, débito único, estorno único, erro tardio, quota de tema, snapshot e link expirado/revogado.
+- [x] Testar fluxo DOM: tema/crédito/revisão obrigatórios antes da etapa seguinte; compartilhamento/revogação.
+- [x] Regressões existentes PASS após adaptar teste do onboarding (home oferece Ao Vivo, sem redirecionamento obrigatório à importação). 41 assets HTTP.
+- [ ] Testar handlers com provedor simulado, validadores de upload e perda de resposta; concluir sugestões de escola com catálogo real.
+- [ ] Homologar visual/autenticado e processamento real antes de considerar pronto.
+Limites: fila reconcilia ao consultar a redação; worker independente ainda não integrado. Histórico mostra primeiras 20 redações na UI; paginação e acesso a versões anteriores pendentes. DOCX é encaminhado como input_file, sem extração local. Documentação oficial OpenAI consultada: https://developers.openai.com/api/docs/guides/file-inputs. Código privado não ativado e nenhuma chamada paga.
+
+Atualização subsequente: handlers simulados PASS (auth/papel/posse, confirmação, reuso sem segunda chamada, id provedor, falha/estorno); validadores de assinatura/tamanho PASS. Histórico ganhou paginação e escolha das últimas 20 versões; painel gerencia/revoga links anteriores. Sugestões da escola usam catálogo autorizado e nomes recentes. npm run check e npm test completo PASS, 42 assets HTTP. Cadastro aluno ainda é rascunho anterior à retirada da confirmação: não publicar esse fluxo até atualização.

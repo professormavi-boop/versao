@@ -1,0 +1,89 @@
+'use strict';
+window.teacherLiveHomeCard=()=>`<section class="tl-home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h4l2-3h4l2 3h4v15H4z"/><circle cx="12" cy="13" r="4"/></svg><h2>Ao Vivo</h2><p>Uma redação, uma boa devolutiva. Sem cadastrar escola ou turma.</p><button class="btn primary" data-home-live>Começar uma correção</button></section>`;
+window.renderTeacherLive=async function(navigation){
+ if(S.profile.role!=='teacher')throw Error('Esta área é do professor.');
+ const api=body=>edge('teacher-organization-api',body);
+ const available=await api({action:'live_status'});if(!navigationCurrent(navigation))return;
+ let step=1,essay=null,file=null,text='',name='',school='',theme='',origin='provided',confirmed=false,job=null,busy=false,pollTimer=null;
+ const draftId=crypto.randomUUID(),requests={theme:null,correction:null};
+ const schoolCatalog=[];
+ if(available.enabled){const sources=await Promise.allSettled([api({action:'organizations'}),api({action:'live_history'})]);for(const item of sources){if(item.status==='fulfilled'){schoolCatalog.push(...(item.value.organizations||[]).map(x=>x.name),...(item.value.essays||[]).map(x=>x.school_label));}}}
+ if(!navigationCurrent(navigation))return;
+ const current=()=>navigationCurrent(navigation);
+ const status=message=>{if(current()&&$('tlStatus'))$('tlStatus').textContent=message;};
+ async function act(button,fn){if(busy)return;busy=true;if(button)button.disabled=true;status('Aguarde…');try{await fn();}catch(error){status(error.message||'Não foi possível continuar.');}finally{busy=false;if(button?.isConnected)button.disabled=false;}}
+ function shell(content){clearTimeout(pollTimer);if(!current())return;$('view').innerHTML=header('Ao Vivo','Da redação à devolutiva, no seu ritmo.')+`<section class="teacher-live"><div class="tl-actions"><button class="btn ghost" id="tlNew">Nova redação</button><button class="btn ghost" id="tlHistory">Histórico ao vivo</button></div>${content}<p id="tlStatus" class="tl-status" role="status" aria-live="polite"></p></section>`;$('tlNew').onclick=()=>{if(busy)return;navigate('teacher-live');};$('tlHistory').onclick=e=>act(e.target,history);}
+ const steps=()=>`<div class="tl-steps">${['Redação','Tema','Correção'].map((label,i)=>`<span ${step===i+1?'aria-current="step"':''}>${i+1}. ${label}</span>`).join('')}</div>`;
+ function saveFields(){name=$('tlName')?.value??name;school=$('tlSchool')?.value??school;if(window.SchoolNames)school=SchoolNames.match(school,schoolCatalog).label;text=$('tlText')?.value??text;theme=$('tlTheme')?.value??theme;}
+ async function create(){
+  if(essay)return;
+  const id=draftId;
+  if(file){
+   const form=new FormData();form.set('action','live_upload');form.set('essay_id',id);form.set('file',file);form.set('student_label',name);form.set('school_label',school);
+   const response=await request(BASE+'/functions/v1/teacher-organization-api',{method:'POST',headers:authHeaders(S.session.access_token,false),body:form});
+   const data=await response.json();if(!response.ok)throw Error(data.error||'Não foi possível enviar.');essay=data.essay;
+  }else essay=(await api({action:'live_create',essay_id:id,input_text:text,student_label:name,school_label:school})).essay;
+ }
+ function render(){
+  if(!available.enabled){shell('<div class="tl-card"><h2>Estamos preparando o Ao Vivo</h2><p>Esta ferramenta ainda não está disponível para novas correções.</p></div>');return;}
+  if(step===1){
+   shell(steps()+`<section class="tl-card"><h2>Como vamos começar?</h2><p>Fotografe, envie um arquivo ou cole o texto.</p><div class="tl-actions"><button id="tlCamera" class="btn primary">Fotografar</button><button id="tlChoose" class="btn">Enviar arquivo</button><button id="tlPaste" class="btn">Colar texto</button></div><input id="tlPhoto" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden><input id="tlFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.docx" hidden><p class="tl-file">${file?esc(file.name):'JPG, PNG, WEBP, PDF ou DOCX · até 15 MB'}</p>${file?'':`<label class="field">Redação<textarea id="tlText" maxlength="20000">${esc(text)}</textarea></label>`}<label class="field">Nome do aluno (opcional)<input id="tlName" maxlength="160" value="${esc(name)}"></label><label class="field">Escola (opcional)<input id="tlSchool" maxlength="160" value="${esc(school)}"></label><div id="tlSchoolSuggestions" aria-live="polite"></div><p>Esses campos não criam cadastros.</p><button id="tlNext" class="btn primary">Continuar →</button></section>`);
+   $('tlSchool').oninput=()=>{const host=$('tlSchoolSuggestions');host.replaceChildren();const matches=window.SchoolNames?.match($('tlSchool').value,schoolCatalog);for(const name of matches?.suggestions||[]){const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='Usar '+name+'?';b.onclick=()=>{$('tlSchool').value=name;school=name;host.replaceChildren();};host.append(b);}};
+   $('tlSchool').onblur=()=>{const match=window.SchoolNames?.match($('tlSchool').value,schoolCatalog);if(match?.exact)$('tlSchool').value=match.exact;};
+   $('tlCamera').onclick=()=>$('tlPhoto').click();$('tlChoose').onclick=()=>$('tlFile').click();$('tlPaste').onclick=()=>{saveFields();file=null;render();};
+   for(const id of ['tlPhoto','tlFile'])$(id).onchange=e=>{saveFields();const picked=e.target.files[0];if(!picked)return;if(picked.size>15728640){status('Use um arquivo de até 15 MB.');return;}file=picked;render();};
+   $('tlNext').onclick=e=>act(e.target,async()=>{saveFields();if(!file&&text.trim().length<80)throw Error('Envie um arquivo ou cole pelo menos 80 caracteres.');await create();step=2;render();});
+  }else if(step===2){
+   shell(steps()+`<section class="tl-card"><h2>Qual é o tema?</h2><div class="tl-actions"><button class="btn" id="tlKnown">Tenho o tema</button><button class="btn" id="tlInfer">Sugerir tema pelo texto</button></div><p class="tl-note">${origin==='inferred'?'Sem a proposta original, a C2 considera o recorte confirmado. Isso não comprova ausência de fuga ao tema.':'Informe o tema ou enunciado original que orientará a correção.'}</p><label class="field">Tema e recorte<textarea id="tlTheme" maxlength="4000">${esc(theme)}</textarea></label><label><input type="checkbox" id="tlConfirmed" ${confirmed?'checked':''}> Conferi o tema e o recorte.</label><div class="tl-actions"><button class="btn primary" id="tlNext">Revisar e continuar →</button></div></section>`);
+   $('tlTheme').oninput=()=>{confirmed=false;$('tlConfirmed').checked=false;};$('tlConfirmed').onchange=e=>confirmed=e.target.checked;
+   $('tlKnown').onclick=()=>{saveFields();origin='provided';confirmed=false;render();};
+   $('tlInfer').onclick=e=>act(e.target,async()=>{saveFields();const result=await api({action:'live_start',essay_id:essay.id,purpose:'theme',request_id:(requests.theme||=crypto.randomUUID())});job=result.job;await watch(true);});
+   $('tlNext').onclick=e=>act(e.target,async()=>{saveFields();if(!confirmed||theme.trim().length<10)throw Error('Informe o tema e confirme o recorte.');essay=(await api({action:'live_theme',essay_id:essay.id,theme,theme_origin:origin,student_label:name,school_label:school,confirmed:true})).essay;step=3;render();});
+  }else{
+   shell(steps()+`<section class="tl-card"><h2>Pronto para uma boa devolutiva</h2>${[['Aluno',name||'Sem identificação'],['Escola',school||'Não informada'],['Redação',file?.name||essay?.file_name||'Texto salvo'],['Tema',theme]].map(([label,value])=>`<div class="tl-summary"><span>${label}</span><b>${esc(value)}</b></div>`).join('')}<p class="tl-note">Esta correção usa <b>1 crédito</b>. Se a análise falhar, o crédito será devolvido. Você poderá revisar antes de compartilhar.</p><label><input type="checkbox" id="tlCredit"> Confirmo o uso de 1 crédito.</label><div class="tl-actions"><button class="btn" id="tlBack">← Ajustar tema</button><button class="btn primary" id="tlStart">Iniciar correção</button></div></section>`);
+   $('tlBack').onclick=()=>{step=2;render();};$('tlStart').onclick=e=>act(e.target,async()=>{if(!$('tlCredit').checked)throw Error('Confirme o uso de 1 crédito.');job=(await api({action:'live_start',essay_id:essay.id,purpose:'correction',request_id:(requests.correction||=crypto.randomUUID()),credit_confirmed:true})).job;await watch(false);});
+  }
+ }
+ async function watch(themeOnly){
+  if(!current())return;
+  if(job.status==='processing'){
+   shell(`<section class="tl-card"><h2>${themeOnly?'Identificando o tema':'Analisando sua redação'}…</h2><p>Você pode sair desta tela e retomar pelo histórico.</p><button class="btn" id="tlRefresh">Atualizar andamento</button></section>`);
+   $('tlRefresh').onclick=e=>act(e.target,async()=>{const data=await api({action:'live_get',essay_id:essay.id});job=data.jobs.find(j=>j.id===job.id);await watch(themeOnly);});
+   pollTimer=setTimeout(async()=>{if(!current()||!$('tlRefresh'))return;try{const data=await api({action:'live_get',essay_id:essay.id});job=data.jobs.find(j=>j.id===job.id);await watch(themeOnly);}catch(error){status(error.message);}},4000);
+   return;
+  }
+  if(job.status==='failed'){shell(`<section class="tl-card"><h2>A análise não foi concluída</h2><p>${esc(job.error_message)}</p><button class="btn" id="tlRetry">Voltar para uma nova tentativa</button></section>`);$('tlRetry').onclick=()=>{requests[themeOnly?'theme':'correction']=null;step=themeOnly?2:3;render();};return;}
+  if(themeOnly){theme=job.result.theme;origin='inferred';confirmed=false;step=2;render();return;}
+  result();
+ }
+ function result(){
+  const value=job.review||job.result;
+  shell(`<section class="tl-card"><h2>${job.review?'Devolutiva revisada':'Revise a devolutiva'}</h2><p>${esc(job.theme)}</p>${job.theme_origin==='inferred'?'<p class="tl-note">C2 por recorte inferido e confirmado, sem aferição da proposta original.</p>':''}<details><summary>Texto da redação</summary><p class="tl-result">${esc(value.transcription)}</p></details>${['C1','C2','C3','C4','C5'].map(c=>`<label class="field">${c}<input class="tl-score" id="tl${c}" type="number" min="0" max="200" step="40" value="${Number(value.competencies[c].score)}"><span>${esc(value.competencies[c].diagnostic)}</span></label>`).join('')}<p><b>Ponto forte:</b> ${esc(value.main_strength)}</p><p><b>Prioridade:</b> ${esc(value.improvement_priority)}</p><label class="field">Próximo passo<textarea id="tlFeedback" maxlength="4000">${esc(value.next_step||value.overall_feedback)}</textarea></label><details><summary>Conferir evidências e intervenção</summary><div class="tl-result">${esc(JSON.stringify({desvios:value.c1_deviations,intervencao:value.c5_check,repertorios:value.repertoire_checks,revisao:value.review_requirements},null,2))}</div></details><label><input type="checkbox" id="tlReview"> Conferi as notas e evidências da devolutiva.</label><div class="tl-actions"><button class="btn primary" id="tlSave">Salvar revisão</button>${job.review?'<button class="btn" id="tlShare">Compartilhar devolutiva</button><button class="btn" id="tlManageShares">Gerenciar links</button>':''}<button class="btn" id="tlRedo">Refazer correção · 1 crédito</button></div><div id="tlSharePanel"></div></section>`);
+  $('tlSave').onclick=e=>act(e.target,async()=>{if(!$('tlReview').checked)throw Error('Confirme a revisão.');const scores=Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,Number($('tl'+c).value)]));job=(await api({action:'live_review',essay_id:essay.id,job_id:job.id,scores,overall_feedback:$('tlFeedback').value,review_confirmed:true})).job;result();status('Revisão salva.');});
+  if($('tlShare'))$('tlShare').onclick=e=>act(e.target,share);
+  $('tlRedo').onclick=()=>{requests.correction=null;step=3;render();};
+  if($('tlManageShares'))$('tlManageShares').onclick=e=>act(e.target,async()=>{const data=await api({action:'live_shares',essay_id:essay.id,job_id:job.id});if(!current())return;const host=$('tlSharePanel');host.replaceChildren();for(const item of data.shares){const row=document.createElement('p');row.textContent='Link criado em '+fmtDate(item.created_at)+' · '+(item.revoked_at?'Revogado':'Válido até '+fmtDate(item.expires_at));if(!item.revoked_at){const b=document.createElement('button');b.className='btn';b.textContent='Revogar';b.onclick=()=>act(b,async()=>{await api({action:'live_revoke',essay_id:essay.id,job_id:job.id,share_id:item.id});row.textContent='Link revogado.';});row.append(b);}host.append(row);}if(!data.shares.length)host.textContent='Nenhum link criado.';});
+ }
+ async function share(){
+  const data=await api({action:'live_share',essay_id:essay.id,job_id:job.id});if(!current())return;
+  const link=location.origin+'/devolutiva.html#'+data.token,message='Confira sua devolutiva no VERSÃO: '+link;
+  $('tlSharePanel').innerHTML=`<p class="tl-note">Qualquer pessoa com este link pode ler a devolutiva. Válido até ${esc(fmtDate(data.expires_at))}.</p><label class="field">Link<input id="tlLink" readonly value="${esc(link)}"></label><div class="tl-actions"><a class="btn" href="https://wa.me/?text=${encodeURIComponent(message)}" target="_blank" rel="noopener noreferrer">WhatsApp</a><button class="btn" id="tlCopy">Copiar link</button>${navigator.share?'<button class="btn" id="tlNative">Outras opções</button>':''}<button class="btn" id="tlRevoke">Revogar este link</button></div>`;
+  $('tlCopy').onclick=async()=>{try{await navigator.clipboard.writeText(link);status('Link copiado.');}catch{$('tlLink').select();status('Selecione e copie o link.');}};
+  if($('tlNative'))$('tlNative').onclick=()=>navigator.share({title:'Devolutiva VERSÃO',text:'Confira sua devolutiva.',url:link}).catch(()=>{});
+  $('tlRevoke').onclick=e=>act(e.target,async()=>{await api({action:'live_revoke',essay_id:essay.id,job_id:job.id,share_id:data.id});$('tlSharePanel').textContent='Link revogado.';});
+ }
+ async function history(offset=0){
+  const data=await api({action:'live_history',offset});if(!current())return;
+  shell(`<section class="tl-card"><h2>Histórico ao vivo</h2>${data.essays.length?data.essays.map(e=>`<p><button class="btn" data-essay="${esc(e.id)}">${esc(e.student_label||'Sem identificação')} · ${esc(e.theme||'Rascunho')} · ${esc(fmtDate(e.created_at))}</button></p>`).join(''):'<p>Nenhuma redação nesta página.</p>'}<div class="tl-actions">${offset?'<button class="btn" id="tlPreviousPage">Anterior</button>':''}${data.essays.length===20?'<button class="btn" id="tlNextPage">Próxima</button>':''}</div></section>`);
+  if($('tlPreviousPage'))$('tlPreviousPage').onclick=e=>act(e.target,()=>history(Math.max(0,offset-20)));
+  if($('tlNextPage'))$('tlNextPage').onclick=e=>act(e.target,()=>history(offset+20));
+  document.querySelectorAll('[data-essay]').forEach(b=>b.onclick=()=>act(b,async()=>{
+   const data=await api({action:'live_get',essay_id:b.dataset.essay});essay=data.essay;file=null;requests.theme=null;requests.correction=null;name=essay.student_label;school=essay.school_label;theme=essay.theme;origin=essay.theme_origin;confirmed=!!essay.theme_confirmed_at;
+   if(!data.jobs.length){step=2;render();return;}
+   shell(`<section class="tl-card"><h2>Versões desta redação</h2>${data.jobs.map(j=>`<p><button class="btn" data-job="${esc(j.id)}">${j.purpose==='theme'?'Sugestão de tema':'Correção'} · ${esc(({processing:'Em análise',completed:j.review?'Revisada':'Concluída',failed:'Falhou'})[j.status]||j.status)} · ${esc(fmtDate(j.created_at))}</button></p>`).join('')}</section>`);
+   document.querySelectorAll('[data-job]').forEach(button=>button.onclick=()=>{job=data.jobs.find(j=>j.id===button.dataset.job);watch(job.purpose==='theme').catch(error=>status(error.message));});
+  }));
+ }
+
+ render();
+};

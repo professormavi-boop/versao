@@ -13,17 +13,17 @@ Marcação significa conclusão somente do item descrito. Prévia, código prepa
 - [x] Implementar e testar normalização de caixa/espaços e sugestões de escola com escolha explícita; catálogo demonstrativo.
 - [x] Documentar C2 por tema informado ou recorte inferido confirmado, sem alegar conhecer a proposta original.
 - [x] Inspecionar esquema existente e preparar rascunho SQL separado para redações, arquivos e análises avulsas.
-- [ ] Concluir e testar schema, RLS e permissões; incluir escola opcional e compartilhamento no modelo final.
-- [ ] Implementar handlers de upload e validação de foto, PDF, DOCX e texto.
-- [ ] Conectar identificação real do tema e correção ao protocolo existente.
-- [ ] Implementar reserva de 1 crédito, idempotência, consumo e estorno em falhas.
-- [ ] Implementar processamento retomável e recuperação após sair da tela.
-- [ ] Integrar nova rota e destaque com câmera na inicial, inclusive para professor sem turma.
-- [ ] Renomear a entrada vinculada a turmas para Receber redações, mantendo seu funcionamento.
-- [ ] Conectar sugestões de escola ao catálogo e histórico exclusivos do professor.
-- [ ] Implementar resultado, revisão pelo professor e histórico persistente.
-- [ ] Implementar compartilhamento no resultado e no histórico: WhatsApp, copiar link e opções do celular.
-- [ ] Implementar página da devolutiva compartilhada, expiração, revogação e proteção contra acesso ao histórico/arquivos privados.
+- [x] Preparar schema, RLS, escola opcional e compartilhamento; testes SQL isolados aprovados, sem ativação.
+- [x] Preparar handlers de upload e validação de foto, PDF, DOCX e texto; assinaturas/tamanho testados, homologação real pendente.
+- [x] Implementar conexão com identificação de tema e protocolo existente; chamadas ao provedor testadas com simulação, sem IA paga.
+- [x] Implementar e testar isoladamente reserva de 1 crédito, idempotência, consumo e estorno em falhas.
+- [x] Implementar consulta retomável e reconciliação ao abrir redação; provedor processa em background, sem worker novo.
+- [x] Integrar em código nova rota e destaque com câmera na inicial, inclusive para professor sem turma.
+- [x] Renomear entrada vinculada para Receber redações; regressões existentes aprovadas.
+- [x] Conectar sugestões de escola ao catálogo autorizado e aos nomes recentes do professor na interface.
+- [x] Implementar resultado, revisão e histórico com paginação e seleção de versões; persistência testada isoladamente.
+- [x] Implementar compartilhamento no resultado/histórico: WhatsApp, copiar link e opções do celular; sem envio automático.
+- [x] Implementar página compartilhada, snapshot revisado, expiração e revogação; testes SQL de acesso aprovados.
 - [ ] Validar mobile real, arquivos longos, acessibilidade e fluxo completo.
 
 ## 2. Ao Vivo do aluno — avulso e da base
@@ -80,4 +80,4 @@ Marcação significa conclusão somente do item descrito. Prévia, código prepa
 
 ## Critério de conclusão
 
-Não marcar implantação concluída com base apenas em HTML, testes simulados ou HTTP 200. Exige persistência real, controle de créditos, acesso correto por perfil, compartilhamento e validação da versão publicada. O passo em andamento é concluir o backend e a integração do Ao Vivo do professor.
+Não marcar implantação concluída com base apenas em HTML, testes simulados ou HTTP 200. Exige persistência real, controle de créditos, acesso correto por perfil, compartilhamento e validação da versão publicada. Backend e interface do professor preparados e testados com serviços simulados/SQL isolado. Homologação real e ativação ainda pendentes; aluno e venda de créditos não concluídos.

@@ -23,13 +23,13 @@
   const encode=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
   function removeTransaction(){try{sessionStorage.removeItem(STORE);}catch{}}
   function appOrigin(){return ['versaoprofessor.com','www.versaoprofessor.com'].includes(location.hostname)?APP:location.origin;}
-  async function start(){
+  async function start(audience='teacher'){
     if(starting)return;
     starting=true;
     try{
       if(!await enabled())throw Error('O acesso com Google ainda não está disponível. Você pode entrar com e-mail e senha.');
       // PKCE must start and finish on the same origin and tab.
-      if(appOrigin()!==location.origin){location.assign(APP+'/?google=1');return;}
+      if(appOrigin()!==location.origin){location.assign(audience==='student'?APP+'/cadastro-aluno.html':APP+'/?google=1');return;}
       if(!crypto?.subtle)throw Error('Abra o VERSÃO em uma conexão segura para continuar com Google.');
       const verifier=encode(crypto.getRandomValues(new Uint8Array(32)));
       const challenge=encode(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier))));
@@ -37,7 +37,8 @@
       try{sessionStorage.setItem(STORE,JSON.stringify(pending));if(sessionStorage.getItem(STORE)!==JSON.stringify(pending))throw Error();}
       catch{throw Error('Permita o armazenamento deste site no navegador para continuar com Google.');}
       const url=new URL(BASE+'/auth/v1/authorize');
-      url.search=new URLSearchParams({provider:'google',redirect_to:location.origin+'/index.html?google_callback=1',code_challenge:challenge,code_challenge_method:'s256',scopes:'email profile',prompt:'select_account'}).toString();
+      const destination=audience==='student'?'/cadastro-aluno.html':'/index.html';
+      url.search=new URLSearchParams({provider:'google',redirect_to:location.origin+destination+'?google_callback=1',code_challenge:challenge,code_challenge_method:'s256',scopes:'email profile',prompt:'select_account'}).toString();
       location.assign(url.href);
     }catch(error){starting=false;removeTransaction();throw error;}
   }
@@ -58,7 +59,7 @@
     })();
     return exchange;
   }
-  async function mount(buttonId,statusId){
+  async function mount(buttonId,statusId,audience='teacher'){
     const button=document.getElementById(buttonId);if(!button)return;
     button.hidden=true;
     if(!await enabled())return;
@@ -67,7 +68,7 @@
       if(button.disabled)return;
       button.disabled=true;
       const status=document.getElementById(statusId);if(status)status.textContent='Conectando com Google…';
-      try{await start();}catch(error){if(status)status.textContent=error.message||'Não foi possível conectar com Google.';button.disabled=false;}
+      try{await start(audience);}catch(error){if(status)status.textContent=error.message||'Não foi possível conectar com Google.';button.disabled=false;}
     };
   }
   window.VersaoGoogle={enabled,start,isCallback,receive,mount};
