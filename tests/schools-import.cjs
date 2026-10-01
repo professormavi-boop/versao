@@ -5,7 +5,7 @@ async function fixture({empty=false,candidates=[],failCommit=false,failAI=false,
  const calls=[],errors=[],nav=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e));
  const dom=await JSDOM.fromURL(base+'/fixture',{resources:'usable',runScripts:'dangerously',virtualConsole:vc});await new Promise(r=>dom.window.addEventListener('load',r));const w=dom.window;
  w.S={profile:{id:'teacher',role:'teacher',full_name:'Marcus'},session:{user:{id:'teacher'}},route:'teacher-import',cache:{}};w.API={credit:'credits'};w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=(a,b)=>`<h1>${a}</h1><p>${b}</p>`;w.navigationCurrent=()=>true;w.navigate=route=>nav.push(route);w.HTMLElement.prototype.scrollIntoView=function(){};w.scrollTo=()=>{};
- w.edge=async(slug,b)=>{calls.push({slug,...JSON.parse(JSON.stringify(b))});switch(b.action){
+ w.edge=async(slug,b)=>{const action=b.action.replace(/^import_(status|organize|review|commit)$/, '$1');if(action!==b.action)assert.equal(slug,'teacher-organization-api');calls.push({slug,...JSON.parse(JSON.stringify(b)),action});switch(action){
  case'home':return{has_organizations:!empty,issues:[],activities:[],proposal_tasks:[]};case'packages':return{balance:5};case'status':return{has_students:hasStudents};
  case'organizations':return{organizations:empty?[]:[{id:'school',name:'Escola Teste',is_active:true}]};case'base':return{classes:[{id:'class',name:'1º A',year:2026,is_active:true}]};case'students':return{students:[]};
  case'organize':if(failAI)throw Error('Saldo insuficiente. Continue sem IA.');return{mapping:{nameColumn:0,registrationColumn:1,emailColumn:-1,schoolColumn:-1,classColumn:2,startRow:1,headerRow:0}};

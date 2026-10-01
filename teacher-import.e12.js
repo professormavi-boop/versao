@@ -2,7 +2,7 @@
 const importFields=[['nameColumn','Nome'],['registrationColumn','Matrícula'],['emailColumn','E-mail'],['schoolColumn','Escola'],['classColumn','Turma']];
 const importNormalize=v=>String(v||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('pt-BR');
 function importMatches(row,candidates){return candidates.filter(s=>importNormalize(s.full_name)===importNormalize(row.name)||row.email&&importNormalize(s.email)===importNormalize(row.email)||row.registration&&s.registration===row.registration);}
-function importCall(action,data={}){return edge('teacher-import-api',{action,...data});}
+function importCall(action,data={}){return edge('teacher-organization-api',{...data,action:'import_'+action});}
 async function renderTeacherImport(navigation,options={}){
  if(S.profile?.role!=='teacher')throw Error('Esta área é destinada ao professor.');
  const actor=S.profile.id||S.session.user.id,current=()=>navigationCurrent(navigation)&&actor===(S.profile?.id||S.session?.user?.id);

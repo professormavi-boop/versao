@@ -308,3 +308,25 @@ Registro histórico anterior à implementação, às 11h57: apresentar proposta 
 - [ ] Obter aprovação específica para ativar backend, homologar IA/créditos/bônus reais e publicar o frontend.
 
 Commit funcional: f29725c5188d0947711f05529abfaffc74e9b5ab (árvore idêntica ao commit local validado 2ac86e4). PR em rascunho: https://github.com/professormavi-boop/versao/pull/14 . Prévia automática READY, projeto isolado prj_7mEBS5QDaBWrG4hjnBKelNkU90OY, deployment dpl_8tKo3EjkerZWm3Vn7tYPXvDFbxEU, target preview: https://versao-teste-etapa12-consolidada-ptg6d89n3-professormavi-6775.vercel.app . A consulta dos assets pelo conector retornou a proteção Vercel Authentication; não foi declarada validação funcional remota. Proteção preservada. Capturas desktop/mobile e testes funcionais concluídos em HTTP local com APIs simuladas. Pacote privado versao-importacao-backend-revisao.zip e capturas preservados fora do repositório público. Backend ainda não ativado, portanto a prévia não executa a nova importação real. Aprovação também necessária, separadamente, para executar repair-29-names.sql.
+
+
+### Ativação autorizada — 01/10/2026 12h55 BRT
+Usuário autorizou ativar backend, homologar e publicar após testes.
+- [x] Conferir main 391d92b e criar restore/antes-importacao-ia-20261001. Produção anterior dpl_AwLVHCGgNNtQ6SMcfBf1b81Zu4Ds.
+- [ ] Aplicar database.sql e publicar teacher-import-api com JWT obrigatório.
+- [ ] Homologar IA, cobrança única/estorno, transação, bônus e destinos da importação.
+- [ ] Publicar PR14 e verificar produção.
+- [ ] Atualizar evidências, pacote privado e rollback.
+Arquivos adicionais de ativação: CONTINUIDADE.md e relatório/testes privados; código preparado permanece no PR14. Impacto autorizado: coluna students.registration, índice, tabela protegida de análises e três RPCs service_role; nova Edge Function usa segredos existentes. Auth, domínio, CAPTCHA e demais APIs preservados. Reparação dos 29 nomes antigos continua separada.
+
+Adaptação necessária: Supabase recusou nova Edge Function por limite do plano. Preservar serviço de escolas e acrescentar ações prefixadas import_status/import_review/import_commit/import_organize no teacher-organization-api. Arquivos frontend adicionais ajustados: core.e12.js, teacher-import.e12.js, tests/schools-import.cjs; backend privado: teacher-organization-api/index.ts, organization.ts (cópia do handler anterior), import-assistant.ts (handler já validado), teste do roteador e README. Sem alteração do plano, gastos máximos, Auth ou regras existentes; testar regressão de ações antigas antes do deploy.
+
+### Backend ativado — 01/10/2026 13h10 BRT
+- [x] Migration teacher_import_excel_ai aplicada; coluna/índice, tabela RLS e três RPCs service_role ativos.
+- [x] Limite de Edge Functions resolvido incorporando ações import_* ao teacher-organization-api v5, mantendo as sete ações anteriores e JWT obrigatório. Backup da v3 no pacote privado. Não houve upgrade de plano.
+- [x] npm test, handler IA simulado, roteador e Postgres isolado passaram. index.html também atualizado apenas para invalidar cache dos dois scripts adaptados.
+- [x] Banco real: cinco alunos, matrículas com zeros, rubrica ENEM, leitura no fluxo antigo, bônus único, reserva/reuso/estorno e rollback de lote inválido passaram como service_role. Toda a massa de teste foi desfeita; saldo e cadastros da conta de teste preservados.
+- [x] HTTP OPTIONS 200 e ausência de sessão 401 conferidos. Erro de callback Deno encontrado na v4 e corrigido na v5 antes de publicar a interface.
+- [ ] Chamada real OpenAI e jornada autenticada: navegador indisponível por proteção de documento contendo credenciais nativas. Não contornar nem pedir senha no chat.
+- [ ] Após homologação real, publicar PR14. A autorização já foi dada; não pedir novamente para esta mesma mudança.
+Banco/serviço ativos, frontend continua na produção anterior. Nenhum crédito de cliente consumido e nenhum cadastro fictício permanente. Advisors sem nova exposição pública; tabela de análises sem políticas é intencional, acessível apenas a service_role. Reparação dos 29 nomes NÃO executada.
