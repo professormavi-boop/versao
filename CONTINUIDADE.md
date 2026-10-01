@@ -383,3 +383,14 @@ Database nenhum impacto; sem backend/deploy/domínios/segredos. Rollback por rev
 Escopo adicional: scripts/check.cjs atualizado para aceitar exclusivamente as duas rewrites locais existentes da landing; testes/http-smoke.cjs valida os bindings atuais após carregamento HTTP e DOMContentLoaded. Sem mudar vercel.json.
 
 Validação concluída: npm run check, npm test e git diff --check PASS; 40 assets HTTP e bindings das telas atuais conferidos. Sem homologação visual autenticada. Nenhuma alteração em produção nesta limpeza.
+
+### Revisão ampliada do projeto publicado
+- [x] Remover shell de correção substituído e suas referências; exportar explicitamente o renderizador atual.
+- [x] Remover aiQueueStatus/aiNotice, liveFill e seletores/confirmação de upload substituídos; manter os wrappers que chamam implementações-base.
+- [x] Consolidar filtro de manuscritas na câmera ativa e testar com scripts na ordem real.
+- [x] Revisar assets/CSS/APIs/worker; preservar dependências dinâmicas e compatibilidade de registros históricos.
+- [x] Rodar verificações e atualizar PR17. Database nenhum impacto; sem escrita em produção, backend ou configuração de domínio.
+
+Escopo adicional core.e12.js: remover showOnly, safeMessage e generationScreen sem chamadas. Revisados todos os scripts estáticos, CSS, páginas, manifest, assets, APIs Vercel e worker. CSS compartilhado/dinâmico, relatórios históricos, endpoints públicos e SheetJS preservados; ausência de chamada frontend não comprova endpoint obsoleto. Teste HTTP ampliado cobre bindings de correção/Ao Vivo e seletor real de manuscritas.
+
+Revisão ampliada validada: npm run check / npm test / git diff --check PASS. 39 assets HTTP; correção, Ao Vivo e seletor manuscritas conferidos com módulos atuais carregados. PR17 reúne a limpeza; produção não alterada e validação visual autenticada pendente.
