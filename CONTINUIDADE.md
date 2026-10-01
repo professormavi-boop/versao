@@ -330,3 +330,5 @@ Adaptação necessária: Supabase recusou nova Edge Function por limite do plano
 - [ ] Chamada real OpenAI e jornada autenticada: navegador indisponível por proteção de documento contendo credenciais nativas. Não contornar nem pedir senha no chat.
 - [ ] Após homologação real, publicar PR14. A autorização já foi dada; não pedir novamente para esta mesma mudança.
 Banco/serviço ativos, frontend continua na produção anterior. Nenhum crédito de cliente consumido e nenhum cadastro fictício permanente. Advisors sem nova exposição pública; tabela de análises sem políticas é intencional, acessível apenas a service_role. Reparação dos 29 nomes NÃO executada.
+
+Prévia funcional preparada: commit 210d24391db81f21f60202423fe72a4acf8a5efe, deployment dpl_34RgXcxKqhaDKPwVQYeqYTSqxYLm READY no projeto isolado. URL https://versao-teste-etapa12-consolidada-q9c4uawa4-professormavi-6775.vercel.app . Link temporário de compartilhamento entregue ao usuário. Pacote privado atualizado: versao-importacao-backend-ativado.zip, incluindo fonte implantada v5, SQL de teste real e rollback v3. Nova interface ainda não promovida; aguarda teste real autenticado de IA.
