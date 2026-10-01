@@ -88,6 +88,7 @@ if(baseBuildNav){
     const firstButton=items[0][0];
     firstButton.before(group);
     for(const [button,label] of items){
+      if(['teacher-classes','teacher-students'].includes(button.dataset.route)){button.remove();continue;}
       button.textContent=label;
       group.appendChild(button);
     }

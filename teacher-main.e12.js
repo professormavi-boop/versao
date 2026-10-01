@@ -1,4 +1,27 @@
 'use strict';
+async function renderTeacherPassword(navigation){
+ if(S.profile?.role!=='teacher')throw Error('Esta área é exclusiva do professor.');
+ if(!navigationCurrent(navigation))return;
+ const userId=S.profile.id;
+ $('view').innerHTML=header('Alterar senha','Defina uma nova senha para acessar sua conta.')+`<section class="box"><div class="box-body"><form id="teacherPasswordForm"><label class="field"><small>Nova senha</small><input name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></label><label class="field"><small>Confirmar nova senha</small><input name="confirmation" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></label><p class="muted">Use de 8 a 128 caracteres. Ao salvar, a senha anterior deixará de funcionar.</p><p id="teacherPasswordStatus" role="status" aria-live="polite"></p><button class="btn primary" type="submit">Salvar nova senha</button></form></div></section>`;
+ const form=$('teacherPasswordForm'),password=form.elements.password,confirmation=form.elements.confirmation,status=$('teacherPasswordStatus'),button=form.querySelector('button');
+ let busy=false;
+ form.onsubmit=async event=>{
+  event.preventDefault();
+  if(busy||!navigationCurrent(navigation)||S.profile?.id!==userId||S.profile?.role!=='teacher')return;
+  if(password.value.length<8||password.value.length>128){status.textContent='Use de 8 a 128 caracteres.';return;}
+  if(password.value!==confirmation.value){status.textContent='As senhas não coincidem.';confirmation.focus();return;}
+  busy=true;button.disabled=true;password.disabled=true;confirmation.disabled=true;status.textContent='Alterando senha...';
+  try{
+   const session=await ensure();
+   if(session.user?.id!==userId||!navigationCurrent(navigation))throw Error('Sua sessão mudou. Entre novamente.');
+   const result=await accountRequest('user',{password:password.value},session.access_token);
+   if(result.id!==userId)throw Error('O servidor não confirmou a alteração.');
+   if(navigationCurrent(navigation))status.textContent='Senha alterada com sucesso. Use a nova senha no próximo acesso.';
+  }catch(error){if(navigationCurrent(navigation))status.textContent=error.message||'Não foi possível alterar a senha. Tente novamente.';}
+  finally{password.value='';confirmation.value='';busy=false;button.disabled=false;password.disabled=false;confirmation.disabled=false;}
+ };
+}
 async function renderHome(navigation){const [q,p]=await Promise.all([teacherQueue(),teacherProposals()]);const pending=q.filter(x=>!x.score&&x.page_count>0).length,validation=q.filter(x=>x.score&&!x.score.is_approved).length;if(!navigationCurrent(navigation))return;$('view').innerHTML=header('Início','Veja o que precisa da sua atenção.')+`<section class="home-compact-pending" aria-label="Pendências">${pending?`<button class="home-task" data-home-status="uncorrected"><span>${pending} ${pending===1?'redação aguardando':'redações aguardando'} correção</span><span class="home-task-link">Abrir</span></button>`:''}${validation?`<button class="home-task" data-home-status="validation"><span>${validation} ${validation===1?'correção aguardando':'correções aguardando'} validação</span><span class="home-task-link">Abrir</span></button>`:''}${!pending&&!validation?'<p class="home-current">Nenhuma correção pendente.</p>':''}</section><section class="grid cols2" style="margin-top:12px"><article class="box"><div class="box-head"><h2>Fila recente</h2><p>Últimas redações disponíveis para correção.</p></div><div class="box-body list">${q.slice(0,5).map(x=>{const [s,c]=statusLabel(x);return `<div class="list-item"><div class="item-top"><div><div class="item-title">${esc(x.student_name)}</div><div class="item-meta">${esc(x.class_name)} · R${esc(x.round_number??'—')} · ${esc(x.theme||'Proposta')}</div></div><span class="pill ${c}">${s}</span></div></div>`}).join('')||'<div class="empty">Nenhuma redação na fila.</div>'}</div></article><article class="box"><div class="box-head"><h2>Propostas recentes</h2><p>Visão consolidada das propostas.</p></div><div class="box-body list">${(p.recent||[]).slice(0,5).map(r=>`<div class="list-item"><div class="item-top"><div><div class="item-title">R${esc(r.number??'—')} · ${esc(r.theme)}</div><div class="item-meta">${r.target_count||0} destinatário(s) · ${r.motivator_count||0} texto(s) motivador(es)</div></div><span class="pill ${r.is_visible_to_students?'ok':'warn'}">${r.is_visible_to_students?'Publicada':'Rascunho'}</span></div></div>`).join('')||'<div class="empty">Nenhuma proposta recente.</div>'}</div></article></section>`;$('view').onclick=e=>{const button=e.target.closest('[data-home-status]');if(button){S.homeCorrection={filter:button.dataset.homeStatus};navigate('correction');}};}
 
 async function renderTeacherAccount(navigation){
@@ -218,4 +241,3 @@ async function renderDemoProposals(navigation){
  }
 
 }
-
