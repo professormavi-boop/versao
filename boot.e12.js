@@ -34,7 +34,7 @@
   }
 
   function fail(message){
-    attempt++;clearTimeout(timer);resetAppState();loginScreen(message,coreAvailable());
+    attempt++;clearTimeout(timer);resetAppState();accountView('login');loginScreen(message,coreAvailable());
   }
 
   function begin(){
@@ -51,6 +51,43 @@
     element('shell')?.classList.remove('hidden');
     clearTimeout(timer);ready=true;
     navigate(S.profile.role==='student'?'student-home':'home');
+  }
+
+  async function loadProfile(token){
+    try{await profile();return token===attempt;}
+    catch(error){
+      if(token===attempt&&error.code==='GOOGLE_SIGNUP_REQUIRED'&&window.VersaoGoogle){showGoogleSignup();return false;}
+      throw error;
+    }
+  }
+
+  function showGoogleSignup(){
+    clearTimeout(timer);loginScreen('',true);accountView('google');
+    element('authTitle').textContent='Comece no VERSÃO';
+    element('accountForm').classList.add('hidden');
+    element('googleSignupForm').classList.remove('hidden');
+    element('googleName').value=S.session?.user?.user_metadata?.full_name||S.session?.user?.user_metadata?.name||'';
+    element('googleTerms').checked=false;element('googleStatus').textContent='';
+  }
+
+  function wireGoogle(){
+    window.VersaoGoogle?.mount('googleLogin','loginStatus');
+    const form=element('googleSignupForm');if(!form)return;
+    element('googleCancel').onclick=()=>{attempt++;resetAppState();accountView('login');loginScreen('',true);};
+    form.onsubmit=async event=>{
+      event.preventDefault();const button=element('googleComplete');if(button.disabled)return;
+      const name=element('googleName').value.trim();
+      if(name.length<2||name.length>160||!element('googleTerms').checked){element('googleStatus').textContent='Confira seu nome e aceite os termos para continuar.';return;}
+      const token=begin();button.disabled=true;element('googleStatus').textContent='Preparando sua conta…';
+      try{
+        const result=await edge('teacher-organization-api',{action:'google_complete',full_name:name,accept_terms:true,legal_version:'2026-09-28'});
+        if(token!==attempt)return;
+        await profile();if(token!==attempt)return;
+        if(result.created)window.VersaoFunnel?.track('signup_complete',{page:'google'});
+        start(token);
+      }catch(error){if(token===attempt)element('googleStatus').textContent=error.message||'Não foi possível concluir seu cadastro. Tente novamente.';}
+      finally{if(token===attempt)clearTimeout(timer);button.disabled=false;}
+    };
   }
 
   async function enter(event){
@@ -72,7 +109,7 @@
       }
       if(token!==attempt)return;
       S.session=session;
-      await profile();
+      if(!await loadProfile(token))return;
       if(token!==attempt)return;
       start(token);
     }catch(error){
@@ -88,6 +125,9 @@
   function accountView(mode,message=''){
     if(mode==='register'){location.assign('/cadastro-professor.html');return;}
     accountMode=mode;accountVersion++;
+    element('googleSignupForm')?.classList.add('hidden');
+    element('googleAccess')?.classList.toggle('hidden',mode!=='login'||pinMode);
+    element('loginChoice')?.classList.toggle('hidden',mode!=='login');
     element('accountCaptcha')?.classList.toggle('hidden',mode!=='forgot');
     if(mode==='forgot')window.VersaoCaptcha?.mount('accountCaptcha');
     if(mode!=='reset')recoveryToken=null;
@@ -95,7 +135,7 @@
     element('loginForm').classList.toggle('hidden',mode!=='login');
     element('authLinks').classList.toggle('hidden',mode!=='login'||pinMode);
     form.classList.toggle('hidden',mode==='login');
-    element('authTitle').textContent={login:'Entrar',register:'Quero me cadastrar',forgot:'Recuperar senha',reset:'Definir nova senha'}[mode];
+    element('authTitle').textContent={login:'Entrar',register:'Quero me cadastrar',forgot:'Recuperar senha',reset:'Definir nova senha',google:'Comece no VERSÃO'}[mode];
     element('nameField').classList.toggle('hidden',mode!=='register');
     element('registerName').required=mode==='register';
     element('accountEmailField').classList.toggle('hidden',mode==='reset');
@@ -193,7 +233,7 @@
       return;
     }
 
-    wireAccount();
+    wireAccount();wireGoogle();
     element('loginAccessType').onchange=()=>chooseLogin(element('loginAccessType').value==='student');
     const query=new URLSearchParams(location.search);
     if(query.get('acesso')==='aluno')chooseLogin(true);
@@ -206,12 +246,19 @@
     if(receiveAccountLink())return;
     const token=begin();
     try{
-      let session=readSession();
+      if(query.get('google')==='1'&&window.VersaoGoogle){
+        history.replaceState(null,'',location.pathname);loginScreen('Conectando com Google…',true);
+        await window.VersaoGoogle.start();clearTimeout(timer);return;
+      }
+      let session;
+      if(window.VersaoGoogle?.isCallback()){
+        session=await window.VersaoGoogle.receive();if(token!==attempt)return;saveSession(session);
+      }else session=readSession();
       if(wantsRegister&&!session){clearTimeout(timer);location.replace('/cadastro-professor.html');return;}
       if(session&&(!session.expires_at||session.expires_at<Math.floor(Date.now()/1000)+60))session=await refreshSession(session);
       if(token!==attempt)return;
       if(!session){clearTimeout(timer);loginScreen('',true);return;}
-      S.session=session;await profile();if(token!==attempt)return;start(token);
+      S.session=session;if(!await loadProfile(token))return;if(token!==attempt)return;start(token);
     }catch(error){
       if(token===attempt)fail(error.message||'Não foi possível recuperar a sessão. Entre novamente.');
     }
