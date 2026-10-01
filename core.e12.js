@@ -71,7 +71,8 @@ function navigationError(navigation,error){
   if(!navigationCurrent(navigation))return;
   invalidateNavigation();
   $('view').innerHTML=header('Não foi possível carregar','Tente abrir esta área novamente.')+`<div class="card"><p>${esc(error.message||error)}</p><button class="btn primary" id="retryRoute">Tentar novamente</button></div>`;
-  $('retryRoute').onclick=()=>navigate(navigation.route);
+  if(error.code==='MODULE_UNAVAILABLE'){$('retryRoute').textContent='Recarregar página';$('retryRoute').onclick=()=>location.reload();}
+  else $('retryRoute').onclick=()=>navigate(navigation.route);
 }
 async function navigate(route){
   if(S.profile?.role==='super_admin'&&!ADMIN_ROUTES.has(route))route=route==='admin-accounts'?'admin-create':'admin-overview';
@@ -82,9 +83,14 @@ async function navigate(route){
   try{
     if(!S.profile)throw Error('Sessão encerrada. Entre novamente.');
     if(S.profile.role==='super_admin'){await renderPlatformPage(navigation);return;}
-    const map={home:S.profile.role==='teacher'&&BETA_PROPOSALS?renderTeacherHome:renderHome,proposals:renderProposals,live:renderLive,correction:renderCorrection,ranking:renderRanking,management:renderManagement,'admin-accounts':renderAdminAccounts,'teacher-organization':renderTeacherOrganization,'teacher-classes':renderTeacherOrganization,'teacher-students':renderTeacherOrganization,'teacher-import':renderTeacherImport,'teacher-account':renderTeacherAccount,'teacher-password':renderTeacherPassword,'teacher-profile':renderTeacherProfile,'student-home':renderStudentHome,'student-proposals':renderStudentProposals,'student-essays':renderStudentEssays,'student-evolution':renderStudentEvolution,'student-account':renderStudentAccount};
+    const map={home:S.profile.role==='teacher'&&BETA_PROPOSALS?'renderTeacherHome':'renderHome',proposals:'renderProposals',live:'renderLive',correction:'renderCorrection',ranking:'renderRanking',management:'renderManagement','admin-accounts':'renderAdminAccounts','teacher-organization':'renderTeacherOrganization','teacher-classes':'renderTeacherOrganization','teacher-students':'renderTeacherOrganization','teacher-import':'renderTeacherImport','teacher-account':'renderTeacherAccount','teacher-password':'renderTeacherPassword','teacher-profile':'renderTeacherProfile','student-home':'renderStudentHome','student-proposals':'renderStudentProposals','student-essays':'renderStudentEssays','student-evolution':'renderStudentEvolution','student-account':'renderStudentAccount'};
     if(!Object.hasOwn(map,route))throw Error('Área não disponível.');
-    await map[route](navigation);
+    const render=window[map[route]];
+    if(typeof render!=='function'){
+      const error=Error('Os arquivos desta área não terminaram de carregar. Recarregue a página para tentar novamente.');
+      error.code='MODULE_UNAVAILABLE';throw error;
+    }
+    await render(navigation);
   }catch(error){navigationError(navigation,error)}finally{clearTimeout(navigation.timer)}
 }
 
