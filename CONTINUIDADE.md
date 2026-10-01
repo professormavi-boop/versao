@@ -504,3 +504,22 @@ Pacote backend deve aplicar student-signup.sql antes de migration.sql e student-
 Arquivos públicos: index.html, .vercelignore, student-credits.e12.js, docs/checklist-implantacao-ao-vivo.md, CONTINUIDADE.md. Privados: prepared/index.ts, live.ts, credit-checkout-api.ts, student-sales.sql, novo student-trial.sql, README.md, testes de checkout/handler/trial/preço. Database real: nenhum impacto; SQL preparado altera constraints de pedidos e flag comercial, separa degustação de cadastro. Sem novas variáveis/domínios/Auth/webhook. Risco: regressão de elegibilidade/preço, mitigada por testes isolados. Rollback: branch anterior e flags desativadas; preservar ledger.
 
 Validação desta entrega: npm run check e npm test PASS (43 assets HTTP), test-live-sql/test-live-handler/test-student-checkout/test-student-base PASS. Serviços simulados e SQL isolado; sem login/compra real. Backend privado preservado: versao-ao-vivo-base-preco-250.zip, libfile_03a6788de69c819191ff7a7f2b4543f1; substitui pacote anterior. Aplicar apenas student-trial.sql → migration.sql → student-sales.sql, nunca student-signup.sql nesta entrega. Frontend preservado na branch feat/ao-vivo-preview/PR18; nenhum deploy novo homologado.
+
+## Ativação controlada autorizada — 01/10/2026 18h43 BRT
+Usuário: Faça isso + Autorizo após plano de ativação controlada do Supabase compartilhado. Escopo: schema/RPCs/bucket privado, teacher-organization-api e credit-checkout-api; flags inicialmente falsas, liberar para testes após validação. Não implica merge main/publicação frontend produtivo.
+- [x] Conferir backend atual: funções teacher-organization-api v7 e credit-checkout-api v7; live_essays/claim_student_trial ausentes.
+- [ ] Aplicar SQL na ordem student-trial → live → student-sales.
+- [ ] Publicar funções preservando JWT e módulos legados; validar permissões e estrutura.
+- [ ] Liberar testes controlados e conferir preview atual.
+- [ ] Registrar resultado, limitações e rollback.
+Arquivos locais: CONTINUIDADE.md, docs/checklist-implantacao-ao-vivo.md e registro privado de ativação. Impacto DB: live_essays/files/jobs/shares com RLS, RPCs service-only/token público, bucket live-private, trial único, constraints dos pedidos e três flags. Auth/domínios/variáveis/webhook sem alteração. Vercel somente preview. Risco: erro de runtime/integração; retorno por flags desligadas e fontes originais v7, preservando histórico/ledger. Sem teste pago automático.
+
+### Resultado da ativação autorizada
+Autorização explícita recebida às 18h43 BRT.
+Aplicadas: live_student_base_trial, live_corrections_private_workspace, student_base_four_credits_ten_reais.
+Funções: teacher-organization-api v8 e credit-checkout-api v8, ambas verify_jwt=true. Originais v7 conferidos byte a byte com arquivos original/ antes de publicar.
+Flags teacher_live/student_live/student_credit_sales habilitadas. Preço 250 centavos/correção, student_4 com4 créditos/1000 centavos.
+Verificação real: quatro tabelas RLS; anon sem SELECT e authenticated sem INSERT; bucket privado15MB; RPCs start/trial negadas a authenticated; read_live_share público com token inválido retorna null. Chamadas sem login aos dois endpoints HTTP401. Cadastro independente complete_student_signup ausente.
+Nenhuma IA paga, compra, conta ou crédito criado durante a instalação. Jornada autenticada/pagamento real ainda pendentes.
+Frontend atual no Git: cbc4db662e71f8a984a0cc73b3932e36f1b92383, PR18. Vercel consulta mostra apenas preview b101820 (professor); deploy_to_vercel retornou UNAVAILABLE. Não homologar a prévia antiga como versão conjunta. Produção frontend não publicada.
+Rollback: desativar flags e, se necessário, restaurar funções originais v7. NÃO apagar tabelas ou ledger; preservar histórico/saldos.

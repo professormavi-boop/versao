@@ -2,7 +2,7 @@
 
 Atualizado em 01/10/2026. Decisão mais recente: Ao Vivo professor → Ao Vivo aluno da base/PIN → créditos para alunos da base. Cadastro avulso em standby; rascunho preservado.
 
-Marcação significa conclusão somente do item descrito. Prévia, código preparado e publicação são etapas distintas. Nenhuma das novas funcionalidades abaixo está ativa em produção.
+Marcação significa conclusão somente do item descrito. Prévia, código preparado e publicação são etapas distintas. Backend compartilhado instalado e habilitado em 01/10/2026 após autorização. Frontend conjunto ainda não publicado; homologação real pendente.
 
 ## 1. Ao Vivo do professor — prioridade atual
 
@@ -97,3 +97,12 @@ Validação: npm run check/npm test PASS (44 assets HTTP); SQL de posse/crédito
 - [x] Testar em SQL isolado: degustação única, crédito consumido não reposto, RPC privada e pacote exato R$10/4 créditos.
 - [x] Testar rejeição de preço/quantidade adulterados e preservar pacotes de professor.
 - [ ] Homologar compra real/webhook e jornada por PIN antes de ativar.
+
+## Ativação autorizada — resultado atual
+- [x] Aplicar três migrações e validar RLS/permissões/bucket privado.
+- [x] Publicar teacher-organization-api v8 e credit-checkout-api v8 com JWT.
+- [x] Habilitar Ao Vivo professor/aluno da base e pacote R$10/4 créditos.
+- [x] Conferir HTTP401 sem login e link inválido sem exposição de dados.
+- [ ] Publicar preview do frontend conjunto: conector Vercel deploy indisponível; preview mais recente listado ainda b101820.
+- [ ] Homologar login/PIN, correção real, compartilhamento e pagamento.
+- [ ] Publicar frontend no domínio oficial após homologação/autorização.
