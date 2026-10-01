@@ -45,3 +45,17 @@ request_id idempotente e trava por redação/versão impedem débito duplo; cons
 5. Homologar mobile/desktop real. Pedir autorização de ativação produtiva depois do resultado concreto.
 
 Rollback: desabilitar entrada Ao Vivo e restaurar rótulo/fluxo anterior; preservar novas redações privadas e ledger para consulta/recuperação. Não apagar dados nem desfazer créditos por rollback de interface.
+
+## Compartilhar a devolutiva — aprovado pelo professor
+Nome do aluno e nome da escola são campos de texto opcionais (até 160 caracteres), sem criar ou exigir cadastros/vínculos. Guardar `student_label` e `school_label` na redação avulsa. Ambos podem ficar vazios; no documento compartilhado, omitir identificações vazias.
+
+Depois da revisão, oferecer **Compartilhar devolutiva** no resultado e em cada correção revisada do histórico. O professor pode compartilhar novamente a qualquer momento, sem nova análise nem cobrança de correção. Link expirado ou revogado pode ser substituído por novo link mediante ação do professor; manter o histórico acessível a ele.
+
+Ações: WhatsApp com mensagem e link, copiar link, e compartilhamento nativo do celular (quando disponível). O professor escolhe destinatário e confirma o envio no aplicativo. Sem envio automático, sem lista de contatos e sem telefone obrigatório. SMS depende das opções disponíveis no dispositivo.
+
+Persistir links de acesso em entidade separada (`teacher_live_shares`), vinculados ao professor, job e versão revisada: hash de token aleatório forte, data de criação, expiração, revogação e snapshot da devolutiva aprovada com identificações opcionais. Somente o proprietário aprovado cria/revoga. Link não concede acesso ao histórico, arquivo original ou rascunhos. Nunca publicar resultado preliminar. A página pública resolve somente um token válido, sem listagem e sem expor chaves de serviço. Informar que qualquer pessoa com o link pode ler a devolutiva.
+
+Editar uma revisão não muda silenciosamente a versão já compartilhada; permitir gerar novo link e revogar o anterior. Definir endpoint público e testar isolamento, expiração, revogação e ausência de conteúdo não revisado antes de ativar. Esta seção descreve o contrato aprovado; não representa backend implementado.
+
+### Nomes de escola
+Normalizar Unicode NFC, espaços externos/repetidos e caixa para correspondência exata; preservar nome de exibição. `Marista` e `marista` usam o nome já conhecido. Erros como `maresta` geram sugestão selecionável, nunca fusão automática. Acentos diferentes também exigem escolha; não inferir unidade pela marca. Usar somente escolas e rótulos anteriores do professor autenticado, sem catálogo de outros professores. Aplicar a mesma regra no servidor na integração; o utilitário de interface não é autorização. Manter nome novo permitido e campo vazio válido. A prévia usa um catálogo ilustrativo identificado, sem ler nem gravar escolas reais.
