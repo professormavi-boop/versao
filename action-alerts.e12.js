@@ -56,6 +56,52 @@ window.prompt=function(message){
 };
 window.__VERSAO_UI_RULES__=Object.freeze({nativeDialogs:false,confirmation:'appConfirm',messages:'actionAlert/toast'});
 
+// Navegação do professor: mantém as rotas homologadas e apenas agrupa a organização escolar.
+const teacherSchoolRoutes=new Set(['teacher-organization','teacher-classes','teacher-students','teacher-import']);
+const baseBuildNav=typeof buildNav==='function'?buildNav:null;
+const baseSetActive=typeof setActive==='function'?setActive:null;
+if(baseBuildNav){
+  buildNav=function(){
+    baseBuildNav();
+    if(S?.profile?.role!=='teacher')return;
+    const nav=document.getElementById('nav');
+    if(!nav||nav.querySelector('.teacher-nav-group'))return;
+    const schoolButton=nav.querySelector('button[data-route="teacher-organization"]');
+    const items=[
+      [nav.querySelector('button[data-route="teacher-classes"]'),'Turmas'],
+      [nav.querySelector('button[data-route="teacher-students"]'),'Alunos'],
+      [nav.querySelector('button[data-route="teacher-import"]'),'Importar alunos']
+    ];
+    if(!schoolButton||items.some(([button])=>!button))return;
+    if(!document.getElementById('teacherNavStyles')){
+      const style=document.createElement('style');
+      style.id='teacherNavStyles';
+      style.textContent='.nav .teacher-nav-group>summary{display:flex;align-items:center;gap:10px;border-radius:12px;color:#4E4B4D;list-style:none}.nav .teacher-nav-group>summary::-webkit-details-marker{display:none}.nav .teacher-nav-group>summary:hover{background:#FAF5F4}.nav .teacher-nav-group>summary.active{background:#F8ECEB;color:var(--crimson)}.nav .teacher-nav-group>button{padding-left:30px!important}';
+      document.head.appendChild(style);
+    }
+    const group=document.createElement('details');
+    group.className='admin-nav-group teacher-nav-group';
+    group.open=teacherSchoolRoutes.has(S.route);
+    const summary=document.createElement('summary');
+    summary.dataset.route='teacher-organization';
+    summary.innerHTML='<span class="dot"></span><span>Escolas</span>';
+    group.appendChild(summary);
+    for(const [button,label] of items){
+      button.textContent=label;
+      group.appendChild(button);
+    }
+    schoolButton.before(group);
+    schoolButton.remove();
+  };
+}
+if(baseSetActive){
+  setActive=function(route){
+    baseSetActive(route);
+    const group=document.querySelector('.teacher-nav-group');
+    if(group&&teacherSchoolRoutes.has(route))group.open=true;
+  };
+}
+
 // Compatibilidade temporária com rotas antigas ainda referenciadas pelo bootstrap/core.
 // A gestão atual passa por renderPlatformPage; estas aliases evitam bloquear o login
 // enquanto as referências legadas são removidas em uma limpeza posterior.
