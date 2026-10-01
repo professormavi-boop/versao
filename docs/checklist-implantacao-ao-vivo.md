@@ -106,3 +106,14 @@ Validação: npm run check/npm test PASS (44 assets HTTP); SQL de posse/crédito
 - [ ] Publicar preview do frontend conjunto: conector Vercel deploy indisponível; preview mais recente listado ainda b101820.
 - [ ] Homologar login/PIN, correção real, compartilhamento e pagamento.
 - [ ] Publicar frontend no domínio oficial após homologação/autorização.
+
+## Atividades no Ao Vivo — professor, preparação em 01/10/2026
+- [x] Atividade opcional, inclusive sem nome; tema confirmado reaproveitado.
+- [x] Próxima redação após salvar revisão: limpa identificação, escola, texto, arquivo e IDs.
+- [x] Minhas atividades com paginação, histórico por atividade e retomada.
+- [x] Tema fixo por atividade; correções anteriores preservadas. Para outro tema, nova atividade.
+- [x] Exclusivo do professor; aluno segue fluxo individual.
+- [x] Somente nota ENEM/C1–C5; sem valor ou conversão da atividade.
+- [x] Testes SQL/handlers/UI isolados aprovados; sem uso de IA paga.
+- [ ] Aplicar migração incremental live-activities.sql e atualizar teacher-organization-api após autorização específica. Backend v8 atual ainda não contém atividades.
+- [ ] Publicar frontend e homologar mobile/fluxo real. Vercel bloqueou preview por mais de100 deployments/dia e pediu24h; aguardando liberação, sem tentativa automática.

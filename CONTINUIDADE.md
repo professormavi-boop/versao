@@ -523,3 +523,13 @@ Verificação real: quatro tabelas RLS; anon sem SELECT e authenticated sem INSE
 Nenhuma IA paga, compra, conta ou crédito criado durante a instalação. Jornada autenticada/pagamento real ainda pendentes.
 Frontend atual no Git: cbc4db662e71f8a984a0cc73b3932e36f1b92383, PR18. Vercel consulta mostra apenas preview b101820 (professor); deploy_to_vercel retornou UNAVAILABLE. Não homologar a prévia antiga como versão conjunta. Produção frontend não publicada.
 Rollback: desativar flags e, se necessário, restaurar funções originais v7. NÃO apagar tabelas ou ledger; preservar histórico/saldos.
+
+## Atividades opcionais no Ao Vivo professor — 01/10/2026
+- [x] Implementar atividade com nome opcional e tema imutável confirmado, exclusiva do professor.
+- [x] Próxima redação reutiliza somente atividade/tema; limpa aluno, escola, texto, arquivo e IDs.
+- [x] Histórico com acesso por atividade; nota ENEM/C1–C5 sem pontuação extra.
+- [x] Testar isolamento, idempotência, snapshot e fluxo aluno preservado.
+- [x] Preservar fontes públicas/privadas e atualizar checklist; migração adicional NÃO aplicada.
+Arquivos: teacher-live.e12.js, core.e12.js, index.html, testes teacher-live/student-live e novo teacher-live-activities.cjs, package.json, docs/checklist-implantacao-ao-vivo.md, CONTINUIDADE.md; privados live-activities.sql, prepared/live.ts/index.ts, testes/README. Database produtivo nenhum impacto nesta preparação. Vercel bloqueou tentativa de preview d091c6a por api-deployments-free-per-day (>100), pede24h. Não repetir publicação agora. Backend base v8 ativo, atividades novas pendentes. Risco de herdar identificação/arquivo e misturar temas mitigado com reset/temas imutáveis/posse. Sem novas env/Auth/pagamentos/domínios. Rollback usa frontend/backend v8 sem apagar dados.
+
+Validação: npm run check/npm test PASS (43 assets HTTP); testes privados live SQL/handler PASS com atividades: exclusivo professor, posse, nome opcional, idempotência, tema fixo e snapshot anterior preservado. Testes UI verificam reset de nome/escola/texto/arquivo/IDs, tema herdado, revisão antes de próxima redação, confirmação de crédito nova e histórico filtrado. Sem homologação visual real nem IA paga. Backend de atividades ainda NÃO aplicado. Fontes novas em branch feat/ao-vivo-preview, pacote privado versao-ao-vivo-atividades-preparado.zip; rollback específico v8 incluído.
