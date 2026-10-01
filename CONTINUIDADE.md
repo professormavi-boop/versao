@@ -394,3 +394,10 @@ Validação concluída: npm run check, npm test e git diff --check PASS; 40 asse
 Escopo adicional core.e12.js: remover showOnly, safeMessage e generationScreen sem chamadas. Revisados todos os scripts estáticos, CSS, páginas, manifest, assets, APIs Vercel e worker. CSS compartilhado/dinâmico, relatórios históricos, endpoints públicos e SheetJS preservados; ausência de chamada frontend não comprova endpoint obsoleto. Teste HTTP ampliado cobre bindings de correção/Ao Vivo e seletor real de manuscritas.
 
 Revisão ampliada validada: npm run check / npm test / git diff --check PASS. 39 assets HTTP; correção, Ao Vivo e seletor manuscritas conferidos com módulos atuais carregados. PR17 reúne a limpeza; produção não alterada e validação visual autenticada pendente.
+
+## Correção de navegação com módulo ausente
+- [x] Resolver somente o handler da rota selecionada; não avaliar todas as funções ao abrir qualquer tela.
+- [x] Mensagem amigável e recarga explícita para módulo ausente; testar falha isolada e recuperação.
+Arquivos: core.e12.js, index.html, tests/navigation-modules.cjs, package.json e este registro. Database nenhum impacto; sem mudança de domínios/Auth/backend. Rollback por reversão.
+
+Teste de regressão reproduz módulo ausente, confirma outras rotas acessíveis, recuperação após disponibilização do módulo e retry comum preservado. npm run check / npm test / git diff --check PASS. Incluído no PR17, ainda não publicado.
