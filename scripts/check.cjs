@@ -4,7 +4,8 @@ const refs=[...html.matchAll(/(?:href|src)="(\/[^"#]+)"/g)].map(m=>new URL(m[1],
 for(const f of refs)assert(fs.existsSync(path.join(root,f)),`Arquivo ausente: ${f}`);
 const inline=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1]);inline.forEach(s=>new vm.Script(s));
 const scripts=refs.filter(f=>f.endsWith('.js'));new vm.Script(scripts.map(f=>fs.readFileSync(path.join(root,f),'utf8')).join('\n'));
-const config=JSON.parse(fs.readFileSync(path.join(root,'vercel.json'),'utf8'));assert(!config.routes&&!config.rewrites&&!config.redirects,'Roteamento intermediário não permitido');
+const config=JSON.parse(fs.readFileSync(path.join(root,'vercel.json'),'utf8'));assert(!config.routes&&!config.redirects,'Roteamento intermediário não permitido');
+assert.deepStrictEqual(config.rewrites,['versaoprofessor.com','www.versaoprofessor.com'].map(host=>({source:'/',has:[{type:'host',value:host}],destination:'/landing.html'})),'Somente as duas regras locais da landing são permitidas');
 const code=scripts.map(f=>fs.readFileSync(path.join(root,f),'utf8')).join('\n');assert(!/MutationObserver|DecompressionStream|document\.write|sb_secret_|service_role/.test(code));assert(code.includes('MUTATIONS_ENABLED=false,PAID_AI_ENABLED=true'));
 assert(fs.readFileSync(path.join(root,'base.e12.css'),'utf8').includes('data:image/'));
 console.log(`${refs.length} arquivos referenciados presentes; scripts válidos juntos; logo incorporada; sem proxy; gravações administrativas bloqueadas.`);
