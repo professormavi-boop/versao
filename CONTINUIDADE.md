@@ -251,3 +251,13 @@ Pedido autorizado: Minhas escolas, Minhas turmas, Meus alunos e Importar alunos 
 
 Implementado: quatro rotas no menu; nomes atualizados na organização e primeiros passos; atalho de importação no início direciona à área dedicada. Escola/turma por cards e criação inline preservadas. Importação destaca destino, permite colagem do Excel ou CSV, exige revisão antes de gravar, mantém duplicidades e idempotência, mostra resultado e acesso a alunos/PINs. Logo e CSS existentes preservados.
 Validação: teste DOM das quatro rotas, importação com API simulada, lista Excel, revisão sem gravação, uma gravação e botão de PINs aprovado; regressões npm test e assets HTTP aprovados. Não executada importação com gravação real de alunos.
+
+## Importação guiada — 01/10/2026
+- [x] Revisar main 285e533 e preservar submenu Escolas já implementado em action-alerts.
+- [x] Retirar possessivos dos títulos; Escola abre Turmas, turma abre Alunos, importação abre assistente dedicado.
+- [x] Implementar três passos: escolher/criar escola e turma; enviar lista; revisar e importar.
+- [x] Testar fluxo com múltiplas escolas, criação, duplicidades, retorno e conclusão.
+- [ ] Criar preview; aguardar autorização para produção conforme AGENTS 12–14.
+Database: nenhum impacto durante implementação; APIs existentes reaproveitadas. Sem mudanças de Auth, RLS, migrations, variáveis ou domínios. CSV e colagem Excel suportados; PDF/foto e reconhecimento com IA propostos, não implementados nem cobrados. Rollback: retornar os arquivos desta branch à base 285e533.
+
+Validação desta branch: npm test passou, incluindo carregamento dos módulos via HTTP, criação de escola/turma, seleção do destino, preservação ao voltar, CSV/Excel, limite de 500, e-mail inválido, duplicidades com escolha obrigatória, bloqueio de todas as linhas ignoradas, clique duplo, retry com mesmo request_id e navegação para alunos/PINs. APIs simuladas; sem gravações de alunos reais. Atalhos da home agora usam as áreas correspondentes. npm run check continua falhando na regra antiga que proíbe rewrites já presentes na base para landing page; sintaxe conjunta e assets passam antes desse ponto. Não alterar roteamento nesta tarefa. Preview e publicação ainda pendentes.
