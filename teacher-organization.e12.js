@@ -10,45 +10,8 @@ function organizationCall(action,fields={}){
  return edge('teacher-organization-api',body);
 }
 function parseRoster(text){
- text=String(text).replace(/^\uFEFF/,'');
- if(!text.trim())throw Error('Cole os nomes ou selecione um CSV.');
- const first=text.split(/\r?\n/)[0];
- const delimiter=first.includes(';')?';':first.includes('\t')?'\t':',';
- const table=[];let row=[],cell='',quoted=false;
- for(let i=0;i<text.length;i++){
-  const c=text[i];
-  if(c==='"'){
-   if(quoted&&text[i+1]==='"'){cell+='"';i++;}
-   else if(quoted)quoted=false;
-   else if(!cell)quoted=true;
-   else throw Error('CSV inválido: confira as aspas.');
-  }else if(!quoted&&(c===delimiter||c==='\n'||c==='\r')){
-   row.push(cell);cell='';
-   if(c!==delimiter){if(row.some(v=>v.trim()))table.push(row);row=[];if(c==='\r'&&text[i+1]==='\n')i++;}
-  }else cell+=c;
- }
- if(quoted)throw Error('CSV inválido: há aspas sem fechamento.');
- row.push(cell);if(row.some(v=>v.trim()))table.push(row);
- const head=table[0].map(v=>v.trim().toLowerCase());
- const nameIndex=head.findIndex(v=>['nome','nome completo','full_name','name','aluno'].includes(v));
- const emailIndex=head.findIndex(v=>['email','e-mail'].includes(v));
- const hasHeader=nameIndex>=0;
- if(hasHeader)table.shift();
- const rows=[],singleColumn=emailIndex<0&&table.every(r=>r.length===1);
- const validEmail=value=>/^\S+@\S+\.\S+$/.test(value)&&value.length<=254;
- table.forEach((r,i)=>{
-  if(!hasHeader&&r.length>2)throw Error(`Linha ${i+1}: use nome e, opcionalmente, e-mail.`);
-  const name=(r[hasHeader?nameIndex:0]||'').trim().replace(/\s+/g,' '),email=(r[hasHeader?emailIndex:1]||'').trim().toLowerCase();
-  if(name.includes('@')){
-   const previous=rows[rows.length-1];
-   if(!singleColumn||!validEmail(name)||!previous||previous.email)throw Error(`Linha ${i+1}: informe o nome antes do e-mail e apenas um e-mail por aluno.`);
-   previous.email=name.toLowerCase();return;
-  }
-  if(name.length<2||name.length>160||email&&!validEmail(email))throw Error(`Confira nome e e-mail na linha ${i+1}.`);
-  rows.push({name,email});
- });
- if(!rows.length||rows.length>500)throw Error('Envie de 1 a 500 alunos por lote. Você pode enviar quantos lotes precisar.');
- return rows;
+ const table=RosterReader.textTable(text);
+ return RosterReader.map(table,RosterReader.infer(table)).map(({name,email})=>({name,email}));
 }
 function rosterMatches(row,candidates){return candidates.filter(s=>s.full_name.trim().replace(/\s+/g,' ').toLowerCase()===row.name.toLowerCase()||row.email&&s.email?.toLowerCase()===row.email);}
 async function renderTeacherOrganization(navigation){

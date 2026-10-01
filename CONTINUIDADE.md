@@ -274,3 +274,61 @@ Branch: feat/professor-alterar-senha. Base: 5ab9246.
 Impacto: frontend usa PUT /auth/v1/user com token da própria sessão. Sem API administrativa, migrations, RLS, Edge Functions, variáveis ou domínios. Nenhuma senha real alterada nos testes. Rollback: reverter o commit desta alteração. Produção depende de aprovação após apresentação do resultado.
 
 Usuário autorizou publicação e pediu retirar Turmas/Alunos do menu. action-alerts.e12.js mantém Gerenciar escolas e Importar alunos, preservando rotas internas. npm test passou, incluindo teste novo com API simulada e 34 assets via HTTP. Login/troca de senha real não executados.
+
+## Importação Excel, IA e início — 01/10/2026
+Branch feat/importacao-excel-ia, base 391d92b. Produção não alterada.
+- [x] Diagnosticar tentativa real: 30 alunos gravados, 29 com separador e matrícula incorporados ao nome; detector usava apenas a primeira linha.
+- [ ] Ler Excel/CSV com prévia, mapeamento explícito e validação antes da gravação.
+- [ ] Fornecer modelo Excel opcional e destacar importação na home inicial.
+- [ ] Preparar reconhecimento de colunas com IA em endpoint separado, sem gravação de alunos pela IA.
+- [ ] Testar incidente reproduzido, arquivos, duplicidades, navegação e falhas.
+- [ ] Preparar reparação restrita dos nomes afetados; requer aprovação para executar.
+- [ ] Registrar revisão e pedir aprovação antes da publicação (AGENTS 12–14).
+Backend novo será mantido no pacote privado, fora da origem pública. Sem alterações de autenticação/domínios. Implantação da IA depende de função, controle de uso e validação separados. Rollback: reverter frontend e desativar nova função.
+
+12h08: usuário aprovou mockup desktop/mobile, separação visual do menu e implementação com IA paga pelo saldo do professor. Regra apresentada: 1 crédito por organização de lista, reuso idempotente e estorno de falhas; cadastro manual gratuito. Preparar novo teacher-import-api e SQL privado (matrícula, análises, reserva/estorno, importação transacional). Frontend: reader/worker, wizard, home, CSS, menu, créditos, modelo e testes. Não publicar/alterar banco antes da validação e nova autorização conforme AGENTS 12–14.
+
+### Implementação preparada — 01/10/2026
+- [x] Visual aprovado na home sem alunos; demais professores mantêm painel de trabalho; separador antes de Conta e créditos.
+- [x] Excel XLSX/XLS em worker, CSV e colagem; modelo XLSX com aba de instruções e sem alunos fictícios para importar por engano.
+- [x] Prévia, associação de colunas, edição de células, agrupamento por escola/turma; uma aba por vez, até 500 alunos e 20 grupos.
+- [x] Três passos: lista → destinos → revisão; revisão em páginas de dez; cadastro manual gratuito; IA por ação explícita com preço de 1 crédito.
+- [x] Backend privado preparado: matrícula separada, importação em transação, permissões, resultados reaproveitados, reserva/estorno e recuperação de análise interrompida.
+- [x] Testes npm (HTTP/DOM), Postgres isolado (PGlite), handler TypeScript com OpenAI simulado e Chromium desktop/mobile com arquivos XLSX/XLS reais aprovados.
+- [x] Pacote separado para reparar os 29 nomes, preservando IDs/vínculos. Não executado.
+- [ ] Ativar backend em produção após aprovação, homologar IA/créditos/bônus reais, publicar frontend.
+
+Limitações: fontes privadas em `importacao-privada`, fora deste repositório público. Não publicar só o frontend: wizard depende de teacher-import-api/database.sql. Não houve teste OpenAI pago, migração, importação real ou débito em conta de cliente. Capturas reais feitas com dados fictícios e API simulada. CLI agent-browser indisponível; verificação visual concluída via Chromium/Playwright. `npm run check` mantém falha preexistente por proibir rewrites da landing; roteamento não alterado. Cadastro em múltiplas abas exige selecionar uma aba por vez; PDF/foto fora do escopo. Repetição de matrícula dentro do mesmo lote é bloqueada, sem fusão silenciosa. Rollback: frontend 391d92b e desativação da nova função, mantendo dados e ledger para auditoria.
+
+Registro histórico anterior à implementação, às 11h57: apresentar proposta de melhoria do processo além da leitura. Proposta: primeiro acesso centrado em preparar turma; lista → escola/turma → revisão; matrícula preservada separadamente; revisão assistida de colunas e duplicidades; conclusão leva à primeira proposta. Naquele checkpoint apenas o leitor experimental e a biblioteca SheetJS 0.20.3 estavam guardados; a implementação posterior está descrita acima. Sem execução da reparação dos 29 registros. Produção e banco intactos.
+
+### Revisão salva e prévia — 01/10/2026 15h49 UTC
+- [x] Preservar código revisável na branch remota e pacote privado separado.
+- [x] Registrar testes e prévia, sem promover produção.
+- [ ] Obter aprovação específica para ativar backend, homologar IA/créditos/bônus reais e publicar o frontend.
+
+Commit funcional: f29725c5188d0947711f05529abfaffc74e9b5ab (árvore idêntica ao commit local validado 2ac86e4). PR em rascunho: https://github.com/professormavi-boop/versao/pull/14 . Prévia automática READY, projeto isolado prj_7mEBS5QDaBWrG4hjnBKelNkU90OY, deployment dpl_8tKo3EjkerZWm3Vn7tYPXvDFbxEU, target preview: https://versao-teste-etapa12-consolidada-ptg6d89n3-professormavi-6775.vercel.app . A consulta dos assets pelo conector retornou a proteção Vercel Authentication; não foi declarada validação funcional remota. Proteção preservada. Capturas desktop/mobile e testes funcionais concluídos em HTTP local com APIs simuladas. Pacote privado versao-importacao-backend-revisao.zip e capturas preservados fora do repositório público. Backend ainda não ativado, portanto a prévia não executa a nova importação real. Aprovação também necessária, separadamente, para executar repair-29-names.sql.
+
+
+### Ativação autorizada — 01/10/2026 12h55 BRT
+Usuário autorizou ativar backend, homologar e publicar após testes.
+- [x] Conferir main 391d92b e criar restore/antes-importacao-ia-20261001. Produção anterior dpl_AwLVHCGgNNtQ6SMcfBf1b81Zu4Ds.
+- [ ] Aplicar database.sql e publicar teacher-import-api com JWT obrigatório.
+- [ ] Homologar IA, cobrança única/estorno, transação, bônus e destinos da importação.
+- [ ] Publicar PR14 e verificar produção.
+- [ ] Atualizar evidências, pacote privado e rollback.
+Arquivos adicionais de ativação: CONTINUIDADE.md e relatório/testes privados; código preparado permanece no PR14. Impacto autorizado: coluna students.registration, índice, tabela protegida de análises e três RPCs service_role; nova Edge Function usa segredos existentes. Auth, domínio, CAPTCHA e demais APIs preservados. Reparação dos 29 nomes antigos continua separada.
+
+Adaptação necessária: Supabase recusou nova Edge Function por limite do plano. Preservar serviço de escolas e acrescentar ações prefixadas import_status/import_review/import_commit/import_organize no teacher-organization-api. Arquivos frontend adicionais ajustados: core.e12.js, teacher-import.e12.js, tests/schools-import.cjs; backend privado: teacher-organization-api/index.ts, organization.ts (cópia do handler anterior), import-assistant.ts (handler já validado), teste do roteador e README. Sem alteração do plano, gastos máximos, Auth ou regras existentes; testar regressão de ações antigas antes do deploy.
+
+### Backend ativado — 01/10/2026 13h10 BRT
+- [x] Migration teacher_import_excel_ai aplicada; coluna/índice, tabela RLS e três RPCs service_role ativos.
+- [x] Limite de Edge Functions resolvido incorporando ações import_* ao teacher-organization-api v5, mantendo as sete ações anteriores e JWT obrigatório. Backup da v3 no pacote privado. Não houve upgrade de plano.
+- [x] npm test, handler IA simulado, roteador e Postgres isolado passaram. index.html também atualizado apenas para invalidar cache dos dois scripts adaptados.
+- [x] Banco real: cinco alunos, matrículas com zeros, rubrica ENEM, leitura no fluxo antigo, bônus único, reserva/reuso/estorno e rollback de lote inválido passaram como service_role. Toda a massa de teste foi desfeita; saldo e cadastros da conta de teste preservados.
+- [x] HTTP OPTIONS 200 e ausência de sessão 401 conferidos. Erro de callback Deno encontrado na v4 e corrigido na v5 antes de publicar a interface.
+- [ ] Chamada real OpenAI e jornada autenticada: navegador indisponível por proteção de documento contendo credenciais nativas. Não contornar nem pedir senha no chat.
+- [ ] Após homologação real, publicar PR14. A autorização já foi dada; não pedir novamente para esta mesma mudança.
+Banco/serviço ativos, frontend continua na produção anterior. Nenhum crédito de cliente consumido e nenhum cadastro fictício permanente. Advisors sem nova exposição pública; tabela de análises sem políticas é intencional, acessível apenas a service_role. Reparação dos 29 nomes NÃO executada.
+
+Prévia funcional preparada: commit 210d24391db81f21f60202423fe72a4acf8a5efe, deployment dpl_34RgXcxKqhaDKPwVQYeqYTSqxYLm READY no projeto isolado. URL https://versao-teste-etapa12-consolidada-q9c4uawa4-professormavi-6775.vercel.app . Link temporário de compartilhamento entregue ao usuário. Pacote privado atualizado: versao-importacao-backend-ativado.zip, incluindo fonte implantada v5, SQL de teste real e rollback v3. Nova interface ainda não promovida; aguarda teste real autenticado de IA.

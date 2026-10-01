@@ -44,6 +44,7 @@
   if(row.event_type==='purchase')return 'Compra de créditos';
   if(row.event_type==='refund')return 'Crédito devolvido';
   if(service==='proposal'||ref.startsWith('proposal-reserve:'))return 'Proposta com IA';
+  if(service==='student_import')return 'Organização de alunos com IA';
   if(ref.startsWith('correction-reserve:')||row.metadata?.submission_id)return 'Correção';
   return 'Uso de crédito';
  };
@@ -59,7 +60,7 @@
   let historyLoaded=false,usageLoaded=false,historyOffset=0,usageOffset=0;
   $('view').innerHTML=header('Conta e créditos','Seu saldo, seus dados e mais tempo para ensinar.')+`<div class="credit-page">
   <section class="credit-summary" aria-label="Resumo da conta">
-  <div class="credit-balance"><span>Créditos disponíveis</span><strong>${balance}</strong><p>1 crédito por correção ou proposta com IA</p></div>
+  <div class="credit-balance"><span>Créditos disponíveis</span><strong>${balance}</strong><p>1 crédito por organização de lista, correção ou proposta com IA</p></div>
   <div class="credit-person"><strong>${esc(S.profile.full_name||'Professor')}</strong><p>${esc(S.profile.email||'')}</p></div>
   </section>
   ${lowCredit?`<p class="credit-notice" role="status">${balance===0?'Seu saldo acabou. Escolha um pacote para continuar corrigindo.':`Você tem ${balance} créditos disponíveis. Quando precisar, adicione mais créditos abaixo.`}</p>`:''}
@@ -72,13 +73,13 @@
    <section class="credit-shop" aria-labelledby="creditShopTitle"><div class="credit-shop-heading"><h2 id="creditShopTitle">Mais correções, no seu ritmo</h2><p>Escolha o pacote que acompanha sua rotina.</p></div>
    <div class="credit-packages">${(data.packages||[]).filter(p=>p.code!=='teacher_test_1').map(p=>{const unit=Number(p.unit_price_cents??(p.amount_cents/Math.max(1,p.credits)))/100;return `<article class="credit-package${p.featured?' credit-featured':''}">${p.badge?`<span class="credit-badge">${esc(p.badge)}</span>`:''}<p class="credit-plan-name">${esc(p.plan||'Pacote')}</p><h3>${Number(p.credits)} <span>correções</span></h3><p class="credit-price"><span>R$</span> ${money(p.amount_cents/100)}</p><p class="credit-unit">R$ ${money(unit)} por correção</p><button class="credit-buy" data-buy-credit="${esc(p.code)}">Comprar créditos<span class="sr-only"> · ${Number(p.credits)} correções · R$ ${money(unit)} por correção</span></button></article>`}).join('')}</div>
    <p class="credit-footnote">Pagamento pelo Mercado Pago · Pix ou cartão</p>
-   <p class="credit-footnote">Se a correção ou a criação da proposta falhar, o crédito é devolvido.</p></section>
+   <p class="credit-footnote">Se uma análise com IA falhar, o crédito é devolvido.</p></section>
   </div>
   <div class="credit-panel" id="creditHistoryPanel" role="tabpanel" aria-labelledby="creditHistoryTab" hidden>
    <section class="box credit-history" aria-labelledby="purchaseHistoryTitle"><div class="box-head"><h2 id="purchaseHistoryTitle">Histórico de compras</h2><p>Consulte data, créditos, valor e status dos pagamentos.</p></div><div class="box-body list" id="purchaseHistoryList"><div class="empty">Abra esta aba para carregar suas compras.</div></div><div class="credit-more"><button type="button" class="btn ghost" id="purchaseHistoryMore" data-credit-more="history" hidden>Ver mais</button></div></section>
   </div>
   <div class="credit-panel" id="creditUsagePanel" role="tabpanel" aria-labelledby="creditUsageTab" hidden>
-   <section class="box credit-history" aria-labelledby="creditUsageTitle"><div class="box-head"><h2 id="creditUsageTitle">Consumo de créditos</h2><p>Veja créditos de boas-vindas, bônus dos primeiros passos, compras, correções, propostas com IA e devoluções.</p></div><div class="box-body list" id="creditUsageList"><div class="empty">Abra esta aba para carregar seu consumo.</div></div><div class="credit-more"><button type="button" class="btn ghost" id="creditUsageMore" data-credit-more="usage" hidden>Ver mais</button></div></section>
+   <section class="box credit-history" aria-labelledby="creditUsageTitle"><div class="box-head"><h2 id="creditUsageTitle">Consumo de créditos</h2><p>Veja créditos de boas-vindas, bônus dos primeiros passos, compras, correções, propostas, importações com IA e devoluções.</p></div><div class="box-body list" id="creditUsageList"><div class="empty">Abra esta aba para carregar seu consumo.</div></div><div class="credit-more"><button type="button" class="btn ghost" id="creditUsageMore" data-credit-more="usage" hidden>Ver mais</button></div></section>
   </div></div>`;
 
   const loadHistory=async()=>{
