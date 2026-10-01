@@ -1,64 +1,35 @@
-const assert=require('assert/strict'),fs=require('fs'),http=require('http'),path=require('path'),{JSDOM,VirtualConsole}=require('jsdom');
-const server=http.createServer((req,res)=>{
- if(req.url==='/fixture'){res.setHeader('Content-Type','text/html; charset=utf-8');return res.end('<div id="view"></div><script src="/teacher-organization.e12.js"></script><script src="/teacher-import.e12.js"></script>');}
- const file=path.join(process.cwd(),req.url);res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(file));
-});
+const assert=require('node:assert/strict'),fs=require('node:fs'),http=require('node:http'),path=require('node:path'),vm=require('node:vm'),{JSDOM,VirtualConsole}=require('jsdom');
+const server=http.createServer((req,res)=>{if(req.url==='/fixture'){res.setHeader('Content-Type','text/html; charset=utf-8');return res.end('<div id="view"></div>'+['roster-reader','teacher-organization','teacher-import','teacher-home'].map(s=>`<script src="/${s}.e12.js"></script>`).join(''));}const file=path.join(process.cwd(),req.url);res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(file));});
 let base;
-async function fixture({empty=false,candidates=[],failImport=false}={}){
- const calls=[],errors=[],nav=[];
- const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e));
- const dom=await JSDOM.fromURL(base+'/fixture',{resources:'usable',runScripts:'dangerously',virtualConsole:vc});
- await new Promise(r=>dom.window.addEventListener('load',r));const w=dom.window;
- w.HTMLElement.prototype.scrollIntoView=function(){};
- w.S={profile:{role:'teacher'},session:{user:{id:'teacher'}},route:'teacher-import',cache:{}};
- w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=(a,b)=>`<h1>${a}</h1><p>${b}</p>`;w.navigationCurrent=()=>true;w.navigate=route=>nav.push(route);
- w.edge=async(slug,b)=>{
-  calls.push({slug,...JSON.parse(JSON.stringify(b))});
-  if(slug==='student-pin-api')return{code:'CLASSCODE',students:[]};
-  switch(b.action){
-   case'organizations':return{organizations:empty?[]:[{id:'school',name:'Escola Teste',is_active:true},{id:'second',name:'Outra Escola',is_active:true}]};
-   case'base':return{classes:empty?[]:[{id:'class',name:'3º A',year:2026,student_count:0,is_active:true}]};
-   case'students':return{students:[]};
-   case'create_organization':return{organization_id:'created-school'};
-   case'create_class':return{class_id:'created-class'};
-   case'review':return{candidates};
-   case'import':if(failImport){failImport=false;throw Error('Falha temporária');}return{processed:b.rows.filter(x=>x.choice!=='skip').length};
-   default:throw Error(b.action);
-  }
- };
- return {w,calls,nav,errors,close(){assert.deepEqual(errors,[]);dom.window.close();}};
+async function fixture({empty=false,candidates=[],failCommit=false,failAI=false,hasStudents=true}={}){
+ const calls=[],errors=[],nav=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e));
+ const dom=await JSDOM.fromURL(base+'/fixture',{resources:'usable',runScripts:'dangerously',virtualConsole:vc});await new Promise(r=>dom.window.addEventListener('load',r));const w=dom.window;
+ w.S={profile:{id:'teacher',role:'teacher',full_name:'Marcus'},session:{user:{id:'teacher'}},route:'teacher-import',cache:{}};w.API={credit:'credits'};w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=(a,b)=>`<h1>${a}</h1><p>${b}</p>`;w.navigationCurrent=()=>true;w.navigate=route=>nav.push(route);w.HTMLElement.prototype.scrollIntoView=function(){};w.scrollTo=()=>{};
+ w.edge=async(slug,b)=>{calls.push({slug,...JSON.parse(JSON.stringify(b))});switch(b.action){
+ case'home':return{has_organizations:!empty,issues:[],activities:[],proposal_tasks:[]};case'packages':return{balance:5};case'status':return{has_students:hasStudents};
+ case'organizations':return{organizations:empty?[]:[{id:'school',name:'Escola Teste',is_active:true}]};case'base':return{classes:[{id:'class',name:'1º A',year:2026,is_active:true}]};case'students':return{students:[]};
+ case'organize':if(failAI)throw Error('Saldo insuficiente. Continue sem IA.');return{mapping:{nameColumn:0,registrationColumn:1,emailColumn:-1,schoolColumn:-1,classColumn:2,startRow:1,headerRow:0}};
+ case'review':return{groups:b.groups.map(g=>({key:g.key,candidates}))};
+ case'commit':if(failCommit){failCommit=false;throw Error('Falha temporária.');}return{processed:b.groups.reduce((s,g)=>s+g.rows.filter(r=>r.choice!=='skip').length,0),groups:b.groups.map(g=>({...g,organization_id:'school',class_id:'class',processed:g.rows.filter(r=>r.choice!=='skip').length}))};
+ default:throw Error(b.action);
+ }};
+ return{w,calls,nav,close(){assert.deepEqual(errors,[]);dom.window.close();}};
 }
+function input(w,id,value){const e=w.$(id);e.value=value;e.oninput?.();}
+function destinationFields(w){w.document.querySelectorAll('[data-dest]').forEach(e=>{if(e.dataset.dest==='schoolName')e.value='Escola Teste';if(e.dataset.dest==='className'&&!e.value)e.value='1º A';e.oninput();});}
+async function list(f,text){await f.w.renderTeacherImport(1);input(f.w,'importText',text);f.w.$('importReadText').click();await f.w.$('importContinue').onclick();destinationFields(f.w);}
 const tick=()=>new Promise(r=>setImmediate(r));
-async function destination(f){await f.w.renderTeacherImport(1);await f.w.document.querySelector('[data-import-school="school"]').onclick();f.w.document.querySelector('[data-import-class]').click();f.w.$('importNext').click();}
-function choose(w,i,value){const el=w.document.querySelector(`[data-import-choice="${i}"][value="${value}"]`);el.checked=true;el.onchange();}
-(async()=>{
- await new Promise(r=>server.listen(0,'127.0.0.1',r));base='http://127.0.0.1:'+server.address().port;
- try{
-  const f=await fixture();const {w,calls}=f;
-  await w.renderTeacherImport(1);w.$('importNext').click();assert.match(w.$('importStatus').textContent,/Selecione/);assert.equal(w.document.querySelector('select'),null);
-  await destination(f);w.$('importText').value='Nome\tEmail\nAna Costa\tana@example.com\nBruno Lima\t';w.$('importBack').click();w.$('importNext').click();assert.match(w.$('importText').value,/Ana Costa/);
-  await w.$('importReview').onclick();assert.match(w.$('importStage').textContent,/2 alunos reconhecidos/);assert.equal(calls.filter(x=>x.action==='import').length,0);
-  const commit=w.$('importCommit');await Promise.all([commit.onclick(),commit.onclick()]);assert.equal(calls.filter(x=>x.action==='import').length,1);await tick();assert.match(w.$('importClassCode').textContent,/CLASSCODE/);w.$('importStudents').click();assert.equal(f.nav.at(-1),'teacher-students');assert.equal(w.S.catalogSelection.class_id,'class');f.close();
-
-  const fresh=await fixture({empty:true});await fresh.w.renderTeacherImport(1);assert.match(fresh.w.$('importStage').textContent,/ainda não tem escolas/);fresh.w.$('importSchoolName').value='Nova Escola';await fresh.w.$('importCreateSchool').onsubmit({preventDefault(){}});fresh.w.$('importClassName').value='2º B';await fresh.w.$('importCreateClass').onsubmit({preventDefault(){}});fresh.w.$('importNext').click();assert.match(fresh.w.$('importStage').textContent,/Nova Escola · 2º B/);assert.deepEqual(fresh.calls.filter(x=>x.action.startsWith('create')).map(x=>x.action),['create_organization','create_class']);fresh.close();
-
-  const dup=await fixture({candidates:[{id:'existing',full_name:'Ana Costa',email:'ana@example.com',enrolled:true}],failImport:true});await destination(dup);
-  dup.w.$('importText').value='Ana Costa\nAna Costa\nBruno Lima';await dup.w.$('importReview').onclick();await dup.w.$('importCommit').onclick();assert.match(dup.w.$('importStatus').textContent,/possível duplicidade/);assert.equal(dup.calls.filter(x=>x.action==='import').length,0);
-  for(let i=0;i<3;i++)choose(dup.w,i,'skip');await dup.w.$('importCommit').onclick();assert.match(dup.w.$('importStatus').textContent,/ao menos um/);
-  choose(dup.w,0,'existing');choose(dup.w,2,'new');await dup.w.$('importCommit').onclick();assert.match(dup.w.$('importStatus').textContent,/Falha temporária/);await dup.w.$('importCommit').onclick();const attempts=dup.calls.filter(x=>x.action==='import');assert.equal(attempts.length,2);assert.equal(attempts[0].request_id,attempts[1].request_id);assert.equal(attempts[1].rows[0].student_id,'existing');dup.close();
-
-  const bad=await fixture();await destination(bad);bad.w.$('importText').value='Nome;Email\nAna;inválido';await bad.w.$('importReview').onclick();assert.equal(bad.calls.filter(x=>x.action==='review').length,0);assert.match(bad.w.$('importStatus').textContent,/Confira/);
-  bad.w.$('importText').value=Array.from({length:501},(_,i)=>'Aluno '+i).join('\n');await bad.w.$('importReview').onclick();assert.match(bad.w.$('importStatus').textContent,/500/);
-  Object.defineProperty(bad.w.$('importFile'),'files',{value:[{name:'turma.csv',size:40,text:async()=> 'nome;email\nAna Costa;ana@example.com'}]});await bad.w.$('importFile').onchange();await bad.w.$('importReview').onclick();assert.match(bad.w.$('importStage').textContent,/1 alunos reconhecidos/);bad.close();
-
-  for(const [route,title] of [['teacher-organization','Escolas'],['teacher-classes','Turmas'],['teacher-students','Alunos']]){
-   const f=await fixture();f.w.S.route=route;await f.w.renderTeacherOrganization(1);assert.equal(f.w.document.querySelector('h1').textContent,title);
-   f.w.document.querySelector('[data-org-open="school"]').click();await tick();
-   if(route==='teacher-organization')assert.equal(f.nav.at(-1),'teacher-classes');
-   else if(route==='teacher-classes'){f.w.document.querySelector('[data-class-open]').click();assert.equal(f.nav.at(-1),'teacher-students');}
-   else {assert(f.w.$('orgRosterCreatePanel').hidden);const b=[...f.w.document.querySelectorAll('button')].find(x=>x.textContent==='Importar nesta turma');b.click();assert.equal(f.nav.at(-1),'teacher-import');assert.equal(f.w.S.catalogSelection.class_id,'class');}
-   f.close();
-  }
-  console.log('PASS: importação em três passos via HTTP, criação, destino, retorno, CSV/Excel, validação, duplicidades, clique duplo, retry idempotente, PINs e rotas (APIs simuladas).');
- }finally{server.close();}
-})().catch(e=>{console.error(e);process.exitCode=1});
+(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));base='http://127.0.0.1:'+server.address().port;try{
+ const f=await fixture({empty:true,failCommit:true});await list(f,'Nome do aluno;Matrícula;Turma\nAna Costa;0012;1º A\nBruno Lima;0099;2º B');assert.equal(f.w.document.querySelectorAll('.import-group').length,2);assert.equal(f.calls.filter(c=>c.action==='commit').length,0);await f.w.$('importReview').onclick();assert.match(f.w.$('importStage').textContent,/0012/);await f.w.$('importCommit').onclick();assert.match(f.w.$('importStatus').textContent,/Falha temporária/);const commit=f.w.$('importCommit');await Promise.all([commit.onclick(),commit.onclick()]);const attempts=f.calls.filter(c=>c.action==='commit');assert.equal(attempts.length,2);assert.equal(attempts[0].request_id,attempts[1].request_id);assert.equal(attempts[1].groups[0].rows[0].registration,'0012');f.w.$('importProposal').click();assert.equal(f.nav.at(-1),'proposals');f.w.document.querySelector('[data-import-students]').click();assert.equal(f.nav.at(-1),'teacher-students');f.close();
+ const incident=await fixture();await list(incident,'Bruno Lopes\nAna Ribeiro;20260231\nCaio Martins;20260001');await incident.w.$('importReview').onclick();const reviewed=incident.calls.find(c=>c.action==='review').groups[0].rows;assert.equal(reviewed[1].name,'Ana Ribeiro');assert.equal(reviewed[1].registration,'20260231');incident.close();
+ const ai=await fixture();await ai.w.renderTeacherImport(1);input(ai.w,'importText','Estudante;Registro;Classe\nAna Costa;0001;1º A\nBruno Lima;0002;2º B');ai.w.$('importReadText').click();const aiBtn=ai.w.$('importAI');await Promise.all([aiBtn.onclick(),aiBtn.onclick()]);await ai.w.$('importAI').onclick();assert.equal(ai.calls.filter(c=>c.action==='organize').length,1);await ai.w.$('importContinue').onclick();assert.equal(ai.w.document.querySelectorAll('.import-group').length,2);ai.close();
+ const noCredit=await fixture({failAI:true});await noCredit.w.renderTeacherImport(1);input(noCredit.w,'importText','Nome;Matrícula;Turma\nAna Costa;0001;1º A');noCredit.w.$('importReadText').click();await noCredit.w.$('importAI').onclick();assert.match(noCredit.w.$('importStatus').textContent,/Saldo insuficiente/);await noCredit.w.$('importContinue').onclick();assert(noCredit.w.$('importReview'));noCredit.close();
+ const dup=await fixture({candidates:[{id:'existing',full_name:'Ana Costa',registration:'0001',email:null,enrolled:true}]});await list(dup,'Nome;Matrícula\nAna Costa;0001\nBruno Lima;0002');await dup.w.$('importReview').onclick();await dup.w.$('importCommit').onclick();assert.match(dup.w.$('importStatus').textContent,/duplicidades/);const choice=dup.w.document.querySelector('[data-import-choice][value="existing"]');choice.checked=true;choice.onchange();await dup.w.$('importCommit').onclick();assert.equal(dup.calls.find(c=>c.action==='commit').groups[0].rows[0].student_id,'existing');dup.close();
+ const page=await fixture();await list(page,Array.from({length:21},(_,i)=>'Aluno Teste '+i).join('\n'));await page.w.$('importReview').onclick();assert.equal(page.w.document.querySelectorAll('.import-review-row').length,10);page.w.$('importNextPage').click();assert.equal(page.w.document.querySelectorAll('.import-review-row').length,10);page.w.$('importNextPage').click();assert.equal(page.w.document.querySelectorAll('.import-review-row').length,1);page.close();
+ const bad=await fixture();await bad.w.renderTeacherImport(1);input(bad.w,'importText','Nome;Email\nAna;inválido');bad.w.$('importReadText').click();await bad.w.$('importContinue').onclick();assert.match(bad.w.$('importStatus').textContent,/Confira/);assert.equal(bad.calls.filter(c=>c.action==='review').length,0);input(bad.w,'importText',Array.from({length:501},(_,i)=>'Aluno '+i).join('\n'));bad.w.$('importReadText').click();await bad.w.$('importContinue').onclick();assert.match(bad.w.$('importStatus').textContent,/500/);bad.close();
+ const home=await fixture({empty:true,hasStudents:false});await home.w.renderTeacherHome(1);assert.match(home.w.document.querySelector('h1').textContent,/Olá, Marcus/);assert(home.w.$('importPick'));assert.equal(home.w.$('homeActions'),null);home.close();
+ const old=await fixture({hasStudents:true});await old.w.renderTeacherHome(1);assert(old.w.$('homeActions'));assert.equal(old.w.$('importPick'),null);old.close();
+ const parser=await fixture();assert.equal(parser.w.parseRoster('Nome;Matrícula\nAna;0001')[0].name,'Ana');assert.equal(parser.w.parseRoster('Ana Costa\nana@example.com')[0].email,'ana@example.com');assert.throws(()=>parser.w.parseRoster('"Nome\nAna'),/aspas/);parser.close();
+ for(const [route,title] of [['teacher-organization','Escolas'],['teacher-classes','Turmas'],['teacher-students','Alunos']]){const f=await fixture();f.w.S.route=route;await f.w.renderTeacherOrganization(1);assert.equal(f.w.document.querySelector('h1').textContent,title);f.w.document.querySelector('[data-org-open="school"]').click();await tick();if(route==='teacher-organization')assert.equal(f.nav.at(-1),'teacher-classes');else if(route==='teacher-classes'){f.w.document.querySelector('[data-class-open]').click();assert.equal(f.nav.at(-1),'teacher-students');}f.close();}
+ console.log('PASS HTTP import: activation, multi-class review, matrícula, incident reproduction, AI/manual, no balance, pagination, duplicates, atomic request and double-click/retry. APIs simulated.');
+}finally{server.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

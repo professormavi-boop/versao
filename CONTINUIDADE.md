@@ -274,3 +274,30 @@ Branch: feat/professor-alterar-senha. Base: 5ab9246.
 Impacto: frontend usa PUT /auth/v1/user com token da própria sessão. Sem API administrativa, migrations, RLS, Edge Functions, variáveis ou domínios. Nenhuma senha real alterada nos testes. Rollback: reverter o commit desta alteração. Produção depende de aprovação após apresentação do resultado.
 
 Usuário autorizou publicação e pediu retirar Turmas/Alunos do menu. action-alerts.e12.js mantém Gerenciar escolas e Importar alunos, preservando rotas internas. npm test passou, incluindo teste novo com API simulada e 34 assets via HTTP. Login/troca de senha real não executados.
+
+## Importação Excel, IA e início — 01/10/2026
+Branch feat/importacao-excel-ia, base 391d92b. Produção não alterada.
+- [x] Diagnosticar tentativa real: 30 alunos gravados, 29 com separador e matrícula incorporados ao nome; detector usava apenas a primeira linha.
+- [ ] Ler Excel/CSV com prévia, mapeamento explícito e validação antes da gravação.
+- [ ] Fornecer modelo Excel opcional e destacar importação na home inicial.
+- [ ] Preparar reconhecimento de colunas com IA em endpoint separado, sem gravação de alunos pela IA.
+- [ ] Testar incidente reproduzido, arquivos, duplicidades, navegação e falhas.
+- [ ] Preparar reparação restrita dos nomes afetados; requer aprovação para executar.
+- [ ] Registrar revisão e pedir aprovação antes da publicação (AGENTS 12–14).
+Backend novo será mantido no pacote privado, fora da origem pública. Sem alterações de autenticação/domínios. Implantação da IA depende de função, controle de uso e validação separados. Rollback: reverter frontend e desativar nova função.
+
+12h08: usuário aprovou mockup desktop/mobile, separação visual do menu e implementação com IA paga pelo saldo do professor. Regra apresentada: 1 crédito por organização de lista, reuso idempotente e estorno de falhas; cadastro manual gratuito. Preparar novo teacher-import-api e SQL privado (matrícula, análises, reserva/estorno, importação transacional). Frontend: reader/worker, wizard, home, CSS, menu, créditos, modelo e testes. Não publicar/alterar banco antes da validação e nova autorização conforme AGENTS 12–14.
+
+### Implementação preparada — 01/10/2026
+- [x] Visual aprovado na home sem alunos; demais professores mantêm painel de trabalho; separador antes de Conta e créditos.
+- [x] Excel XLSX/XLS em worker, CSV e colagem; modelo XLSX com aba de instruções e sem alunos fictícios para importar por engano.
+- [x] Prévia, associação de colunas, edição de células, agrupamento por escola/turma; uma aba por vez, até 500 alunos e 20 grupos.
+- [x] Três passos: lista → destinos → revisão; revisão em páginas de dez; cadastro manual gratuito; IA por ação explícita com preço de 1 crédito.
+- [x] Backend privado preparado: matrícula separada, importação em transação, permissões, resultados reaproveitados, reserva/estorno e recuperação de análise interrompida.
+- [x] Testes npm (HTTP/DOM), Postgres isolado (PGlite), handler TypeScript com OpenAI simulado e Chromium desktop/mobile com arquivos XLSX/XLS reais aprovados.
+- [x] Pacote separado para reparar os 29 nomes, preservando IDs/vínculos. Não executado.
+- [ ] Ativar backend em produção após aprovação, homologar IA/créditos/bônus reais, publicar frontend.
+
+Limitações: fontes privadas em `importacao-privada`, fora deste repositório público. Não publicar só o frontend: wizard depende de teacher-import-api/database.sql. Não houve teste OpenAI pago, migração, importação real ou débito em conta de cliente. Capturas reais feitas com dados fictícios e API simulada. CLI agent-browser indisponível; verificação visual concluída via Chromium/Playwright. `npm run check` mantém falha preexistente por proibir rewrites da landing; roteamento não alterado. Cadastro em múltiplas abas exige selecionar uma aba por vez; PDF/foto fora do escopo. Repetição de matrícula dentro do mesmo lote é bloqueada, sem fusão silenciosa. Rollback: frontend 391d92b e desativação da nova função, mantendo dados e ledger para auditoria.
+
+Direcionamento do usuário às 11h57: apresentar proposta de melhoria do processo além da leitura. Proposta: primeiro acesso centrado em preparar turma; lista → escola/turma → revisão; matrícula preservada separadamente; revisão assistida de colunas e duplicidades; conclusão leva à primeira proposta. Leitor experimental e biblioteca SheetJS 0.20.3 guardados nesta branch, ainda NÃO conectados à interface. Sintaxe conferida; não há suporte Excel publicado nem IA implementada. Arquivos de interface mantidos na base até consolidar o novo fluxo. Sem execução da reparação dos 29 registros. Produção e banco intactos.

@@ -66,6 +66,7 @@ if(baseBuildNav){
     if(S?.profile?.role!=='teacher')return;
     const nav=document.getElementById('nav');
     if(!nav||nav.querySelector('.teacher-nav-group'))return;
+    nav.querySelector('[data-route="teacher-account"]')?.classList.add('nav-account-start');
     const items=[
       [nav.querySelector('button[data-route="teacher-organization"]'),'Gerenciar escolas'],
       [nav.querySelector('button[data-route="teacher-classes"]'),'Turmas'],

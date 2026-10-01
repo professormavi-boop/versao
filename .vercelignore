@@ -46,3 +46,10 @@
 !captcha.e12.js
 
 !teacher-import.e12.js
+!teacher-import.e12.css
+!roster-reader.e12.js
+!roster-reader.worker.js
+!vendor/
+!vendor/xlsx.full.min.js
+!modelos/
+!modelos/modelo-alunos.xlsx

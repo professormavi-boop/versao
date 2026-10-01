@@ -38,6 +38,7 @@ function betaRequestAllowed(url,options={}){
    'admin-accounts-api':['directory','create'],
    'teacher-catalog-api':['home','organizations','base','students','update','visibility','delete'],
    'teacher-organization-api':['organizations','create_organization','base','create_class','students','review','import'],
+   'teacher-import-api':['status','organize','review','commit'],
    'live-correction-beta-api':['directory','start','upload','finalize','list','queue','delete_file','delete_submission'],
    'proposal-beta-api':['bootstrap','get','save','save_all','generate','credits','update_status','delete'],'live-correction-api':['queue','list'], 'proposal-api':['bootstrap','get'],
    'official-correction-beta-api':['get','approve'],'ai-correction-beta-api':['get','status','correct','approve'],
