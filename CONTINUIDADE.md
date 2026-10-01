@@ -373,3 +373,13 @@ Arquivos de ativação: CONTINUIDADE.md e pacote privado. Sem mudança adicional
 - [x] Migration proposal_handwritten_only aplicada. Coluna boolean NOT NULL default false; 11 propostas existentes continuam livres. Duas RPCs atualizadas preservando acesso somente postgres/service_role.
 - [x] Funções ativas com JWT: proposal-beta-api v20, student-proposals-cycle-api v5, student-submit-v2-api v7, student-submission-cycle-api v8, teacher-organization-api v7. Fontes anteriores conferidas antes da substituição; módulos Google/importação preservados.
 - [x] HTTP OPTIONS 200 e POST sem sessão 401 em todas as cinco funções. Testes funcionais simulados anteriores PASS; jornada autenticada visual permanece pendente.
+
+## Limpeza de código substituído — 01/10/2026
+- [x] Remover implementações sobrescritas de renderTeacherAccount/renderDemoProposals em teacher-main e renderStudentHome/renderStudentProposals/studentProposalClick em student.
+- [x] Retirar entradas inexistentes landing.e12.css e landing-mockup-versao.webp de .vercelignore; atualizar cache dos módulos alterados em index.html.
+- [x] Conferir bindings das rotas atuais e testar HTTP/regressões; preservar commit e PR.
+Database nenhum impacto; sem backend/deploy/domínios/segredos. Rollback por reversão do commit. Não remover CSS compartilhado, funções chamadas por wrappers nem telas administrativas ativas. Publicação anterior de manuscritas continua bloqueada por build-rate-limit Vercel; esta limpeza ainda não autorizada para produção.
+
+Escopo adicional: scripts/check.cjs atualizado para aceitar exclusivamente as duas rewrites locais existentes da landing; testes/http-smoke.cjs valida os bindings atuais após carregamento HTTP e DOMContentLoaded. Sem mudar vercel.json.
+
+Validação concluída: npm run check, npm test e git diff --check PASS; 40 assets HTTP e bindings das telas atuais conferidos. Sem homologação visual autenticada. Nenhuma alteração em produção nesta limpeza.
