@@ -401,3 +401,12 @@ Revisão ampliada validada: npm run check / npm test / git diff --check PASS. 39
 Arquivos: core.e12.js, index.html, tests/navigation-modules.cjs, package.json e este registro. Database nenhum impacto; sem mudança de domínios/Auth/backend. Rollback por reversão.
 
 Teste de regressão reproduz módulo ausente, confirma outras rotas acessíveis, recuperação após disponibilização do módulo e retry comum preservado. npm run check / npm test / git diff --check PASS. Incluído no PR17, ainda não publicado.
+
+## Novo Ao Vivo — prévia de interface e arquitetura
+- [x] Criar prévia independente da inicial e envio avulso com câmera, arquivo e texto.
+- [x] Demonstrar tema informado/sugerido, confirmação do recorte C2 e aluno opcional.
+- [x] Documentar armazenamento direto por professor com base no esquema real, sem migrations.
+- [x] Testar navegação/validação e preservar branch/PR. Sem deploy produtivo, IA ou cobrança real.
+Arquivos: previews/ao-vivo.html, previews/ao-vivo.css, previews/ao-vivo.js, docs/ao-vivo-arquitetura.md e CONTINUIDADE.md. Database nenhum impacto. Rollback: remover prévia; produção intacta.
+
+Validação: JS syntax/diff PASS; assets HTTP PASS; fluxo DOM de texto, confirmação do tema, retorno preservando campos e ausência de chamada API/cobrança PASS. Prévia móvel responsiva preparada, sem navegador real disponível para homologação visual. Artefato HTML independente para revisão. Armazenamento recomendado separado: submissions atual exige projeto/aluno e reserva exige submission_id. Nenhuma migração/gravação de dados.
