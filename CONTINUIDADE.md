@@ -238,3 +238,16 @@ Nova orientação: incluir somente CAPTCHA como proteção adicional, sem confir
 Nenhuma chave secreta armazenada no frontend. Produção ainda não alterada.
 
 Pré-publicação: npm test passou (regressões de notas/propostas, 33 assets HTTP, seletores e analytics); token CAPTCHA conferido contra contrato oficial auth-js. Allowlist Vercel inclui captcha.e12.js. PIN utiliza generateLink + verifyOtp, sem login por senha.
+
+## Publicação concluída — 30/09/2026 23h10
+Commit público f2ed0ef35ec1fa24ce765f6ce2a99c5729e6f58e; deployment dpl_3gKxaWUMtKerfZJErct7j7wzGWdG READY. Assets novos confirmados via HTTP em app.versaoprofessor.com. Vercel retornou aviso alias_in_use para www; domínio do app serve versão nova.
+Supabase: Turnstile salvo com chave inserida manualmente pelo usuário, sem ler ou armazenar o segredo. Confirm email desativado; API pública settings confirma mailer_autoconfirm=true e disable_signup=false. Signup, login por senha e recover sem token retornam 400 captcha_failed. Cadastro publicado inspecionado visualmente: widget Cloudflare renderiza Confirme que é humano. Não foi realizado cadastro real nem envio real de recuperação nesta execução; testes funcionais são simulados. Google não habilitado nesta tarefa.
+
+## Escolas e importação — 30/09/2026
+Pedido autorizado: Minhas escolas, Minhas turmas, Meus alunos e Importar alunos como acessos diretos.
+- [ ] Adaptar menu e contexto das páginas, mantendo API e IDs existentes.
+- [ ] Destacar destino, revisão e resultado da importação.
+- [ ] Testar fluxos e publicar sem alterar marca.
+
+Implementado: quatro rotas no menu; nomes atualizados na organização e primeiros passos; atalho de importação no início direciona à área dedicada. Escola/turma por cards e criação inline preservadas. Importação destaca destino, permite colagem do Excel ou CSV, exige revisão antes de gravar, mantém duplicidades e idempotência, mostra resultado e acesso a alunos/PINs. Logo e CSS existentes preservados.
+Validação: teste DOM das quatro rotas, importação com API simulada, lista Excel, revisão sem gravação, uma gravação e botão de PINs aprovado; regressões npm test e assets HTTP aprovados. Não executada importação com gravação real de alunos.
