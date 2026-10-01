@@ -1,4 +1,25 @@
 'use strict';
+async function renderTeacherProfile(navigation){
+ if(S.profile?.role!=='teacher')throw Error('Esta área é exclusiva do professor.');
+ if(!navigationCurrent(navigation))return;
+ const userId=S.profile.id;
+ $('view').innerHTML=header('Alterar nome','Escolha como seu nome aparece na plataforma.')+`<section class="box teacher-profile"><div class="box-body"><form id="teacherNameForm"><label class="field" for="teacherDisplayName"><strong>Nome da conta</strong><input id="teacherDisplayName" name="full_name" autocomplete="name" minlength="2" maxlength="160" value="${esc(S.profile.full_name||'')}" required></label><p class="muted">Seu e-mail e sua forma de entrar continuam os mesmos.</p><p id="teacherNameStatus" role="status" aria-live="polite"></p><button class="btn primary" type="submit">Salvar nome</button></form></div></section>`;
+ const form=$('teacherNameForm'),input=$('teacherDisplayName'),status=$('teacherNameStatus'),button=form.querySelector('button');let busy=false;
+ form.onsubmit=async event=>{
+  event.preventDefault();if(busy||!navigationCurrent(navigation)||S.profile?.id!==userId)return;
+  const name=input.value.trim().replace(/\s+/g,' ');
+  if(name.length<2||name.length>160||/[\u0000-\u001f\u007f<>]/.test(name)){status.textContent='Informe um nome entre 2 e 160 caracteres, sem marcações.';return;}
+  busy=true;button.disabled=true;input.disabled=true;status.textContent='Salvando nome...';
+  try{
+   const result=await edge('teacher-organization-api',{action:'update_name',full_name:name});
+   if(!result.ok||result.profile?.id!==userId||typeof result.profile.full_name!=='string')throw Error('O servidor não confirmou a alteração.');
+   if(S.profile?.id!==userId)return;
+   S.profile.full_name=result.profile.full_name;S.cache={};buildNav();
+   if(navigationCurrent(navigation)){input.value=result.profile.full_name;status.textContent='Nome alterado com sucesso.';}
+  }catch(error){if(navigationCurrent(navigation))status.textContent=error.message||'Não foi possível salvar o nome.';}
+  finally{busy=false;button.disabled=false;input.disabled=false;}
+ };
+}
 async function renderTeacherPassword(navigation){
  if(S.profile?.role!=='teacher')throw Error('Esta área é exclusiva do professor.');
  if(!navigationCurrent(navigation))return;
