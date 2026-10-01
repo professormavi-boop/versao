@@ -65,6 +65,7 @@ async function studentSubmissionState(roundId){return studentSubmitJson({action:
 async function studentSubmitFile(roundId,file,retried=false){
   const mime=studentUploadMime(file);
   if(!mime)throw Error(`Formato não permitido. Use ${STUDENT_UPLOAD_ACCEPTED}.`);
+  if(studentHandwrittenOnly(roundId)&&!mime.startsWith('image/'))throw Error('Esta proposta aceita apenas imagens da redação manuscrita.');
   if(!file.size)throw Error('O arquivo está vazio.');
   if(file.size>STUDENT_UPLOAD_MAX)throw Error('O arquivo excede 15 MB.');
   const session=await ensure();
@@ -84,7 +85,7 @@ async function studentSubmitFile(roundId,file,retried=false){
     if(!response.ok||data.error)throw Error(data.error||`Falha no envio (${response.status}).`);
     return data;
   }catch(error){
-    try{
+    if(error?.name==='AbortError'||error instanceof TypeError)try{
       const state=await studentSubmissionState(roundId);
       if(state?.submission?.status==='awaiting_approval'&&state?.file)return {ok:true,reconciled:true,submission:state.submission,file:state.file};
     }catch{}
@@ -94,10 +95,11 @@ async function studentSubmitFile(roundId,file,retried=false){
   }finally{clearTimeout(timer)}
 }
 
+function studentHandwrittenOnly(roundId){return window.studentHandwrittenRounds?.has(String(roundId))===true;}
 function chooseStudentFile(roundId,camera=false){
   if(!roundId||S?.profile?.role!=='student')return;
   const input=document.createElement('input');
-  input.type='file';input.hidden=true;input.accept=camera?'image/jpeg,image/png,image/webp':STUDENT_UPLOAD_ACCEPT;
+  input.type='file';input.hidden=true;input.accept=(camera||studentHandwrittenOnly(roundId))?'image/jpeg,image/png,image/webp':STUDENT_UPLOAD_ACCEPT;
   if(camera)input.setAttribute('capture','environment');
   document.body.appendChild(input);
   const cleanup=()=>input.remove();
@@ -138,6 +140,7 @@ function showStudentFileConfirm(roundId,file,cleanup,camera){
 }
 
 function openStudentPasteV2(roundId){
+  if(studentHandwrittenOnly(roundId))return;
   if(!roundId||S?.profile?.role!=='student')return;
   const dialog=document.createElement('dialog');dialog.className='app-confirm student-photo-confirm';
   dialog.innerHTML=`<h2>Colar redação</h2><p>Copie somente o texto da redação no Word ou Google Docs e cole abaixo.</p><textarea data-v2-paste-text rows="14" maxlength="20000" placeholder="Cole aqui o texto completo da redação..." style="width:100%;min-height:280px;resize:vertical"></textarea><p class="muted" data-v2-paste-count>0 caracteres</p><div class="safe-note">O VERSÃO transforma o texto em um PDF padronizado. Não é necessário enviar o arquivo do Word.</div><div class="item-actions"><button type="button" class="btn soft-btn" data-v2-paste-cancel>Cancelar</button><button type="button" class="btn primary" data-v2-paste-send disabled>Enviar para correção</button></div>`;
