@@ -17,7 +17,7 @@
     const input=document.createElement('input');
     input.type='file';
     input.hidden=true;
-    input.accept=camera?'image/*':STUDENT_UPLOAD_ACCEPT;
+    input.accept=studentHandwrittenOnly(roundId)?'image/jpeg,image/png,image/webp':camera?'image/*':STUDENT_UPLOAD_ACCEPT;
     if(camera)input.setAttribute('capture','environment');
     document.body.appendChild(input);
 

@@ -55,9 +55,7 @@ async function ensure(){let s=S.session;if(!s)throw Error('Sessão ausente.');if
 async function rest(path){const s=await ensure();PERF.requests++;const r=await request(BASE+'/rest/v1/'+path,{headers:authHeaders(s.access_token,false)});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.message||d.hint||'Falha ao consultar dados.');return d}
 async function edge(slug,body={},retried=false){const s=await ensure();PERF.requests++;const r=await request(`${BASE}/functions/v1/${slug}`,{method:'POST',headers:authHeaders(s.access_token),body:JSON.stringify(body)});if(r.status===401&&!retried){S.session=await refreshSession(S.session);if(S.session)return edge(slug,body,true)}const d=await r.json().catch(()=>({}));if(!r.ok||d.error){const error=Error(typeof d.error==='string'?d.error:'Falha na operação.');error.refunded=d.refunded===true;error.code=d.code;throw error}return d}
 async function profile(){const version=sessionVersion,id=S.session?.user?.id;if(!id)throw Error('Usuário não identificado.');const p=(await rest(`profiles?id=eq.${encodeURIComponent(id)}&select=id,full_name,email,role,approval_status,organization_id,teacher_scope`))[0];if(p?.role==='pending'&&p.approval_status==='pending'&&S.session.user.app_metadata?.providers?.includes('google'))throw Object.assign(Error('Conclua seu cadastro de professor.'),{code:'GOOGLE_SIGNUP_REQUIRED'});if(!p||p.approval_status!=='approved')throw Error('Conta sem acesso aprovado.');if(!['super_admin','teacher','student'].includes(p.role))throw Error('Perfil sem acesso ao VERSÃO.');if(version!==sessionVersion||S.session?.user?.id!==id)throw Error('Sessão alterada. Entre novamente.');S.profile=p;return p}
-function showOnly(id){['boot','auth','shell'].forEach(x=>$(x).classList.toggle('hidden',x!==id))}
 function toast(msg){document.querySelector('.toast')?.remove();const d=document.createElement('div');d.className='toast';d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),3600)}
-function safeMessage(action){toast(`${action} validado no ambiente isolado. Nenhum dado foi gravado na produção.`)}
 const NAV_TEACHER=[['home','Início'],['proposals','Propostas'],['live','Ao vivo'],['correction','Correções'],['ranking','Ranking'],['teacher-account','Conta e créditos'],['teacher-profile','Alterar nome'],['teacher-password','Alterar senha']];
 const NAV_STUDENT=[['student-home','Início'],['student-proposals','Propostas'],['student-essays','Minhas redações'],['student-evolution','Evolução'],['student-account','Conta']];
 const ADMIN_NAV=[['Visão geral',[['admin-overview','Visão geral']]],['Contas',[['management','Todas as contas'],['admin-teachers','Professores'],['admin-students','Alunos'],['admin-pending','Aprovações pendentes'],['admin-create','Criar conta']]],['Acessos e senhas',[['admin-passwords','Senha de professor'],['admin-pins','PIN de aluno'],['admin-access','Últimos acessos']]],['Financeiro',[['admin-wallets','Saldos de créditos'],['admin-payments','Pagamentos']]],['Inteligência artificial',[['admin-costs','Custos por serviço e modelo'],['admin-jobs','Processamentos em andamento'],['admin-failures','Falhas']]],['Minha conta',[['admin-own','Alterar minha senha']]]];
@@ -73,7 +71,8 @@ function navigationError(navigation,error){
   if(!navigationCurrent(navigation))return;
   invalidateNavigation();
   $('view').innerHTML=header('Não foi possível carregar','Tente abrir esta área novamente.')+`<div class="card"><p>${esc(error.message||error)}</p><button class="btn primary" id="retryRoute">Tentar novamente</button></div>`;
-  $('retryRoute').onclick=()=>navigate(navigation.route);
+  if(error.code==='MODULE_UNAVAILABLE'){$('retryRoute').textContent='Recarregar página';$('retryRoute').onclick=()=>location.reload();}
+  else $('retryRoute').onclick=()=>navigate(navigation.route);
 }
 async function navigate(route){
   if(S.profile?.role==='super_admin'&&!ADMIN_ROUTES.has(route))route=route==='admin-accounts'?'admin-create':'admin-overview';
@@ -84,9 +83,14 @@ async function navigate(route){
   try{
     if(!S.profile)throw Error('Sessão encerrada. Entre novamente.');
     if(S.profile.role==='super_admin'){await renderPlatformPage(navigation);return;}
-    const map={home:S.profile.role==='teacher'&&BETA_PROPOSALS?renderTeacherHome:renderHome,proposals:renderProposals,live:renderLive,correction:renderCorrection,ranking:renderRanking,management:renderManagement,'admin-accounts':renderAdminAccounts,'teacher-organization':renderTeacherOrganization,'teacher-classes':renderTeacherOrganization,'teacher-students':renderTeacherOrganization,'teacher-import':renderTeacherImport,'teacher-account':renderTeacherAccount,'teacher-password':renderTeacherPassword,'teacher-profile':renderTeacherProfile,'student-home':renderStudentHome,'student-proposals':renderStudentProposals,'student-essays':renderStudentEssays,'student-evolution':renderStudentEvolution,'student-account':renderStudentAccount};
+    const map={home:S.profile.role==='teacher'&&BETA_PROPOSALS?'renderTeacherHome':'renderHome',proposals:'renderProposals',live:'renderLive',correction:'renderCorrection',ranking:'renderRanking',management:'renderManagement','admin-accounts':'renderAdminAccounts','teacher-organization':'renderTeacherOrganization','teacher-classes':'renderTeacherOrganization','teacher-students':'renderTeacherOrganization','teacher-import':'renderTeacherImport','teacher-account':'renderTeacherAccount','teacher-password':'renderTeacherPassword','teacher-profile':'renderTeacherProfile','student-home':'renderStudentHome','student-proposals':'renderStudentProposals','student-essays':'renderStudentEssays','student-evolution':'renderStudentEvolution','student-account':'renderStudentAccount'};
     if(!Object.hasOwn(map,route))throw Error('Área não disponível.');
-    await map[route](navigation);
+    const render=window[map[route]];
+    if(typeof render!=='function'){
+      const error=Error('Os arquivos desta área não terminaram de carregar. Recarregue a página para tentar novamente.');
+      error.code='MODULE_UNAVAILABLE';throw error;
+    }
+    await render(navigation);
   }catch(error){navigationError(navigation,error)}finally{clearTimeout(navigation.timer)}
 }
 
@@ -178,15 +182,6 @@ function appConfirm(message){
 }
 
 function proposalHtml(html){const template=document.createElement('template');template.innerHTML=html;const allowed=new Set(['B','STRONG','I','EM','UL','OL','LI','P','DIV','BR']);const visit=node=>{if(node.nodeType===3)return esc(node.textContent);if(node.nodeType!==1)return '';if(['SCRIPT','STYLE','IFRAME','OBJECT'].includes(node.tagName))return '';const children=[...node.childNodes].map(visit).join('');return allowed.has(node.tagName)?'<'+node.tagName.toLowerCase()+'>'+children+(node.tagName==='BR'?'':'</'+node.tagName.toLowerCase()+'>'):children};return [...template.content.childNodes].map(visit).join('');}
-
-function generationScreen(message){
- const dialog=document.createElement('dialog'),previous=document.activeElement;
- dialog.className='app-confirm generation-screen';dialog.setAttribute('aria-label',message);dialog.setAttribute('aria-busy','true');
- dialog.innerHTML='<div class="spin" aria-hidden="true"></div><h2></h2><p role="status" aria-live="polite">Aguarde nesta tela. O conteúdo aparecerá quando o processamento terminar.</p>';
- dialog.querySelector('h2').textContent=message;dialog.oncancel=e=>e.preventDefault();document.body.appendChild(dialog);dialog.showModal();
- let closed=false;const close=()=>{if(closed)return;closed=true;dialog.close();dialog.remove();if(previous?.isConnected)previous.focus()};
- close.update=text=>{if(!closed)dialog.querySelector('[role="status"]').textContent=text};close.action=(label,handler)=>{if(closed)return;let button=dialog.querySelector('button');if(!button){button=document.createElement('button');button.className='btn soft-btn';dialog.appendChild(button)}button.textContent=label;button.onclick=handler};return close;
-}
 
 async function signInPin(code,pin){
  const version=sessionVersion;

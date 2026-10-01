@@ -373,3 +373,31 @@ Arquivos de ativação: CONTINUIDADE.md e pacote privado. Sem mudança adicional
 - [x] Migration proposal_handwritten_only aplicada. Coluna boolean NOT NULL default false; 11 propostas existentes continuam livres. Duas RPCs atualizadas preservando acesso somente postgres/service_role.
 - [x] Funções ativas com JWT: proposal-beta-api v20, student-proposals-cycle-api v5, student-submit-v2-api v7, student-submission-cycle-api v8, teacher-organization-api v7. Fontes anteriores conferidas antes da substituição; módulos Google/importação preservados.
 - [x] HTTP OPTIONS 200 e POST sem sessão 401 em todas as cinco funções. Testes funcionais simulados anteriores PASS; jornada autenticada visual permanece pendente.
+
+## Limpeza de código substituído — 01/10/2026
+- [x] Remover implementações sobrescritas de renderTeacherAccount/renderDemoProposals em teacher-main e renderStudentHome/renderStudentProposals/studentProposalClick em student.
+- [x] Retirar entradas inexistentes landing.e12.css e landing-mockup-versao.webp de .vercelignore; atualizar cache dos módulos alterados em index.html.
+- [x] Conferir bindings das rotas atuais e testar HTTP/regressões; preservar commit e PR.
+Database nenhum impacto; sem backend/deploy/domínios/segredos. Rollback por reversão do commit. Não remover CSS compartilhado, funções chamadas por wrappers nem telas administrativas ativas. Publicação anterior de manuscritas continua bloqueada por build-rate-limit Vercel; esta limpeza ainda não autorizada para produção.
+
+Escopo adicional: scripts/check.cjs atualizado para aceitar exclusivamente as duas rewrites locais existentes da landing; testes/http-smoke.cjs valida os bindings atuais após carregamento HTTP e DOMContentLoaded. Sem mudar vercel.json.
+
+Validação concluída: npm run check, npm test e git diff --check PASS; 40 assets HTTP e bindings das telas atuais conferidos. Sem homologação visual autenticada. Nenhuma alteração em produção nesta limpeza.
+
+### Revisão ampliada do projeto publicado
+- [x] Remover shell de correção substituído e suas referências; exportar explicitamente o renderizador atual.
+- [x] Remover aiQueueStatus/aiNotice, liveFill e seletores/confirmação de upload substituídos; manter os wrappers que chamam implementações-base.
+- [x] Consolidar filtro de manuscritas na câmera ativa e testar com scripts na ordem real.
+- [x] Revisar assets/CSS/APIs/worker; preservar dependências dinâmicas e compatibilidade de registros históricos.
+- [x] Rodar verificações e atualizar PR17. Database nenhum impacto; sem escrita em produção, backend ou configuração de domínio.
+
+Escopo adicional core.e12.js: remover showOnly, safeMessage e generationScreen sem chamadas. Revisados todos os scripts estáticos, CSS, páginas, manifest, assets, APIs Vercel e worker. CSS compartilhado/dinâmico, relatórios históricos, endpoints públicos e SheetJS preservados; ausência de chamada frontend não comprova endpoint obsoleto. Teste HTTP ampliado cobre bindings de correção/Ao Vivo e seletor real de manuscritas.
+
+Revisão ampliada validada: npm run check / npm test / git diff --check PASS. 39 assets HTTP; correção, Ao Vivo e seletor manuscritas conferidos com módulos atuais carregados. PR17 reúne a limpeza; produção não alterada e validação visual autenticada pendente.
+
+## Correção de navegação com módulo ausente
+- [x] Resolver somente o handler da rota selecionada; não avaliar todas as funções ao abrir qualquer tela.
+- [x] Mensagem amigável e recarga explícita para módulo ausente; testar falha isolada e recuperação.
+Arquivos: core.e12.js, index.html, tests/navigation-modules.cjs, package.json e este registro. Database nenhum impacto; sem mudança de domínios/Auth/backend. Rollback por reversão.
+
+Teste de regressão reproduz módulo ausente, confirma outras rotas acessíveis, recuperação após disponibilização do módulo e retry comum preservado. npm run check / npm test / git diff --check PASS. Incluído no PR17, ainda não publicado.

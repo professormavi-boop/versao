@@ -96,49 +96,6 @@ async function studentSubmitFile(roundId,file,retried=false){
 }
 
 function studentHandwrittenOnly(roundId){return window.studentHandwrittenRounds?.has(String(roundId))===true;}
-function chooseStudentFile(roundId,camera=false){
-  if(!roundId||S?.profile?.role!=='student')return;
-  const input=document.createElement('input');
-  input.type='file';input.hidden=true;input.accept=(camera||studentHandwrittenOnly(roundId))?'image/jpeg,image/png,image/webp':STUDENT_UPLOAD_ACCEPT;
-  if(camera)input.setAttribute('capture','environment');
-  document.body.appendChild(input);
-  const cleanup=()=>input.remove();
-  input.onchange=()=>{
-    const file=input.files?.[0];
-    if(!file){cleanup();return}
-    const mime=studentUploadMime(file);
-    if(!mime||file.size>STUDENT_UPLOAD_MAX){cleanup();studentUploadError(`Arquivos aceitos: ${STUDENT_UPLOAD_ACCEPTED}. Máximo de 15 MB.`);return}
-    showStudentFileConfirm(roundId,file,cleanup,camera);
-  };
-  input.click();
-}
-function showStudentFileConfirm(roundId,file,cleanup,camera){
-  const mime=studentUploadMime(file),dialog=document.createElement('dialog');
-  dialog.className='app-confirm student-photo-confirm';
-  let objectUrl='';
-  const preview=mime.startsWith('image/')
-    ?(()=>{objectUrl=URL.createObjectURL(file);return `<img src="${objectUrl}" alt="Prévia da redação" style="display:block;max-width:100%;max-height:45vh;margin:0 auto 12px;object-fit:contain">`})()
-    :`<div class="safe-note"><b>PDF selecionado:</b> ${esc(file.name)}</div>`;
-  dialog.innerHTML=`<h2>Conferir ${camera?'foto':'arquivo'}</h2>${preview}<p><b>${esc(file.name||'Redação')}</b><br>${studentUploadSizeLabel(file.size)}</p><label class="photo-confirm"><input type="checkbox" data-v2-confirm> Conferi e a redação está completa e legível.</label><div class="item-actions"><button type="button" class="btn soft-btn" data-v2-change>Escolher outro</button><button type="button" class="btn primary" data-v2-send disabled>Enviar para correção</button></div>`;
-  document.body.appendChild(dialog);
-  const finish=()=>{if(objectUrl)URL.revokeObjectURL(objectUrl);try{dialog.close()}catch{}dialog.remove();cleanup()};
-  dialog.oncancel=event=>{event.preventDefault();finish()};
-  dialog.querySelector('[data-v2-change]').onclick=()=>{finish();setTimeout(()=>chooseStudentFile(roundId,camera),0)};
-  const check=dialog.querySelector('[data-v2-confirm]'),send=dialog.querySelector('[data-v2-send]');
-  check.onchange=()=>send.disabled=!check.checked;
-  send.onclick=async()=>{
-    if(send.disabled)return;
-    send.disabled=true;check.disabled=true;send.textContent='Enviando...';
-    try{
-      await studentSubmitFile(roundId,file);
-      S.cache={};S.student=null;finish();await navigate('student-essays');studentUploadSuccess();
-    }catch(error){
-      send.disabled=false;check.disabled=false;send.textContent='Tentar novamente';studentUploadError(error.message||'Falha no envio.');
-    }
-  };
-  dialog.showModal();
-}
-
 function openStudentPasteV2(roundId){
   if(studentHandwrittenOnly(roundId))return;
   if(!roundId||S?.profile?.role!=='student')return;
