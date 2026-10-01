@@ -494,3 +494,13 @@ Arquivos adicionais: cadastro-aluno.html, student-signup.e12.js, index.html, stu
 - [x] Testes SQL/handlers/UI e npm run check/npm test PASS (44 assets HTTP).
 - [ ] Homologação real conjunta, pagamento/webhook real, decisão de preço e ativação produtiva específica.
 Pacote backend deve aplicar student-signup.sql antes de migration.sql e student-sales.sql. Preservar JWT do teacher-organization-api, compartilhar via RPC read_live_share token, bucket privado live-private. Checkout separado credit-checkout-api; webhook não alterado (funções atuais verificam valor/id/ledger e idempotência). Nenhum backend ativo ou compra real.
+
+## Ajuste solicitado: aluno avulso em standby e preço — 01/10/2026
+- [x] Suspender entrada e rota do cadastro independente, preservando rascunhos.
+- [x] Restringir liberação atual aos alunos da base, autenticados pelo fluxo existente/PIN.
+- [x] Fixar R$2,50 por correção e compra inicial de 4 créditos por R$10,00 no servidor/SQL/UI.
+- [x] Testar limites de compra, identidade institucional, degustação única e regressões.
+- [x] Preservar branch e pacote privado; não ativar backend/produção.
+Arquivos públicos: index.html, .vercelignore, student-credits.e12.js, docs/checklist-implantacao-ao-vivo.md, CONTINUIDADE.md. Privados: prepared/index.ts, live.ts, credit-checkout-api.ts, student-sales.sql, novo student-trial.sql, README.md, testes de checkout/handler/trial/preço. Database real: nenhum impacto; SQL preparado altera constraints de pedidos e flag comercial, separa degustação de cadastro. Sem novas variáveis/domínios/Auth/webhook. Risco: regressão de elegibilidade/preço, mitigada por testes isolados. Rollback: branch anterior e flags desativadas; preservar ledger.
+
+Validação desta entrega: npm run check e npm test PASS (43 assets HTTP), test-live-sql/test-live-handler/test-student-checkout/test-student-base PASS. Serviços simulados e SQL isolado; sem login/compra real. Backend privado preservado: versao-ao-vivo-base-preco-250.zip, libfile_03a6788de69c819191ff7a7f2b4543f1; substitui pacote anterior. Aplicar apenas student-trial.sql → migration.sql → student-sales.sql, nunca student-signup.sql nesta entrega. Frontend preservado na branch feat/ao-vivo-preview/PR18; nenhum deploy novo homologado.

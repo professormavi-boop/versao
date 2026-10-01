@@ -1,6 +1,6 @@
-# Checklist de execução — Ao Vivo e aluno independente
+# Checklist de execução — Ao Vivo e créditos para alunos da base
 
-Atualizado em 01/10/2026. Ordem definida por Marcus: Ao Vivo primeiro, aluno avulso depois, venda de créditos para alunos da base em seguida.
+Atualizado em 01/10/2026. Decisão mais recente: Ao Vivo professor → Ao Vivo aluno da base/PIN → créditos para alunos da base. Cadastro avulso em standby; rascunho preservado.
 
 Marcação significa conclusão somente do item descrito. Prévia, código preparado e publicação são etapas distintas. Nenhuma das novas funcionalidades abaixo está ativa em produção.
 
@@ -26,9 +26,9 @@ Marcação significa conclusão somente do item descrito. Prévia, código prepa
 - [x] Implementar página compartilhada, snapshot revisado, expiração e revogação; testes SQL de acesso aprovados.
 - [ ] Validar mobile real, arquivos longos, acessibilidade e fluxo completo.
 
-## 2. Ao Vivo do aluno — avulso e da base
+## 2. Ao Vivo do aluno — base/PIN nesta entrega
 
-- [x] Definir disponibilidade para ambos os acessos: aluno avulso e aluno da base via PIN.
+- [x] Restringir esta entrega ao aluno da base, conferindo students.auth_user_id e organização no servidor.
 - [x] Definir entrega de IA sem revisão docente, histórico particular e compartilhamento pelo aluno.
 - [x] Preparar interface do Ao Vivo aluno, com entrada na inicial/menu e notas somente leitura.
 - [x] Implementar propriedade por usuário no backend e testar bloqueio de acesso cruzado.
@@ -36,9 +36,11 @@ Marcação significa conclusão somente do item descrito. Prévia, código prepa
 - [x] Exigir confirmação de 1 crédito no Ao Vivo aluno; teste de interface aprovado.
 - [x] Preparar persistência por owner_id, independente de turma; SQL isolado aprovado.
 - [x] Preparar compartilhamento do resultado IA pelo aluno, sem revisão docente e sem novo débito.
-- [ ] Testar com aluno avulso e aluno por PIN, sem alterar propostas, notas ou relatórios escolares.
+- [ ] Testar com aluno por PIN, sem alterar propostas, notas ou relatórios escolares.
 
-## 3. Cadastro do aluno avulso — sem professor
+## 3. Cadastro do aluno avulso — STANDBY
+
+Rascunhos abaixo preservados. Entrada retirada, arquivos excluídos do deploy e student_complete bloqueado no roteador. Não aplicar student-signup.sql nesta entrega.
 
 - [x] Definir acesso independente: Google ou e-mail/senha; sem professor, turma ou escola obrigatórios.
 - [x] Preparar página/script de cadastro e callback Google específico para aluno.
@@ -53,14 +55,14 @@ Marcação significa conclusão somente do item descrito. Prévia, código prepa
 - [x] Preparar histórico e compartilhamento particulares; testes SQL/DOM aprovados.
 - [ ] Testar cadastro → degustação → correção → histórico → compartilhamento.
 
-## 4. Créditos para alunos avulsos e alunos da base
+## 4. Créditos para alunos da base
 
 - [x] Inspecionar carteira e checkout existentes: carteira por perfil já existe; checkout atual aceita somente professores.
 - [x] Definir preservação do acesso escolar por código de turma e PIN.
-- [ ] Definir preço em reais e pacotes de aluno. A regra de consumo já está definida: 1 crédito por correção; preço de venda ainda não aprovado.
-- [x] Preparar checkout e constraints para student_1; valor em configuração servidor, venda desativada e sem preço padrão.
+- [x] Preço aprovado: R$ 2,50 por correção; mínimo R$ 10,00. Pacote inicial de 4 créditos; consumo de 1 por correção.
+- [x] Preparar checkout e constraints para student_4: 4 créditos por 1.000 centavos, valor/quantidade controlados pelo servidor; flag desativada até ativação autorizada.
 - [ ] Validar webhook de pagamento, valor, comprador, idempotência e liberação de saldo.
-- [x] Preparar tela Meus créditos e catálogo por papel para aluno avulso/PIN; preço/pagamento real pendentes.
+- [x] Preparar tela Meus créditos e catálogo por papel para aluno da base/PIN; preço definido, pagamento real pendente.
 - [x] Testar SQL de degustação sem e-mail confirmado, preservando nome/vínculo institucional.
 - [ ] Garantir que redação enviada à turma siga o fluxo escolar existente e não debite a carteira particular do aluno.
 - [ ] Manter histórico particular separado dos relatórios escolares; compartilhar somente por ação do aluno.
@@ -71,7 +73,7 @@ Marcação significa conclusão somente do item descrito. Prévia, código prepa
 
 - [ ] Executar regressões de professor, aluno com PIN, propostas e correção escolar.
 - [ ] Validar isolamento entre dois professores e dois alunos e links compartilhados inválidos/revogados.
-- [ ] Revisar textos de termos/privacidade conforme cadastro independente, pagamento e compartilhamento.
+- [ ] Revisar textos de termos/privacidade conforme pagamento e compartilhamento (cadastro independente em espera).
 - [ ] Preservar frontend no Git e backend privado, com fontes anteriores para rollback.
 - [ ] Homologar em ambiente isolado e apresentar link de teste válido.
 - [x] Verificar deploy do commit b101820: teste READY (dpl_6EKmMS3rFrarzWKURjMb9N29TX7q); projeto de produção ainda falhou por build-rate-limit. Página devolutiva.html retornou HTTP 200; acesso aos demais assets pelo conector oscilou com proteção Vercel. Isso não valida login nem backend.
@@ -85,6 +87,13 @@ Não marcar implantação concluída com base apenas em HTML, testes simulados o
 Próxima fronteira de autorização: a execução real requer aplicar o schema e publicar o roteador/funções no Supabase compartilhado. Etapa1 privada salva em versao-ao-vivo-backend-etapa1.zip. Router desta etapa NÃO inclui cadastro aluno, que ainda está em rascunho. Sem ativação até autorização específica conforme AGENTS.md.
 
 ## Checkpoint aluno e créditos — preparação conjunta
-Frontend e backend compartilhados foram generalizados ANTES de qualquer migração: live_essays/live_files/live_jobs/live_shares usam owner_id. O pacote privado novo SUBSTITUI o da etapa1; não aplicar os dois. Ordem SQL: student-signup.sql → migration.sql → student-sales.sql. Flags teacher_live, student_live e student_credit_sales ficam desativadas.
+Frontend e backend compartilhados foram generalizados ANTES de qualquer migração: live_essays/live_files/live_jobs/live_shares usam owner_id. O pacote privado novo SUBSTITUI o da etapa1; não aplicar os dois. Ordem SQL atual: student-trial.sql → migration.sql → student-sales.sql. student-signup.sql está em standby e NÃO deve ser aplicado. Flags teacher_live, student_live e student_credit_sales ficam desativadas.
 
-Validação: npm run check/npm test PASS (44 assets HTTP); SQL de posse/créditos/share e handler simulado PASS; checkout simulado preserva pacotes professor, rejeita pacote de outro perfil, usa valor servidor e bloqueia venda sem preço. Nenhum pagamento real, processamento pago ou ativação de backend. Falta preço em reais e homologação conjunta antes da publicação.
+Validação: npm run check/npm test PASS (44 assets HTTP); SQL de posse/créditos/share e handler simulado PASS; checkout simulado preserva pacotes professor, rejeita pacote de outro perfil, usa valor servidor e bloqueia venda sem preço. Nenhum pagamento real, processamento pago ou ativação de backend. Preço definido em R$ 2,50/correção, compra inicial de R$ 10/4 créditos; falta homologação conjunta antes da publicação.
+
+## Validação do ajuste de preço e standby
+- [x] Remover acesso público ao cadastro avulso sem apagar o rascunho.
+- [x] Testar rejeição de aluno sem matrícula ou com organização divergente nos handlers.
+- [x] Testar em SQL isolado: degustação única, crédito consumido não reposto, RPC privada e pacote exato R$10/4 créditos.
+- [x] Testar rejeição de preço/quantidade adulterados e preservar pacotes de professor.
+- [ ] Homologar compra real/webhook e jornada por PIN antes de ativar.

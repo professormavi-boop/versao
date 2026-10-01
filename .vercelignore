@@ -53,8 +53,7 @@
 !modelos/
 !modelos/modelo-alunos.xlsx
 
-!cadastro-aluno.html
-!student-signup.e12.js
+# Cadastro avulso em standby: arquivos preservados, fora do deploy.
 
 !teacher-live.e12.js
 !teacher-live.e12.css
