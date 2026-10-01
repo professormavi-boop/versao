@@ -362,3 +362,14 @@ Impacto preparado: rounds.handwritten_only boolean default false; duas RPCs de s
 Validação: npm test completo PASS, incluindo testes HTTP/DOM de proposta, perfil e visualizador; handlers privados e SQL PGlite PASS. Navegador real indisponível (Chromium bloqueado por política de rede); não afirmar homologação visual/autenticada. Backend preparado, NÃO ativado. Publicação requer autorização específica após revisão. Rollback: restaurar frontend anterior e funções/RPCs de original/ no pacote privado; manter coluna nova inerte para preservar dados.
 
 Revisão preservada: PR16 https://github.com/professormavi-boop/versao/pull/16 ; código validado no commit 51817e3c326e0a6b2f8da1cdba033bc16e5c9a43, árvore remota conferida com a local. Pacote privado versao-manuscritas-backend.zip salvo. Preview automático encontrado corresponde apenas ao primeiro commit documental, portanto NÃO serve para testar este conjunto; usar PR16 para revisão. Produção e backend seguem intactos nesta etapa.
+
+### Ativação autorizada — 01/10/2026 15h21 BRT
+- [x] Usuário autorizou ativar backend e publicar PR16 após apresentação dos resultados.
+- [x] Restore restore/antes-manuscritas-20261001 no main d7be522. Boot público confere com esta base; branch separada google-direct-access não está publicada e não será incorporada nesta mudança.
+- [ ] Aplicar migration e publicar cinco funções preservando JWT e módulos existentes.
+- [ ] Validar coluna/RPCs/serviços e publicar PR16; conferir domínio e assets.
+- [ ] Registrar publicação e atualizar pacote privado.
+Arquivos de ativação: CONTINUIDADE.md e pacote privado. Sem mudança adicional no escopo previamente apresentado. Rollback frontend d7be522 e fontes/RPCs original/; manter coluna inerte e dados já gravados.
+- [x] Migration proposal_handwritten_only aplicada. Coluna boolean NOT NULL default false; 11 propostas existentes continuam livres. Duas RPCs atualizadas preservando acesso somente postgres/service_role.
+- [x] Funções ativas com JWT: proposal-beta-api v20, student-proposals-cycle-api v5, student-submit-v2-api v7, student-submission-cycle-api v8, teacher-organization-api v7. Fontes anteriores conferidas antes da substituição; módulos Google/importação preservados.
+- [x] HTTP OPTIONS 200 e POST sem sessão 401 em todas as cinco funções. Testes funcionais simulados anteriores PASS; jornada autenticada visual permanece pendente.
