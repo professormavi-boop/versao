@@ -52,6 +52,12 @@
 
   async function studentHomeV2(navigation){
     ensureStudentHomeV2Style();
+    const liveInfo=await edge('teacher-organization-api',{action:'live_status'}).catch(()=>null);
+    if(!navigationCurrent(navigation))return;
+    if(liveInfo?.independent){
+      $('view').innerHTML=header('Início','Sua prática de redação, no seu ritmo.')+`<section class="student-home-v2"><section class="tl-home"><h2>Ao Vivo</h2><p>Envie sua redação e receba uma estimativa por IA, sem revisão de professor.</p><p><b>${Number(liveInfo.balance||0)} crédito(s)</b> · 1 crédito por correção.</p><button class="btn primary" data-sh-route="student-live">Começar uma correção</button><button class="btn" data-sh-route="student-live">Consultar meu histórico</button><button class="btn" data-sh-route="student-credits">Meus créditos</button></section></section>`;
+      $('view').onclick=e=>{const button=e.target.closest('[data-sh-route]');if(button)navigate(button.dataset.shRoute);};return;
+    }
     const d=await studentDashboard(true);
     if(!navigationCurrent(navigation))return;
 
@@ -88,7 +94,7 @@
     }).join('');
 
     $('view').innerHTML=header('Início','Seu painel de redações e evolução.')+`<section class="student-home-v2">
-      <div class="sh-metrics">${metrics}</div>
+      <section class="tl-home"><h2>Ao Vivo</h2><p>Corrija uma redação com IA, consulte seu histórico e compartilhe a devolutiva.</p><button class="btn primary" data-sh-route="student-live">Começar uma correção</button></section><div class="sh-metrics">${metrics}</div>
       <section class="sh-profile" aria-label="Dados do aluno"><div class="sh-avatar">${icon('user')}</div><div><small>Aluno</small><h2>${esc(student.preferred_name||student.full_name||'Aluno')}</h2>${identity?`<span class="sh-chip">${esc(identity)}</span>`:''}</div></section>
       <section class="sh-actions" aria-label="Ações rápidas">
         <button type="button" class="sh-action primary" data-sh-route="student-proposals"><span class="sh-icon">${icon('send')}</span><div><b>Enviar redação</b><span>Escolha uma proposta e envie seu texto.</span></div></button>

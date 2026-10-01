@@ -12,9 +12,9 @@ async function run({confirmed=true,failComplete=false,google=false}={}){
  return {w,q,calls,submit:()=>q('studentSignup').onsubmit({preventDefault(){}})};
 }
 (async()=>{
- let x=await run({confirmed:false});await x.submit();assert.match(x.q('status').textContent,/confirme|confirmar/i);assert.equal(x.calls.filter(c=>c.url).length,1);assert.equal(x.calls.find(c=>c.url).body.data.requested_role,'student');x.w.close();
+ let x=await run({confirmed:false});await x.submit();assert.match(x.q('status').textContent,/sessão automaticamente/);assert.equal(x.calls.filter(c=>c.url).length,1);assert.equal(x.calls.find(c=>c.url).body.data.requested_role,'student');x.w.close();
  x=await run({failComplete:true});await x.submit();assert.match(x.q('status').textContent,/indisponível/);assert.equal(x.w.localStorage.getItem('versao-e12-session-v1'),null);assert.equal(x.calls.filter(c=>c.url).at(-1).body.action,'student_complete');x.w.close();
  x=await run({google:true,failComplete:true});await x.submit();assert.equal(x.calls.filter(c=>c.url).length,1);assert.equal(x.calls[0].googleMount[2],'student');x.w.close();
  x=await run();x.q('terms').checked=false;await x.submit();assert.equal(x.calls.filter(c=>c.url).length,0);x.w.close();
- console.log('PASS student signup: confirmation, role request, no session on blocked completion, Google audience, required consent');
+ console.log('PASS student signup: direct access fallback, role request, no session on blocked completion, Google audience, required consent');
 })().catch(e=>{console.error(e);process.exitCode=1});

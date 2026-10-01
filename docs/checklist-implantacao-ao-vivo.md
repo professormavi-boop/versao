@@ -30,12 +30,12 @@ Marcação significa conclusão somente do item descrito. Prévia, código prepa
 
 - [x] Definir disponibilidade para ambos os acessos: aluno avulso e aluno da base via PIN.
 - [x] Definir entrega de IA sem revisão docente, histórico particular e compartilhamento pelo aluno.
-- [ ] Adaptar a interface do Ao Vivo para aluno, com entrada na inicial e no menu.
-- [ ] Autorizar no backend somente as redações particulares pertencentes ao aluno autenticado.
-- [ ] Conectar câmera, arquivos, texto, tema e recorte C2 ao mesmo motor de correção.
-- [ ] Exibir consumo de 1 crédito e obter confirmação antes de iniciar cada análise.
-- [ ] Persistir resultado e histórico independente de turma ou professor.
-- [ ] Permitir compartilhar a qualquer momento pelo histórico, sem nova cobrança de correção.
+- [x] Preparar interface do Ao Vivo aluno, com entrada na inicial/menu e notas somente leitura.
+- [x] Implementar propriedade por usuário no backend e testar bloqueio de acesso cruzado.
+- [x] Reutilizar no código o motor de câmera/arquivos/texto/tema/C2 para ambos os perfis; serviços reais ainda não ativados.
+- [x] Exigir confirmação de 1 crédito no Ao Vivo aluno; teste de interface aprovado.
+- [x] Preparar persistência por owner_id, independente de turma; SQL isolado aprovado.
+- [x] Preparar compartilhamento do resultado IA pelo aluno, sem revisão docente e sem novo débito.
 - [ ] Testar com aluno avulso e aluno por PIN, sem alterar propostas, notas ou relatórios escolares.
 
 ## 3. Cadastro do aluno avulso — sem professor
@@ -44,13 +44,13 @@ Marcação significa conclusão somente do item descrito. Prévia, código prepa
 - [x] Preparar página/script de cadastro e callback Google específico para aluno.
 - [x] Preparar função de cadastro com proteção contra conversão de perfil existente.
 - [x] Preparar e testar isoladamente crédito único, preservação de vínculos e bloqueio de chamadas não autorizadas.
-- [ ] Atualizar implementação e testes para a decisão posterior: sem confirmação de e-mail e sem aprovação manual. O rascunho atual ainda exige confirmação; não ativar nesse estado.
-- [ ] Verificar configuração real do Auth e validar acesso direto sem enfraquecer permissões dos demais perfis.
-- [ ] Preparar painel independente que não dependa de matrícula/turma.
-- [ ] Integrar 1 crédito de degustação por conta, sem reposição ao consumir, repetir login ou completar cadastro novamente.
-- [ ] Reaproveitar correção avulsa e informar 1 crédito antes da confirmação.
-- [ ] Entregar resultado de IA sem revisão docente, com identificação explícita dessa condição.
-- [ ] Salvar histórico particular e permitir compartilhamento pelo próprio aluno.
+- [x] Retirar exigência de confirmação de e-mail do SQL/UI do aluno; testes atualizados, sem ativação.
+- [x] Conferir Auth em leitura: mailer_autoconfirm=true e signup/Google/email habilitados; não alterar configuração global. Teste real de cadastro segue pendente.
+- [x] Preparar painel de conta independente identificado pelo aceite servidor, sem consulta obrigatória à matrícula.
+- [x] Preparar e testar degustação única por conta, inclusive sem email confirmado; ledger existente reaproveitado.
+- [x] Preparar correção avulsa com confirmação explícita do consumo pelo aluno.
+- [x] Implementar resultado do aluno com identificação IA e sem controles de edição de nota.
+- [x] Preparar histórico e compartilhamento particulares; testes SQL/DOM aprovados.
 - [ ] Testar cadastro → degustação → correção → histórico → compartilhamento.
 
 ## 4. Créditos para alunos avulsos e alunos da base
@@ -58,10 +58,10 @@ Marcação significa conclusão somente do item descrito. Prévia, código prepa
 - [x] Inspecionar carteira e checkout existentes: carteira por perfil já existe; checkout atual aceita somente professores.
 - [x] Definir preservação do acesso escolar por código de turma e PIN.
 - [ ] Definir preço em reais e pacotes de aluno. A regra de consumo já está definida: 1 crédito por correção; preço de venda ainda não aprovado.
-- [ ] Ampliar checkout, catálogo de pacotes e restrições do banco para aluno.
+- [x] Preparar checkout e constraints para student_1; valor em configuração servidor, venda desativada e sem preço padrão.
 - [ ] Validar webhook de pagamento, valor, comprador, idempotência e liberação de saldo.
-- [ ] Disponibilizar carteira/compra e correção particular também ao aluno que entra por PIN.
-- [ ] Validar degustação para aluno da base sem exigir e-mail pessoal confirmado.
+- [x] Preparar tela Meus créditos e catálogo por papel para aluno avulso/PIN; preço/pagamento real pendentes.
+- [x] Testar SQL de degustação sem e-mail confirmado, preservando nome/vínculo institucional.
 - [ ] Garantir que redação enviada à turma siga o fluxo escolar existente e não debite a carteira particular do aluno.
 - [ ] Manter histórico particular separado dos relatórios escolares; compartilhar somente por ação do aluno.
 - [ ] Não unir automaticamente contas por nome ou e-mail; vinculação futura exige fluxo específico.
@@ -83,3 +83,8 @@ Marcação significa conclusão somente do item descrito. Prévia, código prepa
 Não marcar implantação concluída com base apenas em HTML, testes simulados ou HTTP 200. Exige persistência real, controle de créditos, acesso correto por perfil, compartilhamento e validação da versão publicada. Backend e interface do professor preparados e testados com serviços simulados/SQL isolado. Homologação real e ativação ainda pendentes; aluno e venda de créditos não concluídos.
 
 Próxima fronteira de autorização: a execução real requer aplicar o schema e publicar o roteador/funções no Supabase compartilhado. Etapa1 privada salva em versao-ao-vivo-backend-etapa1.zip. Router desta etapa NÃO inclui cadastro aluno, que ainda está em rascunho. Sem ativação até autorização específica conforme AGENTS.md.
+
+## Checkpoint aluno e créditos — preparação conjunta
+Frontend e backend compartilhados foram generalizados ANTES de qualquer migração: live_essays/live_files/live_jobs/live_shares usam owner_id. O pacote privado novo SUBSTITUI o da etapa1; não aplicar os dois. Ordem SQL: student-signup.sql → migration.sql → student-sales.sql. Flags teacher_live, student_live e student_credit_sales ficam desativadas.
+
+Validação: npm run check/npm test PASS (44 assets HTTP); SQL de posse/créditos/share e handler simulado PASS; checkout simulado preserva pacotes professor, rejeita pacote de outro perfil, usa valor servidor e bloqueia venda sem preço. Nenhum pagamento real, processamento pago ou ativação de backend. Falta preço em reais e homologação conjunta antes da publicação.

@@ -471,3 +471,26 @@ Arquivos privados: migration.sql, prepared/live.ts, prepared/live-ai.ts, prepare
 Limites: fila reconcilia ao consultar a redação; worker independente ainda não integrado. Histórico mostra primeiras 20 redações na UI; paginação e acesso a versões anteriores pendentes. DOCX é encaminhado como input_file, sem extração local. Documentação oficial OpenAI consultada: https://developers.openai.com/api/docs/guides/file-inputs. Código privado não ativado e nenhuma chamada paga.
 
 Atualização subsequente: handlers simulados PASS (auth/papel/posse, confirmação, reuso sem segunda chamada, id provedor, falha/estorno); validadores de assinatura/tamanho PASS. Histórico ganhou paginação e escolha das últimas 20 versões; painel gerencia/revoga links anteriores. Sugestões da escola usam catálogo autorizado e nomes recentes. npm run check e npm test completo PASS, 42 assets HTTP. Cadastro aluno ainda é rascunho anterior à retirada da confirmação: não publicar esse fluxo até atualização.
+
+Checkpoint remoto professor: b10182076100df51151097e8666bf62b75f4844f, PR18. Backend etapa1 privado: libfile_3dee01fca538819193ac3c8ea0269172 (versao-ao-vivo-backend-etapa1.zip); esse pacote substitui o anterior porque remove student_complete do roteador desta etapa. Projeto teste READY dpl_6EKmMS3rFrarzWKURjMb9N29TX7q; produção build-rate-limit. Sem ativação Supabase. Teste real depende de autorização específica para migração/roteador em banco compartilhado.
+
+## Etapa 2 — Ao Vivo também para aluno, autorizado em 18h19
+Usuário pediu prosseguir às partes independentes e testar tudo junto. Isso NÃO foi interpretado como autorização para aplicar migration/ativar backend compartilhado agora.
+- [ ] Generalizar propriedade de redações avulsas por usuário, preservando isolamento do fluxo escolar.
+- [ ] Entrega aluno sem edição de notas/revisão docente; compartilhamento com identificação de IA.
+- [ ] Entrada no painel/menu do aluno e degustação única sem exigir confirmação de email/PIN.
+- [ ] Testes cruzados e checkpoint privado/público.
+Arquivos: teacher-live.e12.js, live-share.e12.js, core.e12.js, student-home-v2.e12.js, testes/docs; privado migration.sql, student-signup.sql, live.ts e testes. Database real: nenhum impacto; desenho preparado generaliza teacher_live_* para live_* e teacher_id para owner_id antes de qualquer ativação.
+
+### Cadastro direto e compra de aluno — preparação
+Auth settings conferido somente leitura: mailer_autoconfirm=true, disable_signup=false, Google/email habilitados. Não mudar Auth global. SQL de degustação/cadastro não exige confirmação; UI remove exigência.
+Arquivos adicionais: cadastro-aluno.html, student-signup.e12.js, index.html, student-credits.e12.js e testes; privado student-sales.sql/credit-checkout-api.ts. Preço de aluno configurável e venda desativada por padrão até definição do usuário. Preservar regras de pacotes do professor, webhook e ledger existentes; nenhuma cobrança real.
+
+### Resultado preparado de aluno e créditos
+- [x] Ao Vivo aluno avulso/PIN com notas somente leitura, resultado IA explícito, compartilhamento sem revisão docente.
+- [x] Dados avulsos genericamente live_* por owner_id; esquema antigo teacher_live_* nunca foi aplicado, não usar pacote etapa1 junto com novo.
+- [x] Cadastro SQL/UI sem confirmação; Auth atual mailer_autoconfirm=true conferido em leitura.
+- [x] Carteira/checkout aluno student_1 preparado; preço configurável, flag desativada, sem preço comercial definido.
+- [x] Testes SQL/handlers/UI e npm run check/npm test PASS (44 assets HTTP).
+- [ ] Homologação real conjunta, pagamento/webhook real, decisão de preço e ativação produtiva específica.
+Pacote backend deve aplicar student-signup.sql antes de migration.sql e student-sales.sql. Preservar JWT do teacher-organization-api, compartilhar via RPC read_live_share token, bucket privado live-private. Checkout separado credit-checkout-api; webhook não alterado (funções atuais verificam valor/id/ledger e idempotência). Nenhum backend ativo ou compra real.

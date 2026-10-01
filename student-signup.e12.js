@@ -11,7 +11,7 @@
    const data=await response.json().catch(()=>({}));
    if(!response.ok){
     const code=data.code||data.error_code;
-    const messages={email_not_confirmed:'Confirme seu e-mail antes de entrar.',invalid_credentials:'E-mail ou senha incorretos.',user_already_exists:'Você já possui conta. Use a opção de entrar.',email_exists:'Você já possui conta. Use a opção de entrar.',captcha_failed:'Refaça a verificação de segurança.'};
+    const messages={email_not_confirmed:'Não foi possível liberar o acesso direto. Procure o suporte.',invalid_credentials:'E-mail ou senha incorretos.',user_already_exists:'Você já possui conta. Use a opção de entrar.',email_exists:'Você já possui conta. Use a opção de entrar.',captcha_failed:'Refaça a verificação de segurança.'};
     throw Error(messages[code]||(path.startsWith('/functions/')?data.error:null)||'Não foi possível continuar. Confira os dados e tente novamente.');
    }
    return data;
@@ -38,7 +38,7 @@
      email:$('email').value.trim().toLowerCase(),password:$('password').value,gotrue_meta_security:{captcha_token:captcha},
      ...(!existing?{data:{full_name:name,requested_role:'student',signup_source:'student_self_service',legal_version:'2026-09-28',terms_accepted_at:now,privacy_accepted_at:now}}:{})
     });
-    if(!data.access_token||!data.refresh_token||!data.user?.id){existing=true;sessionFields();show('Confira seu e-mail para confirmar o cadastro. Depois, volte aqui e entre para receber seu crédito.','ok');return;}
+    if(!data.access_token||!data.refresh_token||!data.user?.id){existing=true;sessionFields();show('Não foi possível abrir sua sessão automaticamente. Use a opção de entrar com sua conta. Se o acesso continuar bloqueado, procure o suporte.','ok');return;}
     session={access_token:data.access_token,refresh_token:data.refresh_token,user:data.user,expires_at:Math.floor(Date.now()/1000)+(Number(data.expires_in)||3600)};
     sessionFields();
    }
