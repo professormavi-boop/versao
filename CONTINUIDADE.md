@@ -263,3 +263,14 @@ Database: nenhum impacto durante implementação; APIs existentes reaproveitadas
 Validação desta branch: npm test passou, incluindo carregamento dos módulos via HTTP, criação de escola/turma, seleção do destino, preservação ao voltar, CSV/Excel, limite de 500, e-mail inválido, duplicidades com escolha obrigatória, bloqueio de todas as linhas ignoradas, clique duplo, retry com mesmo request_id e navegação para alunos/PINs. APIs simuladas; sem gravações de alunos reais. Atalhos da home agora usam as áreas correspondentes. npm run check continua falhando na regra antiga que proíbe rewrites já presentes na base para landing page; sintaxe conjunta e assets passam antes desse ponto. Não alterar roteamento nesta tarefa. Preview e publicação ainda pendentes.
 
 Preview entregue — 01/10/2026: código cb3085386c22b9b7f2bda098e07ed4f63d323f3b na branch feat/importacao-guiada. Deployment dpl_E64wm4JKtmzWHXq4vhU4zYdsCWqa, projeto isolado prj_7mEBS5QDaBWrG4hjnBKelNkU90OY, READY, target preview. URL: https://versao-teste-etapa12-consolidada-n9bmpro77-professormavi-6775.vercel.app . Módulo novo retornou HTTP 200; demais requisições do conector redirecionaram para Vercel Authentication. Link temporário de compartilhamento disponibilizado ao usuário; não remover proteção. Testes funcionais completos executados em HTTP local com APIs simuladas. Validação visual autenticada/mobile e importação real não realizadas. Produção/main não alterados. Publicação exige aprovação do usuário após conferir a prévia, conforme AGENTS 12–14.
+
+
+## Alterar senha do professor — 01/10/2026
+Branch: feat/professor-alterar-senha. Base: 5ab9246.
+- [x] Inspecionar menu e contrato Auth existente.
+- [x] Adicionar rota própria sem dependência da API de créditos.
+- [x] Validar confirmação, comprimento, bloqueio de duplicidade e erros via HTTP.
+- [ ] Publicar branch de revisão e informar limites.
+Impacto: frontend usa PUT /auth/v1/user com token da própria sessão. Sem API administrativa, migrations, RLS, Edge Functions, variáveis ou domínios. Nenhuma senha real alterada nos testes. Rollback: reverter o commit desta alteração. Produção depende de aprovação após apresentação do resultado.
+
+Usuário autorizou publicação e pediu retirar Turmas/Alunos do menu. action-alerts.e12.js mantém Gerenciar escolas e Importar alunos, preservando rotas internas. npm test passou, incluindo teste novo com API simulada e 34 assets via HTTP. Login/troca de senha real não executados.
