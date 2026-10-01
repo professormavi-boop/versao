@@ -410,3 +410,26 @@ Teste de regressão reproduz módulo ausente, confirma outras rotas acessíveis,
 Arquivos: previews/ao-vivo.html, previews/ao-vivo.css, previews/ao-vivo.js, docs/ao-vivo-arquitetura.md e CONTINUIDADE.md. Database nenhum impacto. Rollback: remover prévia; produção intacta.
 
 Validação: JS syntax/diff PASS; assets HTTP PASS; fluxo DOM de texto, confirmação do tema, retorno preservando campos e ausência de chamada API/cobrança PASS. Prévia móvel responsiva preparada, sem navegador real disponível para homologação visual. Artefato HTML independente para revisão. Armazenamento recomendado separado: submissions atual exige projeto/aluno e reserva exige submission_id. Nenhuma migração/gravação de dados.
+
+## Implementação Ao Vivo aprovada visualmente — 01/10/2026
+- [ ] Corrigir quebra do nome de arquivo no mobile da prévia e da interface integrada.
+- [ ] Integrar Ao Vivo e entrada inicial para professor sem turmas; renomear fluxo vinculado para Receber redações.
+- [ ] Preparar pacote privado: tabelas/RLS, upload, tema, análise/reconciliação, revisão e carteira idempotente.
+- [ ] Testar permissões, formatos, cobrança e fluxo; apresentar resultado antes de ativar produção.
+Arquivos: teacher-live.e12.js/.css, core.e12.js, teacher-home.e12.js, teacher-main.e12.js, index.html, .vercelignore, testes e docs; privado migration.sql/live.ts/roteador preservado/protocolo e evidências. Sem alteração produtiva ainda; migrations preparadas, não executadas. Rollback desativa nova entrada preservando histórico e ledger.
+
+### Compartilhamento e identificação opcionais — 01/10/2026
+- [x] Incluir escola opcional junto ao nome, preservando ambos ao navegar.
+- [x] Especificar compartilhamento posterior pelo histórico, após revisão, sem exigir cadastro.
+- [x] Validar sintaxe e persistência dos campos na prévia.
+Escopo desta atualização: previews/ao-vivo.js, previews/ao-vivo.css, docs/ao-vivo-arquitetura.md e CONTINUIDADE.md. Database nenhum impacto nesta prévia. Integração e publicação continuam pendentes.
+
+Validação desta atualização: node --check, git diff --check e fluxo DOM com aluno/escola preservados ao avançar/voltar PASS. Quebra de arquivo longo preparada em CSS; sem homologação visual real. Compartilhamento documentado, ainda não conectado.
+
+### Normalização de escola autorizada
+- [x] Criar utilitário de correspondência exata e sugestões sem substituição silenciosa.
+- [x] Integrar sugestões acessíveis na prévia; catálogo ilustrativo explicitamente identificado.
+- [x] Testar nomes equivalentes, erros, ambiguidade e isolamento do catálogo recebido.
+Arquivos: school-name.e12.js, tests/school-name.cjs, previews/ao-vivo.html/.js, docs/ao-vivo-arquitetura.md, CONTINUIDADE.md. Database nenhum impacto. Sem deploy.
+
+Validação: testes de normalização e DOM PASS (maresta preservado até escolha explícita, Marista selecionado); sintaxe e diff PASS. Módulo reutilizável e prévia preparados, sem conexão ao catálogo real. Integração completa Ao Vivo/backend/compartilhamento segue pendente.
