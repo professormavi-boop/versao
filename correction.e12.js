@@ -135,14 +135,6 @@ ${r.review_requirements?.length?`<div class="safe-note">${r.review_requirements.
 // Keep its lock separate from the panel that observes it; never retry correct automatically.
 const aiInFlight=new Map(),aiUncertain=new Set();
 const AI_POLL_MS=2000,AI_WATCH_MS=620000,AI_READ_MS=15000;
-function aiQueueStatus(id,status){
- S.cache.queue=null;
- const row=(S.cache.correctionRows||[]).find(x=>x.submission_id===id);if(row)row.job_status=status;
- const card=$('slot-'+id)?.closest?.('article');if(!card)return;
- const pill=card.querySelector('.pill'),button=card.querySelector('[data-menu]');
- if(pill)pill.textContent=status==='processing'?'Em análise':status==='completed'?'Pronta para revisar':status==='approved'?'Concluída':'Aguardando correção';
- if(button)button.textContent=status==='processing'?'Acompanhar correção':status==='completed'?'Revisar correção':'Corrigir redação';
-}
 function aiKey(id){return 'e12-ai-pending-'+S.session.user.id+'-'+id}
 function aiPending(key,value){
   if(value===undefined){try{return aiUncertain.has(key)||localStorage.getItem(key)==='1'}catch{return aiUncertain.has(key)}}
@@ -157,19 +149,6 @@ async function aiRead(body){
 function aiPanelCurrent(ctx){
   return !ctx.stopped&&S.session?.user?.id===ctx.user&&navigationVersion===ctx.navigation&&
     $('slot-'+ctx.id)===ctx.slot&&ctx.slot.isConnected&&ctx.slot.querySelector('.box')===ctx.box;
-}
-function aiNotice(ctx,message,retry=false,waiting=false){
-  if(!aiPanelCurrent(ctx))return;
-  ctx.unlock?.update?.(message);
-  const action=waiting?'':retry?'<button class="btn primary" data-ai-retry>Refazer correção inteligente</button>':'<button class="btn primary" data-ai-check>Acompanhar correção</button>';
-  const history=ctx.history?'<button class="btn soft-btn" data-ai-history>Ver correção anterior</button>':'';
-  const note=waiting?'Sua redação será corrigida pela Inteligência VERSÃO. O processo pode levar alguns minutos. Você poderá acompanhar o andamento da análise e não precisa permanecer nesta tela.':retry?'Uma nova correção consome 1 crédito. A correção anterior continua disponível.':'Esta ação recupera a análise existente, sem consumir outro crédito.';
-  ctx.box.innerHTML=`<div class="box-head"><h2>Correção inteligente</h2></div><div class="box-body">${waiting?'<ol class="correction-progress"><li>Recebida</li><li aria-current="step">Analisando</li><li>Pronta para revisar</li></ol>':''}<div class="empty" role="status">${esc(message)}</div>${action||history?`<div class="item-actions">${action}${history}</div>`:''}<p class="safe-note">${note}</p></div>`;
-  const historyButton=ctx.box.querySelector('[data-ai-history]');if(historyButton)historyButton.onclick=()=>aiPrevious(ctx);
-  const check=ctx.box.querySelector('[data-ai-check]');
-  if(check)check.onclick=()=>aiCorrection(ctx.id,{readOnly:true});
-  const retryButton=ctx.box.querySelector('[data-ai-retry]');
-  if(retryButton)retryButton.onclick=async()=>{retryButton.disabled=true;try{await aiCorrection(ctx.id,{retry:true});}finally{retryButton.disabled=false}};
 }
 function aiPrevious(ctx){
  if(!ctx.history||!aiPanelCurrent(ctx))return;
