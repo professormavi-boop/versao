@@ -433,3 +433,22 @@ Validação desta atualização: node --check, git diff --check e fluxo DOM com 
 Arquivos: school-name.e12.js, tests/school-name.cjs, previews/ao-vivo.html/.js, docs/ao-vivo-arquitetura.md, CONTINUIDADE.md. Database nenhum impacto. Sem deploy.
 
 Validação: testes de normalização e DOM PASS (maresta preservado até escolha explícita, Marista selecionado); sintaxe e diff PASS. Módulo reutilizável e prévia preparados, sem conexão ao catálogo real. Integração completa Ao Vivo/backend/compartilhamento segue pendente.
+
+## Aluno independente autorizado — 01/10/2026
+- [ ] Cadastro próprio Google/e-mail sem escola/turma/professor.
+- [ ] Degustação única de 1 crédito por perfil de aluno confirmado; preservar perfis existentes.
+- [ ] Correção particular, histórico e compartilhamento próprios.
+- [ ] Checkout por correção; preço do crédito de aluno ainda não definido pelo usuário.
+- [ ] Testes isolados, preservação e autorização específica antes de ativação produtiva.
+Arquivos da etapa de cadastro: cadastro-aluno.html, student-signup.e12.js, google-auth.e12.js, testes/student-signup.cjs, .vercelignore, docs/ao-vivo-arquitetura.md, CONTINUIDADE.md; privado student-signup.sql/student-signup.ts/router e testes. Impacto preparado: RPC service-only, tabela de aceite com RLS e ledger existente. Sem domínio/env novo. Google usa callback na própria página de cadastro; não converter papel de conta existente. Rollback remove entrada e desativa nova função, preservando saldo e histórico.
+
+## Ordem consolidada em 01/10/2026 17h55 BRT
+Checklist oficial: docs/checklist-implantacao-ao-vivo.md. Prioridade 1 Ao Vivo professor; 2 aluno independente; 3 créditos para avulsos e alunos da base via PIN. Cadastro sem confirmação de e-mail, decisão posterior aos testes: o rascunho SQL/UI ainda exige confirmação e precisa ser atualizado antes da ativação. Não declarar integração concluída. Cadastro, degustação e handler têm testes isolados iniciais; Ao Vivo permanece prévia + rascunho SQL, sem handlers reais de correção/histórico/share. Preço de venda do crédito de aluno não definido.
+- [x] Conferir arquivos atuais e criar checklist com evidência por etapa.
+- [ ] Concluir backend Ao Vivo e interface integrada antes de avançar a publicação.
+Esta atualização documental não modifica database, Auth, Storage, funções ou produção.
+
+### Checklist ampliado: Ao Vivo do aluno
+- [x] Incluir etapa própria de Ao Vivo aluno, atendendo avulso e base via PIN.
+- [x] Separar cadastro independente de acesso à ferramenta e venda de créditos.
+Arquivos desta atualização: docs/checklist-implantacao-ao-vivo.md e CONTINUIDADE.md. Database nenhum impacto; atualização documental, sem produção. Ordem: professor → Ao Vivo aluno → cadastro avulso → créditos → homologação/publicação.
