@@ -595,3 +595,13 @@ Validação: testes UI professor/aluno/atividade/loader/troca/gerenciamento PASS
 Arquivos: teacher-live.e12.js/.css,index.html,tests/live-management.cjs,CONTINUIDADE.md. Database nenhum impacto. Sem alterações de backend/Auth/env/domínios. Risco visual mobile, validar largura320–1200px. Rollback frontend258a5ff. Edição/exclusão continuam aguardando autorização do backend.
 
 Testes de menu/gerenciamento e atividades PASS;43 assets/sintaxe PASS;Chromium via HTTP320/390/768/1200px sem overflow/pageerror e imagem mobile inspecionada. Destino https://teste.versaoprofessor.com/.
+
+Publicação do menu bloqueada pela Vercel: status do commit96c894d20cfec1c6a86eb22ccb908921d6c007c6 em versao-teste-etapa12-consolidada=failure/build-rate-limit. Não repetir deploy automaticamente. Frontend local385d0a9 e remoto96c894d preservados; teste continua em258a5ff (listas novas, menu anterior). Nenhuma alteração no backend. Aguardar liberação ou solicitação de nova tentativa; sem monitoramento.
+
+## Ramificação e padrão visual permanente — 01/10/2026
+- [x] Ao Vivo lateral: Nova redação, Atividades (professor), Histórico.
+- [x] Nomes internos curtos e rotas diretas para os filhos.
+- [x] Registrar Propostas como referência permanente no código/documentação e verificar navegação.
+Arquivos core.e12.js,teacher-live.e12.js/.css,index.html,AGENTS.md,docs/padrao-interface.md,CONTINUIDADE.md. Database nenhum impacto; sem Auth/env/domínios. Risco: rota interna/seleção incorreta; teste de navegação e listas. Rollback commit96c894d. Publicação produtiva combinada para amanhã, não executar agora. Backend editar/excluir permanece preparado.
+
+Validação: check, navegação/rotas diretas professor e aluno, listas e atividades PASS. Propostas registrada em docs/padrao-interface.md e AGENTS regra15. Nova ramificação preparada para amanhã02/10/2026, sem publicação produtiva ou nova migração. Arquivos de teste atualizados: tests/navigation-modules.cjs e tests/live-management.cjs.
