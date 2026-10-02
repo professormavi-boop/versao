@@ -605,3 +605,15 @@ Publicação do menu bloqueada pela Vercel: status do commit96c894d20cfec1c6a86e
 Arquivos core.e12.js,teacher-live.e12.js/.css,index.html,AGENTS.md,docs/padrao-interface.md,CONTINUIDADE.md. Database nenhum impacto; sem Auth/env/domínios. Risco: rota interna/seleção incorreta; teste de navegação e listas. Rollback commit96c894d. Publicação produtiva combinada para amanhã, não executar agora. Backend editar/excluir permanece preparado.
 
 Validação: check, navegação/rotas diretas professor e aluno, listas e atividades PASS. Propostas registrada em docs/padrao-interface.md e AGENTS regra15. Nova ramificação preparada para amanhã02/10/2026, sem publicação produtiva ou nova migração. Arquivos de teste atualizados: tests/navigation-modules.cjs e tests/live-management.cjs.
+
+## Publicação autorizada — 02/10/2026 06h33 BRT
+Usuário: Bora subir, após preparação e plano anteriores. Ativada migration live_item_management e teacher-organization-api v11 ACTIVE/JWTtrue. Fontes conferidas byte a byte; anon/authenticated sem execute manage_live_item, service_role permitido, RLS ativa. Nenhum dado de usuário excluído/alterado na instalação, nenhum crédito consumido.
+PR18 mesclada em main: e2d8a09b2660a8760fc7346192cdca077f73c086. Deploy produção dpl_8uZxXnESoMiYsLEnrkw1kPHD1Kbu READY, URL versao-producao-garps94fi-professormavi-6775.vercel.app. Vercel sinaliza alias_in_use para versaoprofessor.com; UI de Domains confirma app.versaoprofessor.com Production/Valid Configuration. Navegador no domínio oficial mostrou scripts core.e12.js e teacher-live.e12.js com20261001-navtree1, confirmando frontend novo servido. Login com Google aparece. Não houve login autenticado pelo agente; CAPTCHA no navegador remoto não homologado (logs Cloudflare).
+Validação pré-publicação: npm check/npm test completos PASS, SQL gestão e handlers PASS. Aluno independente segue suspenso. Rollback frontend anterior dpl_jK7NPoc43yrYQib2mZLohAnfzMaG; manter backend novo para preservar ocultação dos registros. Pacote privado versao-gerenciamento-ao-vivo-preparado.zip agora ATIVADO. Publicação oficial https://app.versaoprofessor.com/.
+
+## Devolutiva Ao Vivo sem JSON — 02/10/2026
+- [x] Substituir JSON bruto por desvios, C5 e repertórios legíveis em professor/aluno.
+- [ ] Verificar escape de conteúdo, ausência de dados e regressões; preparar preview.
+Arquivos teacher-live.e12.js/.css,index.html,tests/live-evidence.cjs,package.json,CONTINUIDADE.md. Database nenhum impacto. Não recalcular análise nem cobrar crédito. Risco visual, teste de renderização. Rollback frontend anterior. Produção requer publicação específica após validação.
+
+Validação local: live-evidence, teacher-live, student-live, HTTP smoke e check43 assets PASS. Sem nova análise ou débito. Preview pendente; produção ainda não alterada por esta correção.
