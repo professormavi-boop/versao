@@ -551,3 +551,26 @@ Rollback: fontes rollback-v8 para função; preservar tabelas, atividades, reda�
 - [x] npm check/test,43 assets HTTP, SQL/handler e preflight isolados PASS.
 - [ ] Ativar live-input-validation.sql e live-input.ts/live.ts no Supabase compartilhado após autorização específica; homologar fotos/texto reais. Nenhuma chamada paga.
 Arquivos UI: teacher-live.e12.js/index.html/package.json/tests/live-replace-input.cjs/docs. Privados: live.ts/live-input.ts/SQL/testes/rollback-v9. Sem mudança Auth/preços/notas. Custo da triagem não é zero. Rollback preserva dados.
+
+## Proteção de entrada ATIVADA — 01/10/2026 22h06 BRT
+Usuário autorizou explicitamente a migração e publicação após plano.
+- [x] live_input_validation_and_invalid_limit aplicada.
+- [x] teacher-organization-api v10 ACTIVE, JWT preservado; live.ts atualizado/live-input.ts adicionado; outros módulos preservados v9. Conteúdo conferido byte a byte.
+- [x] RLS ativa, anon sem SELECT, authenticated sem INSERT/claim, service_role com claim e sem execução do start antigo.
+- [ ] Homologação com redação real: nenhum teste pago executado.
+Modelo preflight gpt-4.1-mini, inválidos3/janela24h, cache por redação, pausa técnica1min. Pacote preparado contém fontes e rollback; agora aplicado.
+
+## Correção da cota de temas — preparada
+- [x] Confirmado bloqueio antigo em start_live_job_before_input_check.
+- [x] live-theme-reuse.sql substitui limite global3/24h por cache de tema concluído por redação. Mantém wrapper de validação, saldo e ledger.
+- [x] Teste SQL com5 redações diferentes, cache de mesma redação, propriedade e cobrança/refund PASS.
+- [ ] Aplicar SQL no Supabase compartilhado após autorização específica. Rollback em rollback-theme-quota.sql. Sem mudança de frontend/função Edge.
+
+## Cota de temas corrigida — ATIVADA 01/10/2026 22h16 BRT
+Autorização: "Autorizo, para teste não precisa pedir". Preferência persistente: executar alterações restritas a teste sem reconfirmação; banco compartilhado é produção.
+Migration live_theme_reuse_without_daily_account_quota aplicada. Removida cota antiga de3 temas/24h, cache por redação concluída. Verificação real de definição confirma remoção, reutilização e manutenção do wrapper e limite3 inválidos; service_role continua sem acesso direto à função interna. Nenhuma IA paga ou alteração de saldo.
+
+## Loader do Ao Vivo — preview
+- [x] Anel animado e mensagem ao iniciar verificação/correção, inclusive triagem.
+- [x] Removido Atualizar andamento; polling automático resiliente a falhas de consulta sem novo start/cobrança.
+Arquivos: teacher-live.e12.js/.css,index.html,tests/live-loader.cjs e continuidade. Database nenhum impacto. Rollback por frontend anterior. Testes de professor/aluno/atividades/troca de conteúdo e sintaxe PASS.
