@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "check": "node scripts/check.cjs",
-    "test": "node tests/audit-regressions.cjs && node tests/http-smoke.cjs && node tests/select-controls.cjs && node tests/funnel-analytics.cjs && node tests/schools-import.cjs && node tests/teacher-password.cjs && node tests/signup-direct.cjs && node tests/google-auth.cjs && node tests/google-boot.cjs && node tests/manuscritas-nome.cjs && node tests/essay-viewer.cjs && node tests/navigation-modules.cjs && node tests/teacher-live.cjs && node tests/school-name.cjs && node tests/student-signup.cjs && node tests/student-live.cjs && node tests/teacher-live-activities.cjs && node tests/live-replace-input.cjs && node tests/live-loader.cjs && node tests/live-management.cjs"
+    "test": "node tests/audit-regressions.cjs && node tests/http-smoke.cjs && node tests/select-controls.cjs && node tests/funnel-analytics.cjs && node tests/schools-import.cjs && node tests/teacher-password.cjs && node tests/signup-direct.cjs && node tests/google-auth.cjs && node tests/google-boot.cjs && node tests/manuscritas-nome.cjs && node tests/essay-viewer.cjs && node tests/navigation-modules.cjs && node tests/teacher-live.cjs && node tests/school-name.cjs && node tests/student-signup.cjs && node tests/student-live.cjs && node tests/teacher-live-activities.cjs && node tests/live-replace-input.cjs && node tests/live-loader.cjs && node tests/live-management.cjs && node tests/live-evidence.cjs"
   },
   "devDependencies": {
     "jsdom": "26.1.0"

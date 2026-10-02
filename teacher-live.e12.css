@@ -17,3 +17,5 @@
 
 /* Padrão permanente: docs/padrao-interface.md. Referência visual: Propostas. */
 .live-nav-group{border-bottom:1px solid var(--line);padding:5px 0}.live-nav-group summary{cursor:pointer;padding:12px 10px;font-weight:700;color:#8b1c1c}.live-nav-group button{padding-left:28px!important;font-size:14px}.live-nav-group summary:focus-visible{outline:2px solid #8b1c1c;outline-offset:2px}
+
+.teacher-live .tl-evidence{margin-top:24px}.teacher-live .tl-evidence-card{margin:12px 0;padding:18px;border:1px solid var(--tl-border);border-radius:16px;background:#fff}.teacher-live .tl-evidence-card h4{margin:0 0 16px;color:#8b1c1c}.teacher-live .tl-evidence-field{margin:14px 0;overflow-wrap:anywhere}.teacher-live .tl-evidence-field strong{display:block;font-size:14px;color:#625a56}.teacher-live .tl-evidence-field p{margin:5px 0 0;white-space:pre-wrap;line-height:1.6}.teacher-live .tl-evidence li{margin:10px 0;line-height:1.6}
