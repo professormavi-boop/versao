@@ -401,3 +401,207 @@ Revisão ampliada validada: npm run check / npm test / git diff --check PASS. 39
 Arquivos: core.e12.js, index.html, tests/navigation-modules.cjs, package.json e este registro. Database nenhum impacto; sem mudança de domínios/Auth/backend. Rollback por reversão.
 
 Teste de regressão reproduz módulo ausente, confirma outras rotas acessíveis, recuperação após disponibilização do módulo e retry comum preservado. npm run check / npm test / git diff --check PASS. Incluído no PR17, ainda não publicado.
+
+## Novo Ao Vivo — prévia de interface e arquitetura
+- [x] Criar prévia independente da inicial e envio avulso com câmera, arquivo e texto.
+- [x] Demonstrar tema informado/sugerido, confirmação do recorte C2 e aluno opcional.
+- [x] Documentar armazenamento direto por professor com base no esquema real, sem migrations.
+- [x] Testar navegação/validação e preservar branch/PR. Sem deploy produtivo, IA ou cobrança real.
+Arquivos: previews/ao-vivo.html, previews/ao-vivo.css, previews/ao-vivo.js, docs/ao-vivo-arquitetura.md e CONTINUIDADE.md. Database nenhum impacto. Rollback: remover prévia; produção intacta.
+
+Validação: JS syntax/diff PASS; assets HTTP PASS; fluxo DOM de texto, confirmação do tema, retorno preservando campos e ausência de chamada API/cobrança PASS. Prévia móvel responsiva preparada, sem navegador real disponível para homologação visual. Artefato HTML independente para revisão. Armazenamento recomendado separado: submissions atual exige projeto/aluno e reserva exige submission_id. Nenhuma migração/gravação de dados.
+
+## Implementação Ao Vivo aprovada visualmente — 01/10/2026
+- [ ] Corrigir quebra do nome de arquivo no mobile da prévia e da interface integrada.
+- [ ] Integrar Ao Vivo e entrada inicial para professor sem turmas; renomear fluxo vinculado para Receber redações.
+- [ ] Preparar pacote privado: tabelas/RLS, upload, tema, análise/reconciliação, revisão e carteira idempotente.
+- [ ] Testar permissões, formatos, cobrança e fluxo; apresentar resultado antes de ativar produção.
+Arquivos: teacher-live.e12.js/.css, core.e12.js, teacher-home.e12.js, teacher-main.e12.js, index.html, .vercelignore, testes e docs; privado migration.sql/live.ts/roteador preservado/protocolo e evidências. Sem alteração produtiva ainda; migrations preparadas, não executadas. Rollback desativa nova entrada preservando histórico e ledger.
+
+### Compartilhamento e identificação opcionais — 01/10/2026
+- [x] Incluir escola opcional junto ao nome, preservando ambos ao navegar.
+- [x] Especificar compartilhamento posterior pelo histórico, após revisão, sem exigir cadastro.
+- [x] Validar sintaxe e persistência dos campos na prévia.
+Escopo desta atualização: previews/ao-vivo.js, previews/ao-vivo.css, docs/ao-vivo-arquitetura.md e CONTINUIDADE.md. Database nenhum impacto nesta prévia. Integração e publicação continuam pendentes.
+
+Validação desta atualização: node --check, git diff --check e fluxo DOM com aluno/escola preservados ao avançar/voltar PASS. Quebra de arquivo longo preparada em CSS; sem homologação visual real. Compartilhamento documentado, ainda não conectado.
+
+### Normalização de escola autorizada
+- [x] Criar utilitário de correspondência exata e sugestões sem substituição silenciosa.
+- [x] Integrar sugestões acessíveis na prévia; catálogo ilustrativo explicitamente identificado.
+- [x] Testar nomes equivalentes, erros, ambiguidade e isolamento do catálogo recebido.
+Arquivos: school-name.e12.js, tests/school-name.cjs, previews/ao-vivo.html/.js, docs/ao-vivo-arquitetura.md, CONTINUIDADE.md. Database nenhum impacto. Sem deploy.
+
+Validação: testes de normalização e DOM PASS (maresta preservado até escolha explícita, Marista selecionado); sintaxe e diff PASS. Módulo reutilizável e prévia preparados, sem conexão ao catálogo real. Integração completa Ao Vivo/backend/compartilhamento segue pendente.
+
+## Aluno independente autorizado — 01/10/2026
+- [ ] Cadastro próprio Google/e-mail sem escola/turma/professor.
+- [ ] Degustação única de 1 crédito por perfil de aluno confirmado; preservar perfis existentes.
+- [ ] Correção particular, histórico e compartilhamento próprios.
+- [ ] Checkout por correção; preço do crédito de aluno ainda não definido pelo usuário.
+- [ ] Testes isolados, preservação e autorização específica antes de ativação produtiva.
+Arquivos da etapa de cadastro: cadastro-aluno.html, student-signup.e12.js, google-auth.e12.js, testes/student-signup.cjs, .vercelignore, docs/ao-vivo-arquitetura.md, CONTINUIDADE.md; privado student-signup.sql/student-signup.ts/router e testes. Impacto preparado: RPC service-only, tabela de aceite com RLS e ledger existente. Sem domínio/env novo. Google usa callback na própria página de cadastro; não converter papel de conta existente. Rollback remove entrada e desativa nova função, preservando saldo e histórico.
+
+## Ordem consolidada em 01/10/2026 17h55 BRT
+Checklist oficial: docs/checklist-implantacao-ao-vivo.md. Prioridade 1 Ao Vivo professor; 2 aluno independente; 3 créditos para avulsos e alunos da base via PIN. Cadastro sem confirmação de e-mail, decisão posterior aos testes: o rascunho SQL/UI ainda exige confirmação e precisa ser atualizado antes da ativação. Não declarar integração concluída. Cadastro, degustação e handler têm testes isolados iniciais; Ao Vivo permanece prévia + rascunho SQL, sem handlers reais de correção/histórico/share. Preço de venda do crédito de aluno não definido.
+- [x] Conferir arquivos atuais e criar checklist com evidência por etapa.
+- [ ] Concluir backend Ao Vivo e interface integrada antes de avançar a publicação.
+Esta atualização documental não modifica database, Auth, Storage, funções ou produção.
+
+### Checklist ampliado: Ao Vivo do aluno
+- [x] Incluir etapa própria de Ao Vivo aluno, atendendo avulso e base via PIN.
+- [x] Separar cadastro independente de acesso à ferramenta e venda de créditos.
+Arquivos desta atualização: docs/checklist-implantacao-ao-vivo.md e CONTINUIDADE.md. Database nenhum impacto; atualização documental, sem produção. Ordem: professor → Ao Vivo aluno → cadastro avulso → créditos → homologação/publicação.
+
+### Execução etapa 1 — backend Ao Vivo
+- [ ] Preparar handlers privados de criação, início, consulta e histórico, reaproveitando protocolo.
+- [ ] Testar débito/estorno, concorrência lógica, posse da redação e preservação de análises anteriores.
+- [ ] Conectar revisão/compartilhamento e frontend após concluir base.
+Arquivos privados: migration.sql, prepared/live.ts, prepared/live-ai.ts, prepared/index.ts e testes; público somente checklist/continuidade. Migração não aplicada, IA paga não executada.
+
+### Avanço concreto do Ao Vivo — implementação local, não ativada
+- [x] Preparar handler de texto/upload, tema, início, consulta e histórico com protocolo atual.
+- [x] Preparar revisão e compartilhamento por token aleatório, snapshot, expiração de 7 dias e revogação.
+- [x] Integrar rota teacher-live, card câmera na inicial sem exigir turma e rótulo Receber redações.
+- [x] Testar SQL isolado: posse, confirmação de tema, débito único, estorno único, erro tardio, quota de tema, snapshot e link expirado/revogado.
+- [x] Testar fluxo DOM: tema/crédito/revisão obrigatórios antes da etapa seguinte; compartilhamento/revogação.
+- [x] Regressões existentes PASS após adaptar teste do onboarding (home oferece Ao Vivo, sem redirecionamento obrigatório à importação). 41 assets HTTP.
+- [ ] Testar handlers com provedor simulado, validadores de upload e perda de resposta; concluir sugestões de escola com catálogo real.
+- [ ] Homologar visual/autenticado e processamento real antes de considerar pronto.
+Limites: fila reconcilia ao consultar a redação; worker independente ainda não integrado. Histórico mostra primeiras 20 redações na UI; paginação e acesso a versões anteriores pendentes. DOCX é encaminhado como input_file, sem extração local. Documentação oficial OpenAI consultada: https://developers.openai.com/api/docs/guides/file-inputs. Código privado não ativado e nenhuma chamada paga.
+
+Atualização subsequente: handlers simulados PASS (auth/papel/posse, confirmação, reuso sem segunda chamada, id provedor, falha/estorno); validadores de assinatura/tamanho PASS. Histórico ganhou paginação e escolha das últimas 20 versões; painel gerencia/revoga links anteriores. Sugestões da escola usam catálogo autorizado e nomes recentes. npm run check e npm test completo PASS, 42 assets HTTP. Cadastro aluno ainda é rascunho anterior à retirada da confirmação: não publicar esse fluxo até atualização.
+
+Checkpoint remoto professor: b10182076100df51151097e8666bf62b75f4844f, PR18. Backend etapa1 privado: libfile_3dee01fca538819193ac3c8ea0269172 (versao-ao-vivo-backend-etapa1.zip); esse pacote substitui o anterior porque remove student_complete do roteador desta etapa. Projeto teste READY dpl_6EKmMS3rFrarzWKURjMb9N29TX7q; produção build-rate-limit. Sem ativação Supabase. Teste real depende de autorização específica para migração/roteador em banco compartilhado.
+
+## Etapa 2 — Ao Vivo também para aluno, autorizado em 18h19
+Usuário pediu prosseguir às partes independentes e testar tudo junto. Isso NÃO foi interpretado como autorização para aplicar migration/ativar backend compartilhado agora.
+- [ ] Generalizar propriedade de redações avulsas por usuário, preservando isolamento do fluxo escolar.
+- [ ] Entrega aluno sem edição de notas/revisão docente; compartilhamento com identificação de IA.
+- [ ] Entrada no painel/menu do aluno e degustação única sem exigir confirmação de email/PIN.
+- [ ] Testes cruzados e checkpoint privado/público.
+Arquivos: teacher-live.e12.js, live-share.e12.js, core.e12.js, student-home-v2.e12.js, testes/docs; privado migration.sql, student-signup.sql, live.ts e testes. Database real: nenhum impacto; desenho preparado generaliza teacher_live_* para live_* e teacher_id para owner_id antes de qualquer ativação.
+
+### Cadastro direto e compra de aluno — preparação
+Auth settings conferido somente leitura: mailer_autoconfirm=true, disable_signup=false, Google/email habilitados. Não mudar Auth global. SQL de degustação/cadastro não exige confirmação; UI remove exigência.
+Arquivos adicionais: cadastro-aluno.html, student-signup.e12.js, index.html, student-credits.e12.js e testes; privado student-sales.sql/credit-checkout-api.ts. Preço de aluno configurável e venda desativada por padrão até definição do usuário. Preservar regras de pacotes do professor, webhook e ledger existentes; nenhuma cobrança real.
+
+### Resultado preparado de aluno e créditos
+- [x] Ao Vivo aluno avulso/PIN com notas somente leitura, resultado IA explícito, compartilhamento sem revisão docente.
+- [x] Dados avulsos genericamente live_* por owner_id; esquema antigo teacher_live_* nunca foi aplicado, não usar pacote etapa1 junto com novo.
+- [x] Cadastro SQL/UI sem confirmação; Auth atual mailer_autoconfirm=true conferido em leitura.
+- [x] Carteira/checkout aluno student_1 preparado; preço configurável, flag desativada, sem preço comercial definido.
+- [x] Testes SQL/handlers/UI e npm run check/npm test PASS (44 assets HTTP).
+- [ ] Homologação real conjunta, pagamento/webhook real, decisão de preço e ativação produtiva específica.
+Pacote backend deve aplicar student-signup.sql antes de migration.sql e student-sales.sql. Preservar JWT do teacher-organization-api, compartilhar via RPC read_live_share token, bucket privado live-private. Checkout separado credit-checkout-api; webhook não alterado (funções atuais verificam valor/id/ledger e idempotência). Nenhum backend ativo ou compra real.
+
+## Ajuste solicitado: aluno avulso em standby e preço — 01/10/2026
+- [x] Suspender entrada e rota do cadastro independente, preservando rascunhos.
+- [x] Restringir liberação atual aos alunos da base, autenticados pelo fluxo existente/PIN.
+- [x] Fixar R$2,50 por correção e compra inicial de 4 créditos por R$10,00 no servidor/SQL/UI.
+- [x] Testar limites de compra, identidade institucional, degustação única e regressões.
+- [x] Preservar branch e pacote privado; não ativar backend/produção.
+Arquivos públicos: index.html, .vercelignore, student-credits.e12.js, docs/checklist-implantacao-ao-vivo.md, CONTINUIDADE.md. Privados: prepared/index.ts, live.ts, credit-checkout-api.ts, student-sales.sql, novo student-trial.sql, README.md, testes de checkout/handler/trial/preço. Database real: nenhum impacto; SQL preparado altera constraints de pedidos e flag comercial, separa degustação de cadastro. Sem novas variáveis/domínios/Auth/webhook. Risco: regressão de elegibilidade/preço, mitigada por testes isolados. Rollback: branch anterior e flags desativadas; preservar ledger.
+
+Validação desta entrega: npm run check e npm test PASS (43 assets HTTP), test-live-sql/test-live-handler/test-student-checkout/test-student-base PASS. Serviços simulados e SQL isolado; sem login/compra real. Backend privado preservado: versao-ao-vivo-base-preco-250.zip, libfile_03a6788de69c819191ff7a7f2b4543f1; substitui pacote anterior. Aplicar apenas student-trial.sql → migration.sql → student-sales.sql, nunca student-signup.sql nesta entrega. Frontend preservado na branch feat/ao-vivo-preview/PR18; nenhum deploy novo homologado.
+
+## Ativação controlada autorizada — 01/10/2026 18h43 BRT
+Usuário: Faça isso + Autorizo após plano de ativação controlada do Supabase compartilhado. Escopo: schema/RPCs/bucket privado, teacher-organization-api e credit-checkout-api; flags inicialmente falsas, liberar para testes após validação. Não implica merge main/publicação frontend produtivo.
+- [x] Conferir backend atual: funções teacher-organization-api v7 e credit-checkout-api v7; live_essays/claim_student_trial ausentes.
+- [ ] Aplicar SQL na ordem student-trial → live → student-sales.
+- [ ] Publicar funções preservando JWT e módulos legados; validar permissões e estrutura.
+- [ ] Liberar testes controlados e conferir preview atual.
+- [ ] Registrar resultado, limitações e rollback.
+Arquivos locais: CONTINUIDADE.md, docs/checklist-implantacao-ao-vivo.md e registro privado de ativação. Impacto DB: live_essays/files/jobs/shares com RLS, RPCs service-only/token público, bucket live-private, trial único, constraints dos pedidos e três flags. Auth/domínios/variáveis/webhook sem alteração. Vercel somente preview. Risco: erro de runtime/integração; retorno por flags desligadas e fontes originais v7, preservando histórico/ledger. Sem teste pago automático.
+
+### Resultado da ativação autorizada
+Autorização explícita recebida às 18h43 BRT.
+Aplicadas: live_student_base_trial, live_corrections_private_workspace, student_base_four_credits_ten_reais.
+Funções: teacher-organization-api v8 e credit-checkout-api v8, ambas verify_jwt=true. Originais v7 conferidos byte a byte com arquivos original/ antes de publicar.
+Flags teacher_live/student_live/student_credit_sales habilitadas. Preço 250 centavos/correção, student_4 com4 créditos/1000 centavos.
+Verificação real: quatro tabelas RLS; anon sem SELECT e authenticated sem INSERT; bucket privado15MB; RPCs start/trial negadas a authenticated; read_live_share público com token inválido retorna null. Chamadas sem login aos dois endpoints HTTP401. Cadastro independente complete_student_signup ausente.
+Nenhuma IA paga, compra, conta ou crédito criado durante a instalação. Jornada autenticada/pagamento real ainda pendentes.
+Frontend atual no Git: cbc4db662e71f8a984a0cc73b3932e36f1b92383, PR18. Vercel consulta mostra apenas preview b101820 (professor); deploy_to_vercel retornou UNAVAILABLE. Não homologar a prévia antiga como versão conjunta. Produção frontend não publicada.
+Rollback: desativar flags e, se necessário, restaurar funções originais v7. NÃO apagar tabelas ou ledger; preservar histórico/saldos.
+
+## Atividades opcionais no Ao Vivo professor — 01/10/2026
+- [x] Implementar atividade com nome opcional e tema imutável confirmado, exclusiva do professor.
+- [x] Próxima redação reutiliza somente atividade/tema; limpa aluno, escola, texto, arquivo e IDs.
+- [x] Histórico com acesso por atividade; nota ENEM/C1–C5 sem pontuação extra.
+- [x] Testar isolamento, idempotência, snapshot e fluxo aluno preservado.
+- [x] Preservar fontes públicas/privadas e atualizar checklist; migração adicional NÃO aplicada.
+Arquivos: teacher-live.e12.js, core.e12.js, index.html, testes teacher-live/student-live e novo teacher-live-activities.cjs, package.json, docs/checklist-implantacao-ao-vivo.md, CONTINUIDADE.md; privados live-activities.sql, prepared/live.ts/index.ts, testes/README. Database produtivo nenhum impacto nesta preparação. Vercel bloqueou tentativa de preview d091c6a por api-deployments-free-per-day (>100), pede24h. Não repetir publicação agora. Backend base v8 ativo, atividades novas pendentes. Risco de herdar identificação/arquivo e misturar temas mitigado com reset/temas imutáveis/posse. Sem novas env/Auth/pagamentos/domínios. Rollback usa frontend/backend v8 sem apagar dados.
+
+Validação: npm run check/npm test PASS (43 assets HTTP); testes privados live SQL/handler PASS com atividades: exclusivo professor, posse, nome opcional, idempotência, tema fixo e snapshot anterior preservado. Testes UI verificam reset de nome/escola/texto/arquivo/IDs, tema herdado, revisão antes de próxima redação, confirmação de crédito nova e histórico filtrado. Sem homologação visual real nem IA paga. Backend de atividades ainda NÃO aplicado. Fontes novas em branch feat/ao-vivo-preview, pacote privado versao-ao-vivo-atividades-preparado.zip; rollback específico v8 incluído.
+
+## Atividades ativadas — 01/10/2026 21h50 BRT
+Autorização específica do usuário após diagnóstico de frontend novo com backend v8.
+- [x] Aplicada migration teacher_live_activities (live-activities.sql preparado e testado).
+- [x] teacher-organization-api v9 ACTIVE, verify_jwt=true; index.ts/live.ts atualizados, demais módulos preservados da v8. Fontes publicadas conferidas byte a byte.
+- [x] RLS ativa; anon sem SELECT, authenticated sem INSERT/EXECUTE; RPC attach somente service_role.
+- [x] Testes SQL, handler e UI de atividades PASS antes da instalação.
+- [ ] Homologação autenticada pelo professor após atualização; nenhuma IA paga ou crédito consumido nesta ativação.
+Endereço fixo criado na Vercel: https://teste.versaoprofessor.com/ → projeto isolado/Preview/feat/ao-vivo-preview. Tela abre HTTPS; login não validado pelo agente.
+Rollback: fontes rollback-v8 para função; preservar tabelas, atividades, redações e ledger. Frontend oficial não publicado.
+
+## Recuperação de conteúdo e limite de inválidos — 01/10/2026
+- [x] Trocar foto/arquivo/texto nas etapas tema/resumo e após falha; novo UUID/requests, mantendo nome/escola/atividade e histórico anterior. Tema inferido livre descartado.
+- [x] Botão Verificar tema com inteligência.
+- [x] Backend privado preparado: triagem curta gpt-4.1-mini, cache,3 inválidos/24h por perfil, exclusão mútua/pausa técnica; RLS/RPC service-only; validação antes do débito.
+- [x] npm check/test,43 assets HTTP, SQL/handler e preflight isolados PASS.
+- [ ] Ativar live-input-validation.sql e live-input.ts/live.ts no Supabase compartilhado após autorização específica; homologar fotos/texto reais. Nenhuma chamada paga.
+Arquivos UI: teacher-live.e12.js/index.html/package.json/tests/live-replace-input.cjs/docs. Privados: live.ts/live-input.ts/SQL/testes/rollback-v9. Sem mudança Auth/preços/notas. Custo da triagem não é zero. Rollback preserva dados.
+
+## Proteção de entrada ATIVADA — 01/10/2026 22h06 BRT
+Usuário autorizou explicitamente a migração e publicação após plano.
+- [x] live_input_validation_and_invalid_limit aplicada.
+- [x] teacher-organization-api v10 ACTIVE, JWT preservado; live.ts atualizado/live-input.ts adicionado; outros módulos preservados v9. Conteúdo conferido byte a byte.
+- [x] RLS ativa, anon sem SELECT, authenticated sem INSERT/claim, service_role com claim e sem execução do start antigo.
+- [ ] Homologação com redação real: nenhum teste pago executado.
+Modelo preflight gpt-4.1-mini, inválidos3/janela24h, cache por redação, pausa técnica1min. Pacote preparado contém fontes e rollback; agora aplicado.
+
+## Correção da cota de temas — preparada
+- [x] Confirmado bloqueio antigo em start_live_job_before_input_check.
+- [x] live-theme-reuse.sql substitui limite global3/24h por cache de tema concluído por redação. Mantém wrapper de validação, saldo e ledger.
+- [x] Teste SQL com5 redações diferentes, cache de mesma redação, propriedade e cobrança/refund PASS.
+- [ ] Aplicar SQL no Supabase compartilhado após autorização específica. Rollback em rollback-theme-quota.sql. Sem mudança de frontend/função Edge.
+
+## Cota de temas corrigida — ATIVADA 01/10/2026 22h16 BRT
+Autorização: "Autorizo, para teste não precisa pedir". Preferência persistente: executar alterações restritas a teste sem reconfirmação; banco compartilhado é produção.
+Migration live_theme_reuse_without_daily_account_quota aplicada. Removida cota antiga de3 temas/24h, cache por redação concluída. Verificação real de definição confirma remoção, reutilização e manutenção do wrapper e limite3 inválidos; service_role continua sem acesso direto à função interna. Nenhuma IA paga ou alteração de saldo.
+
+## Loader do Ao Vivo — preview
+- [x] Anel animado e mensagem ao iniciar verificação/correção, inclusive triagem.
+- [x] Removido Atualizar andamento; polling automático resiliente a falhas de consulta sem novo start/cobrança.
+Arquivos: teacher-live.e12.js/.css,index.html,tests/live-loader.cjs e continuidade. Database nenhum impacto. Rollback por frontend anterior. Testes de professor/aluno/atividades/troca de conteúdo e sintaxe PASS.
+
+## Resultado revisado organizado — preview
+- [x] Conferido registro da correção de futebol feminino:640 pontos, revisão22h25 BRT, um único débito de1 crédito. Repetir salvar atualizava a mesma revisão.
+- [x] Estado salvo sem botão Salvar; edição explícita, salvar apenas com mudanças e confirmação nova. Compartilhar/próxima redação destacados; outras ações recolhidas. Competências recolhíveis após salvar.
+Arquivos teacher-live.e12.js/.css,index.html,teste atividades. Database nenhum impacto. Testes professor/aluno/atividade e confirmação sem repetição PASS; publicação somente preview.
+
+## Listas do Ao Vivo e gerenciamento — em execução
+- [x] Padronizar histórico, atividades e versões: tabela responsiva/cartões, hierarquia e ações separadas.
+- [x] Preparar edição de identificação/nome e exclusão lógica com confirmação inline.
+- [ ] Validar posse, processamento, links e ledger em testes isolados; publicar CSS no preview.
+- [ ] Backend compartilhado: ativação pendente de autorização específica após preparação.
+Arquivos públicos: teacher-live.e12.js/.css,index.html,tests/live-management.cjs,package.json,CONTINUIDADE.md. Privados: prepared/live.ts/index.ts, migration de gerenciamento, testes e rollback-v10. Database real: nenhum impacto na preparação. Migração proposta adiciona deleted_at a live_essays/live_activities e RPC service-only; exclusão de redação revoga links e preserva jobs/ledger/arquivos; atividade removida preserva redações. Tema corrigido permanece imutável. Sem alterações Auth/env/domínios/preços. Risco: ocultação indevida ou concorrência; mitigação por posse e bloqueios. Rollback: fontes v10 e frontend anterior, preservar dados.
+
+Validação: testes UI professor/aluno/atividade/loader/troca/gerenciamento PASS; check e43 assets HTTP PASS. Chromium local com dados simulados em320/390/768/1200px sem overflow ou pageerror; capturas inspecionadas. SQL isolado PASS para posse, grants, nomes, imutabilidade, bloqueio durante análise, exclusão idempotente, links revogados e ledger preservado. Fontes rollback-v10 conferidas com função ativa. Capability management mantém botões ocultos até ativação autorizada; backend ainda não publicado. Deploy somente preview teste.versaoprofessor.com. Sem homologação autenticada/IA paga.
+
+## Menu do Ao Vivo igual a Propostas — 01/10/2026
+- [x] Reutilizar cores, bordas e destaque vermelho das abas aprovadas.
+- [x] Validar opção ativa em nova redação, histórico e atividades; encaminhar publicação somente preview.
+Arquivos: teacher-live.e12.js/.css,index.html,tests/live-management.cjs,CONTINUIDADE.md. Database nenhum impacto. Sem alterações de backend/Auth/env/domínios. Risco visual mobile, validar largura320–1200px. Rollback frontend258a5ff. Edição/exclusão continuam aguardando autorização do backend.
+
+Testes de menu/gerenciamento e atividades PASS;43 assets/sintaxe PASS;Chromium via HTTP320/390/768/1200px sem overflow/pageerror e imagem mobile inspecionada. Destino https://teste.versaoprofessor.com/.
+
+Publicação do menu bloqueada pela Vercel: status do commit96c894d20cfec1c6a86eb22ccb908921d6c007c6 em versao-teste-etapa12-consolidada=failure/build-rate-limit. Não repetir deploy automaticamente. Frontend local385d0a9 e remoto96c894d preservados; teste continua em258a5ff (listas novas, menu anterior). Nenhuma alteração no backend. Aguardar liberação ou solicitação de nova tentativa; sem monitoramento.
+
+## Ramificação e padrão visual permanente — 01/10/2026
+- [x] Ao Vivo lateral: Nova redação, Atividades (professor), Histórico.
+- [x] Nomes internos curtos e rotas diretas para os filhos.
+- [x] Registrar Propostas como referência permanente no código/documentação e verificar navegação.
+Arquivos core.e12.js,teacher-live.e12.js/.css,index.html,AGENTS.md,docs/padrao-interface.md,CONTINUIDADE.md. Database nenhum impacto; sem Auth/env/domínios. Risco: rota interna/seleção incorreta; teste de navegação e listas. Rollback commit96c894d. Publicação produtiva combinada para amanhã, não executar agora. Backend editar/excluir permanece preparado.
+
+Validação: check, navegação/rotas diretas professor e aluno, listas e atividades PASS. Propostas registrada em docs/padrao-interface.md e AGENTS regra15. Nova ramificação preparada para amanhã02/10/2026, sem publicação produtiva ou nova migração. Arquivos de teste atualizados: tests/navigation-modules.cjs e tests/live-management.cjs.

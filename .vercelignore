@@ -52,3 +52,14 @@
 !vendor/xlsx.full.min.js
 !modelos/
 !modelos/modelo-alunos.xlsx
+
+# Cadastro avulso em standby: arquivos preservados, fora do deploy.
+
+!teacher-live.e12.js
+!teacher-live.e12.css
+!devolutiva.html
+!live-share.e12.js
+
+!school-name.e12.js
+
+!student-credits.e12.js
