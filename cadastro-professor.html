@@ -66,16 +66,6 @@
       if(/error sending|smtp|failed to send/i.test(msg))return 'Não foi possível concluir o cadastro. Tente novamente mais tarde.';
       return 'Não foi possível criar a conta. Confira os dados e tente novamente.';
     }
-    async function trackRegistration(profileId){
-      try{
-        const input=new TextEncoder().encode('versao:registration_completed:'+profileId);
-        const digest=await crypto.subtle.digest('SHA-256',input);
-        const eventId='versao_registration_'+Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
-        if(window.oaiq)window.oaiq('measure','registration_completed',{type:'customer_action'},{event_id:eventId});
-        const attribution=window.VersaoFunnel?.attribution?.()||{};
-        if(attribution.oppref)fetch('/api/openai-conversion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profile_id:profileId,oppref:attribution.oppref}),keepalive:true,credentials:'same-origin'}).catch(()=>{});
-      }catch(error){/* Analytics must not interrupt access. */}
-    }
     form.addEventListener('submit',async event=>{
       event.preventDefault();
       if(button.disabled)return;
@@ -102,6 +92,7 @@
           button.textContent='Conta registrada';
           return;
         }
+        try{Promise.resolve(window.VersaoFunnel?.registration?.(data,'signup')).catch(()=>{});}catch(error){}
         try{
           localStorage.setItem('versao-e12-session-v1',JSON.stringify({access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Number(data.expires_at)||(Math.floor(Date.now()/1000)+(Number(data.expires_in)||3600)),user:data.user}));
         }catch(error){
@@ -111,7 +102,6 @@
         }
         form.reset();
         try{window.VersaoFunnel?.track('signup_complete',{page:'signup'});}catch(error){}
-        void trackRegistration(data.user.id);
         show('Conta criada. Abrindo seu espaço no VERSÃO...','ok');
         button.textContent='Conta criada';
         setTimeout(()=>location.replace('/?onboarding=1'),600);

@@ -5,7 +5,13 @@
   const STORE='versao-google-pkce-v1',APP='https://app.versaoprofessor.com';
   const callbackParams=new URLSearchParams(location.search),callbackHash=new URLSearchParams(location.hash.slice(1));
   const callback=callbackParams.get('google_callback')==='1';
-  if(callback)history.replaceState(null,'',location.pathname);
+  if(callback){
+    const safe=new URLSearchParams();
+    for(const key of ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','oppref','versao_test']){
+      const value=callbackParams.get(key);if(value)safe.set(key,value.slice(0,key==='oppref'?512:120));
+    }
+    history.replaceState(null,'',location.pathname+(safe.size?'?'+safe.toString():''));
+  }
   let availability=null,starting=false,exchange=null;
   async function api(path,body){
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
@@ -23,17 +29,23 @@
   const encode=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
   function removeTransaction(){try{sessionStorage.removeItem(STORE);}catch{}}
   function appOrigin(){return ['versaoprofessor.com','www.versaoprofessor.com'].includes(location.hostname)?APP:location.origin;}
+  function attributionUrl(url){
+    try{return window.VersaoFunnel?.withAttribution?.(url)||url;}catch(_error){return url;}
+  }
+  function campaignAttribution(){
+    try{return window.VersaoFunnel?.attribution?.()||{};}catch(_error){return {};}
+  }
   async function start(audience='teacher'){
     if(starting)return;
     starting=true;
     try{
       if(!await enabled())throw Error('O acesso com Google ainda não está disponível. Você pode entrar com e-mail e senha.');
       // PKCE must start and finish on the same origin and tab.
-      if(appOrigin()!==location.origin){location.assign(audience==='student'?APP+'/cadastro-aluno.html':APP+'/?google=1');return;}
+      if(appOrigin()!==location.origin){location.assign(attributionUrl(audience==='student'?APP+'/cadastro-aluno.html':APP+'/?google=1'));return;}
       if(!crypto?.subtle)throw Error('Abra o VERSÃO em uma conexão segura para continuar com Google.');
       const verifier=encode(crypto.getRandomValues(new Uint8Array(32)));
       const challenge=encode(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier))));
-      const pending={verifier,createdAt:Date.now(),origin:location.origin};
+      const pending={verifier,createdAt:Date.now(),origin:location.origin,audience,attribution:campaignAttribution()};
       try{sessionStorage.setItem(STORE,JSON.stringify(pending));if(sessionStorage.getItem(STORE)!==JSON.stringify(pending))throw Error();}
       catch{throw Error('Permita o armazenamento deste site no navegador para continuar com Google.');}
       const url=new URL(BASE+'/auth/v1/authorize');
@@ -52,8 +64,15 @@
       removeTransaction();
       if(params.has('error')||hash.has('error'))throw Error('O acesso com Google foi cancelado ou não foi autorizado. Tente novamente.');
       if(!pending||pending.origin!==location.origin||!Number.isFinite(pending.createdAt)||Date.now()-pending.createdAt>600000||Date.now()<pending.createdAt||!/^[A-Za-z0-9_-]{43}$/.test(pending.verifier||'')||!params.get('code'))throw Error('Este acesso com Google expirou. Toque em Continuar com Google para tentar novamente.');
+      try{window.VersaoFunnel?.captureAttribution?.(pending.attribution||{});}catch(_error){}
       const d=await api('token?grant_type=pkce',{auth_code:params.get('code'),code_verifier:pending.verifier});
       if(typeof d.access_token!=='string'||!d.access_token||typeof d.refresh_token!=='string'||!d.refresh_token||!d.user?.id)throw Error('O Google não retornou uma sessão válida. Tente novamente.');
+      // Measure only newly created teacher accounts; the server verifies the approved profile.
+      // Pending Google profiles are measured by the existing signup_complete hook after completion.
+      const createdAt=Date.parse(d.user.created_at);
+      if(pending.audience==='teacher'&&Number.isFinite(createdAt)&&createdAt>=pending.createdAt-30000&&createdAt<=Date.now()+5000){
+        try{Promise.resolve(window.VersaoFunnel?.registration?.(d,'google')).catch(()=>{});}catch(_error){}
+      }
       // Never store Google's provider access/refresh tokens: this app only needs identity.
       return {access_token:d.access_token,refresh_token:d.refresh_token,user:d.user,expires_at:Math.floor(Date.now()/1000)+(Number(d.expires_in)||3600)};
     })();
