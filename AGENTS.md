@@ -16,3 +16,5 @@
 14. Para mudanças que possam chegar à produção, informar também o impacto previsto em Vercel/deploy, variáveis de ambiente, domínios, autenticação e integrações externas, além do plano de teste e de rollback. Preparar e validar em branch/preview sempre que possível. Somente após a validação apresentar o resultado ao usuário e pedir autorização explícita para publicar em produção.
 
 15. PADRÃO VISUAL APROVADO: consultar docs/padrao-interface.md antes de criar/alterar telas. Propostas (proposal-approved-v3.css) é a referência de menu e exibição aprovada pelo usuário em01/10/2026. Reutilizar padrões existentes; não inventar novo estilo por módulo.
+
+16. AMBIENTE OFICIAL DE TESTES: https://teste.versaoprofessor.com/ no projeto prj_7mEBS5QDaBWrG4hjnBKelNkU90OY, ambiente Preview, branch feat/ao-vivo-preview. Publicar testes nessa branch e conferir o domínio fixo após READY. URLs temporárias *.vercel.app não servem para homologação de login: o CAPTCHA depende do domínio autorizado. Não entregar URL temporária como ambiente de teste ao usuário. Produção: https://app.versaoprofessor.com/, projeto separado.
