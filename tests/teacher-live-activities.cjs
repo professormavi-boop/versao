@@ -14,7 +14,12 @@ const {JSDOM}=require('jsdom'),fs=require('fs'),assert=require('node:assert/stri
  w.$('tlActivityName').value='Redação da aula';w.$('tlName').value='Aluno anterior';w.$('tlSchool').value='Escola anterior';w.$('tlText').value='Redação de teste para assegurar que o conteúdo anterior seja limpo. '.repeat(3);
  await click('tlNext');w.$('tlTheme').value='Desafios da educação brasileira';w.$('tlConfirmed').checked=true;w.$('tlConfirmed').onchange({target:w.$('tlConfirmed')});await click('tlNext');
  const firstId=calls.find(c=>c.action==='live_create').essay_id;assert.equal(activities.size,1);assert.equal(w.$('tlCredit').checked,false);w.$('tlCredit').checked=true;await click('tlStart');assert.equal(w.$('tlNextEssay'),null);
- w.$('tlReview').checked=true;await click('tlSave');await click('tlNextEssay');
+ w.$('tlReview').checked=true;await click('tlSave');
+ assert.equal(w.$('tlSave'),null);assert.match(w.document.body.textContent,/Revisão salva/);
+ const reviewCalls=calls.filter(c=>c.action==='live_review').length;
+ await click('tlEditReview');assert.equal(w.$('tlSave').disabled,true);w.$('tlReview').checked=true;w.$('tlReview').onchange();assert.equal(w.$('tlSave').disabled,true);await click('tlSave');assert.equal(calls.filter(c=>c.action==='live_review').length,reviewCalls);
+ w.$('tlFeedback').value='Alteração nova';w.$('tlFeedback').oninput();assert.equal(w.$('tlReview').checked,false);w.$('tlReview').checked=true;w.$('tlReview').onchange();assert.equal(w.$('tlSave').disabled,false);
+ await click('tlCancelReview');assert.equal(w.$('tlSave'),null);await click('tlNextEssay');
  assert.equal(w.$('tlName').value,'');assert.equal(w.$('tlSchool').value,'');assert.equal(w.$('tlText').value,'');assert.equal(w.$('tlFile').files.length,0);assert.match(w.document.body.textContent,/Redação da aula/);
  w.$('tlText').value='Outra redação totalmente nova. '.repeat(5);await click('tlNext');assert.equal(w.$('tlTheme').value,'Desafios da educação brasileira');assert.equal(w.$('tlTheme').readOnly,true);assert.equal(w.$('tlConfirmed').checked,true);
  await click('tlNext');assert.equal(w.$('tlCredit').checked,false);assert.equal(activities.size,1);const creates=calls.filter(c=>c.action==='live_create');assert.notEqual(creates[1].essay_id,firstId);assert.equal(creates[1].student_label,'');assert.equal(calls.filter(c=>c.action==='live_start'&&c.purpose==='theme').length,0);

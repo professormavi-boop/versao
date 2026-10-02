@@ -574,3 +574,8 @@ Migration live_theme_reuse_without_daily_account_quota aplicada. Removida cota a
 - [x] Anel animado e mensagem ao iniciar verificação/correção, inclusive triagem.
 - [x] Removido Atualizar andamento; polling automático resiliente a falhas de consulta sem novo start/cobrança.
 Arquivos: teacher-live.e12.js/.css,index.html,tests/live-loader.cjs e continuidade. Database nenhum impacto. Rollback por frontend anterior. Testes de professor/aluno/atividades/troca de conteúdo e sintaxe PASS.
+
+## Resultado revisado organizado — preview
+- [x] Conferido registro da correção de futebol feminino:640 pontos, revisão22h25 BRT, um único débito de1 crédito. Repetir salvar atualizava a mesma revisão.
+- [x] Estado salvo sem botão Salvar; edição explícita, salvar apenas com mudanças e confirmação nova. Compartilhar/próxima redação destacados; outras ações recolhidas. Competências recolhíveis após salvar.
+Arquivos teacher-live.e12.js/.css,index.html,teste atividades. Database nenhum impacto. Testes professor/aluno/atividade e confirmação sem repetição PASS; publicação somente preview.
