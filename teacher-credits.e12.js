@@ -60,7 +60,7 @@
   let historyLoaded=false,usageLoaded=false,historyOffset=0,usageOffset=0;
   $('view').innerHTML=header('Conta e créditos','Seu saldo, seus dados e mais tempo para ensinar.')+`<div class="credit-page">
   <section class="credit-summary" aria-label="Resumo da conta">
-  <div class="credit-balance"><span>Créditos disponíveis</span><strong>${balance}</strong><p>1 crédito por organização de lista, correção ou proposta com IA</p></div>
+  <div class="credit-balance"><span>Créditos disponíveis</span><strong>${balance}</strong><p>2 créditos por proposta com IA; 1 crédito por correção ou organização de lista</p></div>
   <div class="credit-person"><strong>${esc(S.profile.full_name||'Professor')}</strong><p>${esc(S.profile.email||'')}</p></div>
   </section>
   ${lowCredit?`<p class="credit-notice" role="status">${balance===0?'Seu saldo acabou. Escolha um pacote para continuar corrigindo.':`Você tem ${balance} créditos disponíveis. Quando precisar, adicione mais créditos abaixo.`}</p>`:''}

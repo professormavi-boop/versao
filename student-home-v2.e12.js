@@ -50,12 +50,17 @@
 
   function scoreLabel(value){return value==null?'—':String(value)}
 
+  function liveOffer(info){
+    const balance=info&&Number.isFinite(Number(info.balance))?Number(info.balance):null;
+    return `<section class="tl-home student-live-offer" aria-labelledby="studentLiveOffer"><span class="student-live-eyebrow">Ao Vivo · Sua prática de redação</span><h2 id="studentLiveOffer">Descubra o que melhorar na sua próxima redação.</h2><p>Envie uma foto, um arquivo ou seu texto e transforme a correção em um próximo passo para estudar.</p><ul class="student-live-benefits"><li>Nota estimada nas 5 competências do ENEM</li><li>Pontos fortes e orientações para revisar seu texto</li><li>Devolutivas salvas para consultar e compartilhar</li></ul><div class="student-live-offer-actions"><button class="btn primary" data-sh-route="student-live">Quero corrigir minha redação</button><button class="btn ghost" data-sh-route="student-credits">Ver créditos e continuar praticando</button></div><p class="student-live-offer-meta">${balance===null?'Consulte seu saldo em Meus créditos.':`${balance} crédito${balance===1?'':'s'} disponível${balance===1?'':'s'}.`} Cada correção usa 1 crédito.</p><small>Análise por IA, sem revisão de professor. A nota é uma estimativa.</small></section>`;
+  }
+
   async function studentHomeV2(navigation){
     ensureStudentHomeV2Style();
     const liveInfo=await edge('teacher-organization-api',{action:'live_status'}).catch(()=>null);
     if(!navigationCurrent(navigation))return;
     if(liveInfo?.independent){
-      $('view').innerHTML=header('Início','Sua prática de redação, no seu ritmo.')+`<section class="student-home-v2"><section class="tl-home"><h2>Ao Vivo</h2><p>Envie sua redação e receba uma estimativa por IA, sem revisão de professor.</p><p><b>${Number(liveInfo.balance||0)} crédito(s)</b> · 1 crédito por correção.</p><button class="btn primary" data-sh-route="student-live">Começar uma correção</button><button class="btn" data-sh-route="student-live">Consultar meu histórico</button><button class="btn" data-sh-route="student-credits">Meus créditos</button></section></section>`;
+      $('view').innerHTML=header('Início','Sua prática de redação, no seu ritmo.')+`<section class="student-home-v2">${liveOffer(liveInfo)}</section>`;
       $('view').onclick=e=>{const button=e.target.closest('[data-sh-route]');if(button)navigate(button.dataset.shRoute);};return;
     }
     const d=await studentDashboard(true);
@@ -94,7 +99,7 @@
     }).join('');
 
     $('view').innerHTML=header('Início','Seu painel de redações e evolução.')+`<section class="student-home-v2">
-      <section class="tl-home"><h2>Ao Vivo</h2><p>Corrija uma redação com IA, consulte seu histórico e compartilhe a devolutiva.</p><button class="btn primary" data-sh-route="student-live">Começar uma correção</button></section><div class="sh-metrics">${metrics}</div>
+      ${liveOffer(liveInfo)}<div class="sh-metrics">${metrics}</div>
       <section class="sh-profile" aria-label="Dados do aluno"><div class="sh-avatar">${icon('user')}</div><div><small>Aluno</small><h2>${esc(student.preferred_name||student.full_name||'Aluno')}</h2>${identity?`<span class="sh-chip">${esc(identity)}</span>`:''}</div></section>
       <section class="sh-actions" aria-label="Ações rápidas">
         <button type="button" class="sh-action primary" data-sh-route="student-proposals"><span class="sh-icon">${icon('send')}</span><div><b>Enviar redação</b><span>Escolha uma proposta e envie seu texto.</span></div></button>
