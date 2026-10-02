@@ -1,0 +1,20 @@
+const {JSDOM}=require('jsdom'),fs=require('fs'),assert=require('node:assert/strict');
+(async()=>{
+ const dom=new JSDOM('<main id="view"></main>',{url:'https://test.example',runScripts:'outside-only'}),w=dom.window;
+ const deviations=[0,1].map(i=>({original:'Trecho '+i,correction:'Sugestão '+i,rule:'Regra '+i,evidence:'Contexto',location:'Linha 1'}));
+ const result={c1_deviations:deviations,competencies:Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,{score:160,diagnostic:'Diagnóstico'}])),transcription:'Texto',next_step:'Revisar',total_score:800};
+ let job={id:'job',status:'completed',purpose:'correction',result},fail=false,calls=[];
+ w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=()=>'';w.fmtDate=s=>s;w.navigationCurrent=()=>true;w.S={profile:{role:'teacher'}};
+ w.edge=async(_,b)=>{calls.push(b);switch(b.action){case'live_status':return{enabled:true};case'organizations':return{organizations:[]};case'live_history':return{essays:[{id:'essay',created_at:'2026-10-02'}]};case'live_get':return{essay:{id:'essay'},jobs:[job]};case'live_review':if(fail)throw Error('Falha de conexão');job={...job,review:{...result,next_step:b.overall_feedback,c1_deviations:b.deviation_reviews.filter(d=>d.decision==='confirmed').map(d=>({...deviations[d.index],correction:d.correction,rule:d.rule})),review_audit:{decisions:b.deviation_reviews,note:b.review_note}}};return{job};default:throw Error(b.action);}};
+ const click=async id=>{const b=w.$(id);return b.onclick({target:b});},input=(selector,value)=>{const e=w.document.querySelector(selector);if(e.type==='checkbox')e.checked=value;else e.value=value;e.dispatchEvent(new w.Event('input',{bubbles:true}));},save=async()=>{w.$('tlReview').checked=true;w.$('tlReview').onchange();await click('tlSave');};
+ w.eval(fs.readFileSync('teacher-live.e12.js','utf8'));await w.renderTeacherLive({route:'teacher-live-history'});await w.document.querySelector('[data-essay]').onclick({target:w.document.querySelector('[data-essay]')});
+ w.document.querySelector('[data-job]').onclick();
+ assert.equal(w.document.querySelectorAll('[data-live-deviation]').length,2);
+ input('[data-live-correction="0"]','<img src=x onerror=alert(1)>');input('[data-live-rule="0"]','Nova regra');input('[data-live-discard="1"]',true);input('#tlFeedback','Novo próximo passo');input('#tlReviewNote','Minha revisão');
+ fail=true;await save();assert.match(w.$('tlStatus').textContent,/Falha/);assert.equal(w.document.querySelector('[data-live-discard="1"]').checked,true);fail=false;await save();assert.equal(job.review.c1_deviations.length,1);assert.equal(w.document.querySelector('img'),null);assert.match(w.document.body.textContent,/Novo próximo passo/);
+ await click('tlEditReview');assert.equal(w.document.querySelector('[data-live-discard="1"]').checked,true);assert.equal(w.document.querySelector('[data-live-correction="0"]').value,'<img src=x onerror=alert(1)>');assert.equal(w.$('tlSave').disabled,true);
+ input('#tlFeedback','Só feedback mudou');await save();assert.equal(job.review.c1_deviations.length,1);assert.equal(job.review.review_audit.decisions[1].index,1);
+ await click('tlEditReview');input('[data-live-discard="1"]',false);await click('tlCancelReview');await click('tlEditReview');assert.equal(w.document.querySelector('[data-live-discard="1"]').checked,true);
+ input('[data-live-discard="1"]',false);input('[data-live-rule="1"]','');const before=calls.length;await save();assert.equal(calls.length,before);assert.match(w.$('tlStatus').textContent,/Complete/);input('[data-live-rule="1"]','Regra restaurada');await save();assert.equal(job.review.c1_deviations.length,2);
+ assert.equal(calls.filter(c=>c.action==='live_start').length,0);dom.window.close();console.log('PASS live review: edit, discard, persist original indices, restore, cancel, network recovery, required fields, escape, no generation');
+})().catch(e=>{console.error(e);process.exitCode=1});

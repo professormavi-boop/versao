@@ -16,6 +16,18 @@ window.liveEvidenceHtml=function(value){
  if(notes.length)parts.push(`<section class="tl-evidence"><h3>Pontos para conferir</h3><ul>${notes.map(v=>`<li>${esc(v)}</li>`).join('')}</ul></section>`);
  return parts.join('');
 };
+// Índices sempre se referem à análise original, inclusive após descartar ocorrências.
+window.liveDeviationReviews=job=>{
+ const decisions=job.review?.review_audit?.decisions||[];
+ return (job.result.c1_deviations||[]).map((d,index)=>{
+  const saved=decisions.find(x=>x.index===index);
+  return {index,decision:saved?.decision==='discarded'?'discarded':'confirmed',correction:saved?.correction??d.correction??'',rule:saved?.rule??d.rule??'',reason:saved?.reason??''};
+ });
+};
+window.liveDeviationEditorHtml=job=>{
+ const reviews=window.liveDeviationReviews(job);
+ return `<section class="tl-result-section" id="tlDeviationEditor"><h3>Revisar desvios</h3><p>Edite a sugestão e a regra ou ignore o apontamento. Ignorados não aparecem na devolutiva. A nota de C1 pode ser ajustada acima.</p>${reviews.map(d=>{const original=job.result.c1_deviations[d.index];return `<article class="tl-evidence-card" data-live-deviation="${d.index}"><h4>Ocorrência ${d.index+1}</h4><p><b>Trecho original:</b> ${esc(original.original)}</p><p>${esc(original.location||'')}</p><blockquote>${esc(original.evidence||'')}</blockquote><label class="field">Sugestão de escrita<textarea data-live-correction="${d.index}">${esc(d.correction)}</textarea></label><label class="field">Regra aplicada no contexto<textarea data-live-rule="${d.index}">${esc(d.rule)}</textarea></label><label class="tl-confirm"><input type="checkbox" data-live-discard="${d.index}" ${d.decision==='discarded'?'checked':''}> Ignorar este apontamento</label><p class="tl-muted">Desmarque para restaurar o apontamento.</p></article>`;}).join('')||'<p>Nenhum desvio apontado nesta análise.</p>'}<label class="field">Observação da revisão (opcional)<textarea id="tlReviewNote" maxlength="4000">${esc(job.review?.review_audit?.note||'')}</textarea></label></section>`;
+};
 window.renderTeacherLive=async function(navigation){
  const studentMode=S.profile.role==='student';
  if(!['teacher','student'].includes(S.profile.role))throw Error('Esta área não está disponível para o seu perfil.');
@@ -137,21 +149,24 @@ window.renderTeacherLive=async function(navigation){
  function result(){
   if(studentMode){studentResult();return;}
   const value=job.review||job.result,editing=!job.review||reviewEditing;
-  const feedback=value.overall_feedback||value.next_step||'';
+  const feedback=value.next_step||value.overall_feedback||'';
+  const initialReviews=window.liveDeviationReviews(job),initialNote=job.review?.review_audit?.note||'';
   shell(`${processingSteps(3)}<section class="tl-card tl-review-result"><header class="tl-result-header"><span class="student-live-eyebrow">Ao Vivo · Devolutiva</span><h2>${editing?'Uma devolutiva para orientar a próxima versão':'Sua devolutiva está pronta'}</h2><p>${editing?'Confira as notas e as orientações antes de salvar sua revisão.':'Consulte ou compartilhe com o aluno.'}</p>${!editing?'<p class="tl-saved" role="status">Sua revisão foi salva. A devolutiva está pronta para compartilhar.</p>':''}<div class="tl-total-score"><strong>${Number(value.total_score)}</strong><span>/ 1000 · ${job.review?'Nota revisada':'Estimativa por IA'}</span></div><p>${esc(job.theme)}</p></header>${job.theme_origin==='inferred'?'<p class="tl-note">C2 por recorte inferido e confirmado, sem aferição da proposta original.</p>':''}
   <section class="tl-result-section"><h3>Notas por competência</h3>${['C1','C2','C3','C4','C5'].map(c=>editing?`<label class="field">${c}<input class="tl-score" id="tl${c}" type="number" min="0" max="200" step="40" value="${Number(value.competencies[c].score)}"><span>${esc(value.competencies[c].diagnostic)}</span></label>`:`<article class="tl-competency-card"><h3>${c}<strong>${Number(value.competencies[c].score)} / 200</strong></h3><p>${esc(value.competencies[c].diagnostic)}</p></article>`).join('')}</section>
   <section class="tl-result-section"><h3>Devolutiva</h3><p><b>Ponto forte</b><br>${esc(value.main_strength)}</p><p><b>Prioridade de melhoria</b><br>${esc(value.improvement_priority)}</p>${editing?`<label class="field">Próximo passo<textarea id="tlFeedback" maxlength="4000">${esc(feedback)}</textarea></label>`:`<p><b>Próximo passo</b><br>${esc(feedback)}</p>`}</section>
   <details class="tl-result-section"><summary>Texto da redação e evidências</summary><p class="tl-result">${esc(value.transcription)}</p>${window.liveEvidenceHtml(value)}</details>
+  ${editing?window.liveDeviationEditorHtml(job):''}
   ${editing?`<label class="tl-confirm"><input type="checkbox" id="tlReview"> Conferi as notas e evidências da devolutiva.</label><div class="tl-result-actions"><button class="btn primary" id="tlSave" disabled>${job.review?'Salvar alterações':'Salvar revisão'}</button>${job.review?'<button class="btn" id="tlCancelReview">Cancelar edição</button>':''}</div>`:`<div class="tl-result-actions"><button class="btn primary" id="tlShare">Compartilhar devolutiva</button>${activity&&!activity.deleted_at?'<button class="btn" id="tlNextEssay">Corrigir próxima redação</button>':''}</div><details class="tl-secondary-actions"><summary>Outras opções</summary><div class="tl-result-actions"><button class="btn" id="tlEditReview">Editar revisão</button><button class="btn" id="tlManageShares">Gerenciar links compartilhados</button><button class="btn" id="tlRedo">Refazer correção · 1 crédito</button></div></details>`}<div id="tlSharePanel"></div></section>`);
   if($('tlNextEssay'))$('tlNextEssay').onclick=()=>nextEssay(activity);
   if($('tlEditReview'))$('tlEditReview').onclick=()=>{reviewEditing=true;result();};
   if($('tlCancelReview'))$('tlCancelReview').onclick=()=>{reviewEditing=false;result();};
   if(editing){
-   const changed=()=>!job.review||['C1','C2','C3','C4','C5'].some(c=>Number($('tl'+c).value)!==Number(value.competencies[c].score))||$('tlFeedback').value!==feedback;
+   const readReviews=()=>initialReviews.map(d=>({...d,decision:document.querySelector(`[data-live-discard="${d.index}"]`).checked?'discarded':'confirmed',correction:document.querySelector(`[data-live-correction="${d.index}"]`).value.trim(),rule:document.querySelector(`[data-live-rule="${d.index}"]`).value.trim()}));
+   const changed=()=>JSON.stringify(readReviews())!==JSON.stringify(initialReviews)||$('tlReviewNote').value!==initialNote||!job.review||['C1','C2','C3','C4','C5'].some(c=>Number($('tl'+c).value)!==Number(value.competencies[c].score))||$('tlFeedback').value!==feedback;
    const updateSave=()=>{$('tlSave').disabled=!changed()||!$('tlReview').checked;};
    $('tlReview').onchange=updateSave;
-   for(const id of ['tlC1','tlC2','tlC3','tlC4','tlC5','tlFeedback'])$(id).oninput=()=>{$('tlReview').checked=false;updateSave();};
-   $('tlSave').onclick=e=>act(e.target,async()=>{if(!changed())return;if(!$('tlReview').checked)throw Error('Confirme a revisão.');const scores=Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,Number($('tl'+c).value)]));job=(await api({action:'live_review',essay_id:essay.id,job_id:job.id,scores,overall_feedback:$('tlFeedback').value,review_confirmed:true})).job;reviewEditing=false;result();status('Revisão salva.');});
+   for(const input of document.querySelectorAll('.tl-score,#tlFeedback,#tlDeviationEditor textarea,#tlDeviationEditor input'))input.oninput=()=>{$('tlReview').checked=false;updateSave();};
+   $('tlSave').onclick=e=>act(e.target,async()=>{if(!changed())return;if(!$('tlReview').checked)throw Error('Confirme a revisão.');const deviation_reviews=readReviews();const incomplete=deviation_reviews.find(d=>d.decision==='confirmed'&&(!d.correction||!d.rule));if(incomplete){document.querySelector(`[data-live-${incomplete.correction?'rule':'correction'}="${incomplete.index}"]`).focus();throw Error('Complete a sugestão e a regra dos apontamentos mantidos.');}const scores=Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,Number($('tl'+c).value)]));job=(await api({action:'live_review',essay_id:essay.id,job_id:job.id,scores,overall_feedback:$('tlFeedback').value,deviation_reviews,review_note:$('tlReviewNote').value,review_confirmed:true})).job;reviewEditing=false;result();status('Revisão salva.');});
   }
   if($('tlShare'))$('tlShare').onclick=e=>act(e.target,share);
   if($('tlRedo'))$('tlRedo').onclick=()=>{requests.correction=null;step=3;render();};
