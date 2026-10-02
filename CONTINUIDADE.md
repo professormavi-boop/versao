@@ -588,3 +588,10 @@ Arquivos teacher-live.e12.js/.css,index.html,teste atividades. Database nenhum i
 Arquivos públicos: teacher-live.e12.js/.css,index.html,tests/live-management.cjs,package.json,CONTINUIDADE.md. Privados: prepared/live.ts/index.ts, migration de gerenciamento, testes e rollback-v10. Database real: nenhum impacto na preparação. Migração proposta adiciona deleted_at a live_essays/live_activities e RPC service-only; exclusão de redação revoga links e preserva jobs/ledger/arquivos; atividade removida preserva redações. Tema corrigido permanece imutável. Sem alterações Auth/env/domínios/preços. Risco: ocultação indevida ou concorrência; mitigação por posse e bloqueios. Rollback: fontes v10 e frontend anterior, preservar dados.
 
 Validação: testes UI professor/aluno/atividade/loader/troca/gerenciamento PASS; check e43 assets HTTP PASS. Chromium local com dados simulados em320/390/768/1200px sem overflow ou pageerror; capturas inspecionadas. SQL isolado PASS para posse, grants, nomes, imutabilidade, bloqueio durante análise, exclusão idempotente, links revogados e ledger preservado. Fontes rollback-v10 conferidas com função ativa. Capability management mantém botões ocultos até ativação autorizada; backend ainda não publicado. Deploy somente preview teste.versaoprofessor.com. Sem homologação autenticada/IA paga.
+
+## Menu do Ao Vivo igual a Propostas — 01/10/2026
+- [x] Reutilizar cores, bordas e destaque vermelho das abas aprovadas.
+- [x] Validar opção ativa em nova redação, histórico e atividades; encaminhar publicação somente preview.
+Arquivos: teacher-live.e12.js/.css,index.html,tests/live-management.cjs,CONTINUIDADE.md. Database nenhum impacto. Sem alterações de backend/Auth/env/domínios. Risco visual mobile, validar largura320–1200px. Rollback frontend258a5ff. Edição/exclusão continuam aguardando autorização do backend.
+
+Testes de menu/gerenciamento e atividades PASS;43 assets/sintaxe PASS;Chromium via HTTP320/390/768/1200px sem overflow/pageerror e imagem mobile inspecionada. Destino https://teste.versaoprofessor.com/.

@@ -7,7 +7,7 @@ window.renderTeacherLive=async function(navigation){
  const available=await api({action:'live_status'});if(!navigationCurrent(navigation))return;
  let step=1,essay=null,file=null,text='',name='',school='',theme='',origin='provided',confirmed=false,job=null,busy=false,pollTimer=null;
  let draftId=crypto.randomUUID(),activity=null,activityEnabled=false,activityName='',activityDraftId=crypto.randomUUID();
- let reviewEditing=false;
+ let reviewEditing=false,activeMenu='tlNew';
  const requests={theme:null,correction:null};
  const schoolCatalog=[];
  if(available.enabled){const sources=await Promise.allSettled([studentMode?Promise.resolve({organizations:[]}):api({action:'organizations'}),api({action:'live_history'})]);for(const item of sources){if(item.status==='fulfilled'){schoolCatalog.push(...(item.value.organizations||[]).map(x=>x.name),...(item.value.essays||[]).map(x=>x.school_label));}}}
@@ -15,12 +15,12 @@ window.renderTeacherLive=async function(navigation){
  const current=()=>navigationCurrent(navigation);
  const status=message=>{if(current()){if($('tlStatus'))$('tlStatus').textContent=message;if($('tlManageStatus'))$('tlManageStatus').textContent=message;}};
  async function act(button,fn){if(busy)return;busy=true;if(button)button.disabled=true;status('Aguarde…');try{await fn();}catch(error){status(error.message||'Não foi possível continuar.');}finally{busy=false;if(button?.isConnected)button.disabled=false;}}
- function shell(content){clearTimeout(pollTimer);if(!current())return;$('view').innerHTML=header('Ao Vivo','Da redação à devolutiva, no seu ritmo.')+`<section class="teacher-live"><div class="tl-actions tl-nav"><button class="btn ghost" id="tlNew">Nova redação</button><button class="btn ghost" id="tlHistory">Histórico ao vivo</button>${studentMode?'<button class="btn ghost" id="tlCredits">Meus créditos</button>':'<button class="btn ghost" id="tlActivities">Minhas atividades</button>'}</div>${content}<p id="tlStatus" class="tl-status" role="status" aria-live="polite"></p></section>`;$('tlNew').onclick=()=>{if(busy)return;navigate(studentMode?'student-live':'teacher-live');};$('tlHistory').onclick=e=>act(e.target,history);if($('tlCredits'))$('tlCredits').onclick=()=>navigate('student-credits');if($('tlActivities'))$('tlActivities').onclick=e=>act(e.target,()=>activities());}
+ function shell(content){clearTimeout(pollTimer);if(!current())return;$('view').innerHTML=header('Ao Vivo','Da redação à devolutiva, no seu ritmo.')+`<section class="teacher-live"><div class="tl-actions tl-nav"><button class="btn ghost" id="tlNew">Nova redação</button><button class="btn ghost" id="tlHistory">Histórico ao vivo</button>${studentMode?'<button class="btn ghost" id="tlCredits">Meus créditos</button>':'<button class="btn ghost" id="tlActivities">Minhas atividades</button>'}</div>${content}<p id="tlStatus" class="tl-status" role="status" aria-live="polite"></p></section>`;document.querySelectorAll('.tl-nav button').forEach(b=>{if(b.id===activeMenu)b.setAttribute('aria-current','page');});$('tlNew').onclick=()=>{if(busy)return;navigate(studentMode?'student-live':'teacher-live');};$('tlHistory').onclick=e=>act(e.target,history);if($('tlCredits'))$('tlCredits').onclick=()=>navigate('student-credits');if($('tlActivities'))$('tlActivities').onclick=e=>act(e.target,()=>activities());}
  const steps=()=>`<div class="tl-steps">${['Redação','Tema','Correção'].map((label,i)=>`<span ${step===i+1?'aria-current="step"':''}>${i+1}. ${label}</span>`).join('')}</div>`;
  function saveFields(){activityName=$('tlActivityName')?.value??activityName;name=$('tlName')?.value??name;school=$('tlSchool')?.value??school;if(window.SchoolNames)school=SchoolNames.match(school,schoolCatalog).label;text=$('tlText')?.value??text;theme=$('tlTheme')?.value??theme;}
  function nextEssay(selected){
   if(studentMode||busy||selected.deleted_at)return;
-  activity=selected;activityEnabled=true;activityName=selected.name;activityDraftId=selected.id;
+  activeMenu='tlNew';activity=selected;activityEnabled=true;activityName=selected.name;activityDraftId=selected.id;
   draftId=crypto.randomUUID();essay=null;file=null;text='';name='';school='';job=null;
   requests.theme=null;requests.correction=null;theme=selected.theme;origin=selected.theme_origin;confirmed=true;step=1;render();
  }
@@ -48,7 +48,7 @@ window.renderTeacherLive=async function(navigation){
   });
  }
  async function activities(offset=0){
-  const data=await api({action:'live_activities',offset});if(!current())return;
+  const data=await api({action:'live_activities',offset});if(!current())return;activeMenu='tlActivities';
   shell(`<section class="tl-card tl-list"><div class="tl-list-heading"><h2>Minhas atividades</h2><p>Reutilize o tema e acompanhe as redações de cada atividade.</p></div><div id="tlManagePanel"></div>${data.activities.length?`<table class="tl-table"><thead><tr><th scope="col">Atividade e tema</th><th scope="col">Data</th><th scope="col">Ações</th></tr></thead><tbody>${data.activities.map(a=>`<tr><td><strong class="tl-item-name">${esc(a.name||'Atividade sem nome')}</strong><p class="tl-item-theme">${esc(a.theme)}</p></td><td class="tl-date" data-label="Criada em">${esc(fmtDate(a.created_at))}</td><td><div class="tl-row-actions"><button class="btn" data-activity="${esc(a.id)}">Ver redações</button>${managementButtons(a,'activity')}</div></td></tr>`).join('')}</tbody></table>`:'<p class="tl-empty">Suas atividades aparecerão aqui quando você salvar a primeira.</p>'}<div class="tl-actions">${offset?'<button class="btn" id="tlPreviousActivity">Anterior</button>':''}${data.activities.length===20?'<button class="btn" id="tlNextActivity">Próxima</button>':''}</div></section>`);
   document.querySelectorAll('[data-activity]').forEach(b=>b.onclick=()=>act(b,()=>history(0,data.activities.find(a=>a.id===b.dataset.activity))));
   bindManagement(data.activities,'activity',()=>activities(offset));
@@ -149,7 +149,7 @@ window.renderTeacherLive=async function(navigation){
   $('tlRevoke').onclick=e=>act(e.target,async()=>{await api({action:'live_revoke',essay_id:essay.id,job_id:job.id,share_id:data.id});$('tlSharePanel').textContent='Link revogado.';});
  }
  async function history(offset=0,group=null){
-  const data=await api({action:'live_history',offset,...(group?{activity_id:group.id}:{})});if(!current())return;
+  const data=await api({action:'live_history',offset,...(group?{activity_id:group.id}:{})});if(!current())return;activeMenu=group?'tlActivities':'tlHistory';
   shell(`<section class="tl-card tl-list"><div class="tl-list-heading"><h2>${group?esc(group.name||'Atividade sem nome'):'Histórico ao vivo'}</h2>${group?`<p>${esc(group.theme)}</p><div class="tl-actions"><button class="btn primary" id="tlGroupNext">Nova redação nesta atividade</button></div>`:'<p>Consulte suas redações e continue de onde parou.</p>'}</div><div id="tlManagePanel"></div>${data.essays.length?`<table class="tl-table"><thead><tr><th scope="col">Aluno e tema</th><th scope="col">Data</th><th scope="col">Ações</th></tr></thead><tbody>${data.essays.map(e=>`<tr><td><strong class="tl-item-name">${esc(e.student_label||'Sem identificação')}</strong>${e.school_label?`<span class="tl-item-school">${esc(e.school_label)}</span>`:''}<p class="tl-item-theme">${esc(e.theme||'Tema ainda não definido')}</p>${!e.theme?'<span class="tl-badge">Rascunho</span>':''}</td><td class="tl-date" data-label="Enviada em">${esc(fmtDate(e.created_at))}</td><td><div class="tl-row-actions"><button class="btn" data-essay="${esc(e.id)}">Abrir redação</button>${managementButtons(e,'essay')}</div></td></tr>`).join('')}</tbody></table>`:'<p class="tl-empty">Nenhuma redação nesta página.</p>'}<div class="tl-actions">${offset?'<button class="btn" id="tlPreviousPage">Anterior</button>':''}${data.essays.length===20?'<button class="btn" id="tlNextPage">Próxima</button>':''}</div></section>`);
   bindManagement(data.essays,'essay',()=>history(offset,group));
   if($('tlGroupNext'))$('tlGroupNext').onclick=()=>nextEssay(group);
