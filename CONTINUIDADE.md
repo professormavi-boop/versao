@@ -579,3 +579,12 @@ Arquivos: teacher-live.e12.js/.css,index.html,tests/live-loader.cjs e continuida
 - [x] Conferido registro da correção de futebol feminino:640 pontos, revisão22h25 BRT, um único débito de1 crédito. Repetir salvar atualizava a mesma revisão.
 - [x] Estado salvo sem botão Salvar; edição explícita, salvar apenas com mudanças e confirmação nova. Compartilhar/próxima redação destacados; outras ações recolhidas. Competências recolhíveis após salvar.
 Arquivos teacher-live.e12.js/.css,index.html,teste atividades. Database nenhum impacto. Testes professor/aluno/atividade e confirmação sem repetição PASS; publicação somente preview.
+
+## Listas do Ao Vivo e gerenciamento — em execução
+- [x] Padronizar histórico, atividades e versões: tabela responsiva/cartões, hierarquia e ações separadas.
+- [x] Preparar edição de identificação/nome e exclusão lógica com confirmação inline.
+- [ ] Validar posse, processamento, links e ledger em testes isolados; publicar CSS no preview.
+- [ ] Backend compartilhado: ativação pendente de autorização específica após preparação.
+Arquivos públicos: teacher-live.e12.js/.css,index.html,tests/live-management.cjs,package.json,CONTINUIDADE.md. Privados: prepared/live.ts/index.ts, migration de gerenciamento, testes e rollback-v10. Database real: nenhum impacto na preparação. Migração proposta adiciona deleted_at a live_essays/live_activities e RPC service-only; exclusão de redação revoga links e preserva jobs/ledger/arquivos; atividade removida preserva redações. Tema corrigido permanece imutável. Sem alterações Auth/env/domínios/preços. Risco: ocultação indevida ou concorrência; mitigação por posse e bloqueios. Rollback: fontes v10 e frontend anterior, preservar dados.
+
+Validação: testes UI professor/aluno/atividade/loader/troca/gerenciamento PASS; check e43 assets HTTP PASS. Chromium local com dados simulados em320/390/768/1200px sem overflow ou pageerror; capturas inspecionadas. SQL isolado PASS para posse, grants, nomes, imutabilidade, bloqueio durante análise, exclusão idempotente, links revogados e ledger preservado. Fontes rollback-v10 conferidas com função ativa. Capability management mantém botões ocultos até ativação autorizada; backend ainda não publicado. Deploy somente preview teste.versaoprofessor.com. Sem homologação autenticada/IA paga.
