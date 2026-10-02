@@ -533,3 +533,21 @@ Rollback: desativar flags e, se necessário, restaurar funções originais v7. N
 Arquivos: teacher-live.e12.js, core.e12.js, index.html, testes teacher-live/student-live e novo teacher-live-activities.cjs, package.json, docs/checklist-implantacao-ao-vivo.md, CONTINUIDADE.md; privados live-activities.sql, prepared/live.ts/index.ts, testes/README. Database produtivo nenhum impacto nesta preparação. Vercel bloqueou tentativa de preview d091c6a por api-deployments-free-per-day (>100), pede24h. Não repetir publicação agora. Backend base v8 ativo, atividades novas pendentes. Risco de herdar identificação/arquivo e misturar temas mitigado com reset/temas imutáveis/posse. Sem novas env/Auth/pagamentos/domínios. Rollback usa frontend/backend v8 sem apagar dados.
 
 Validação: npm run check/npm test PASS (43 assets HTTP); testes privados live SQL/handler PASS com atividades: exclusivo professor, posse, nome opcional, idempotência, tema fixo e snapshot anterior preservado. Testes UI verificam reset de nome/escola/texto/arquivo/IDs, tema herdado, revisão antes de próxima redação, confirmação de crédito nova e histórico filtrado. Sem homologação visual real nem IA paga. Backend de atividades ainda NÃO aplicado. Fontes novas em branch feat/ao-vivo-preview, pacote privado versao-ao-vivo-atividades-preparado.zip; rollback específico v8 incluído.
+
+## Atividades ativadas — 01/10/2026 21h50 BRT
+Autorização específica do usuário após diagnóstico de frontend novo com backend v8.
+- [x] Aplicada migration teacher_live_activities (live-activities.sql preparado e testado).
+- [x] teacher-organization-api v9 ACTIVE, verify_jwt=true; index.ts/live.ts atualizados, demais módulos preservados da v8. Fontes publicadas conferidas byte a byte.
+- [x] RLS ativa; anon sem SELECT, authenticated sem INSERT/EXECUTE; RPC attach somente service_role.
+- [x] Testes SQL, handler e UI de atividades PASS antes da instalação.
+- [ ] Homologação autenticada pelo professor após atualização; nenhuma IA paga ou crédito consumido nesta ativação.
+Endereço fixo criado na Vercel: https://teste.versaoprofessor.com/ → projeto isolado/Preview/feat/ao-vivo-preview. Tela abre HTTPS; login não validado pelo agente.
+Rollback: fontes rollback-v8 para função; preservar tabelas, atividades, redações e ledger. Frontend oficial não publicado.
+
+## Recuperação de conteúdo e limite de inválidos — 01/10/2026
+- [x] Trocar foto/arquivo/texto nas etapas tema/resumo e após falha; novo UUID/requests, mantendo nome/escola/atividade e histórico anterior. Tema inferido livre descartado.
+- [x] Botão Verificar tema com inteligência.
+- [x] Backend privado preparado: triagem curta gpt-4.1-mini, cache,3 inválidos/24h por perfil, exclusão mútua/pausa técnica; RLS/RPC service-only; validação antes do débito.
+- [x] npm check/test,43 assets HTTP, SQL/handler e preflight isolados PASS.
+- [ ] Ativar live-input-validation.sql e live-input.ts/live.ts no Supabase compartilhado após autorização específica; homologar fotos/texto reais. Nenhuma chamada paga.
+Arquivos UI: teacher-live.e12.js/index.html/package.json/tests/live-replace-input.cjs/docs. Privados: live.ts/live-input.ts/SQL/testes/rollback-v9. Sem mudança Auth/preços/notas. Custo da triagem não é zero. Rollback preserva dados.

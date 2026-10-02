@@ -117,3 +117,11 @@ Validação: npm run check/npm test PASS (44 assets HTTP); SQL de posse/crédito
 - [x] Testes SQL/handlers/UI isolados aprovados; sem uso de IA paga.
 - [ ] Aplicar migração incremental live-activities.sql e atualizar teacher-organization-api após autorização específica. Backend v8 atual ainda não contém atividades.
 - [ ] Publicar frontend e homologar mobile/fluxo real. Vercel bloqueou preview por mais de100 deployments/dia e pediu24h; aguardando liberação, sem tentativa automática.
+
+## Recuperação de conteúdo e limite de inválidos — 01/10/2026
+- [x] Trocar foto/arquivo/texto nas etapas tema/resumo e após falha; novo UUID/requests, mantendo nome/escola/atividade e histórico anterior. Tema inferido livre descartado.
+- [x] Botão Verificar tema com inteligência.
+- [x] Backend privado preparado: triagem curta gpt-4.1-mini, cache,3 inválidos/24h por perfil, exclusão mútua/pausa técnica; RLS/RPC service-only; validação antes do débito.
+- [x] npm check/test,43 assets HTTP, SQL/handler e preflight isolados PASS.
+- [ ] Ativar live-input-validation.sql e live-input.ts/live.ts no Supabase compartilhado após autorização específica; homologar fotos/texto reais. Nenhuma chamada paga.
+Arquivos UI: teacher-live.e12.js/index.html/package.json/tests/live-replace-input.cjs/docs. Privados: live.ts/live-input.ts/SQL/testes/rollback-v9. Sem mudança Auth/preços/notas. Custo da triagem não é zero. Rollback preserva dados.
