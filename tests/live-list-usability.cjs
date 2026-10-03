@@ -1,0 +1,21 @@
+const {JSDOM}=require('jsdom'),fs=require('fs'),assert=require('node:assert/strict');
+(async()=>{
+const d=new JSDOM('<main id="view"></main>',{url:'https://app.example',runScripts:'outside-only'}),w=d.window,calls=[];
+w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=t=>'<h1>'+t+'</h1>';w.fmtDate=s=>s||'';w.navigationCurrent=()=>true;w.S={profile:{role:'teacher'}};
+const result={c1_deviations:[],competencies:Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,{score:160,diagnostic:'Diagnóstico'}])),transcription:'Texto',next_step:'Revisar',total_score:800};
+const jobs=[{id:'theme',purpose:'theme',status:'completed',result:{theme:'Outro tema'}},{id:'latest',purpose:'correction',status:'completed',result},{id:'older',purpose:'correction',status:'completed',result}];
+w.edge=async(_,b)=>{calls.push(b);switch(b.action){case'live_status':return{enabled:true,management:true};case'organizations':return{organizations:[]};case'live_activities':return{activities:[{id:'a',name:'Atividade',theme:'Tema',essay_count:2,pending_review_count:1}],has_more:false};case'live_history':return{essays:[{id:'e',student_label:'Ana',theme:'Tema',summary:{state:'review',score:800}},{id:'z',student_label:'Zero',theme:'Tema',summary:{state:'reviewed',score:0}}],has_more:!b.offset};case'live_get':return{essay:{id:'e',theme:'Tema'},jobs};default:throw Error(b.action);}};
+w.eval(fs.readFileSync('teacher-live.e12.js','utf8'));
+await w.renderTeacherLive({route:'teacher-live-history'});
+assert.match(w.document.body.textContent,/Aguardando revisão/);assert.match(w.document.body.textContent,/0 \/ 1000/);assert.match(w.document.body.textContent,/Editar identificação/);
+w.$('tlSearchInput').value='Ana';await w.$('tlListSearch').onsubmit({preventDefault(){}});await new Promise(r=>setTimeout(r,0));
+assert(calls.some(x=>x.action==='live_history'&&x.search==='Ana'&&x.offset===0));
+await w.$('tlNextPage').onclick({target:w.$('tlNextPage')});
+await w.document.querySelector('[data-essay]').onclick();assert(w.$('tlReview'));assert(w.$('tlVersions'));assert.equal(w.document.querySelector('[data-job]'),null);
+await w.$('tlVersions').onclick({target:w.$('tlVersions')});assert.equal(w.document.querySelectorAll('[data-job]').length,3);
+await w.$('tlListBack').onclick({target:w.$('tlListBack')});assert.equal(w.$('tlSearchInput').value,'Ana');assert.equal(calls.at(-1).offset,20);
+await w.$('tlActivities').onclick({target:w.$('tlActivities')});assert.match(w.document.body.textContent,/2 redação\(ões\) · 1 para revisar/);
+await w.document.querySelector('[data-activity]').onclick();assert(w.$('tlActivitiesBack'));assert.equal(w.$('tlSearchInput').value,'');
+await w.$('tlActivitiesBack').onclick({target:w.$('tlActivitiesBack')});assert(w.document.querySelector('[data-activity]'));
+assert(!calls.some(x=>x.action==='live_start'));d.window.close();console.log('PASS usability: global search request, pagination/filter restoration, direct latest correction, versions accessible, group back, zero score, counts, no paid generation');
+})().catch(e=>{console.error(e);process.exitCode=1});

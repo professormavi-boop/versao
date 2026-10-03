@@ -38,3 +38,4 @@
 #nav .teacher-credit-button.active{background:#8b1c1c;color:white}
 #tlDeviationEditor .tl-evidence-card:has(input:checked){border-style:dashed;background:#f6f4f3}
 #tlDeviationEditor textarea{width:100%;min-height:80px}
+.teacher-live .tl-search{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin:0 0 20px}.teacher-live .tl-search .field{flex:1 1 220px;margin:0}.teacher-live .tl-search .btn{min-height:44px;margin-bottom:0}
