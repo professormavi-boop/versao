@@ -38,7 +38,7 @@ function betaRequestAllowed(url,options={}){
    'student-pin-api':['login','list','issue'],
    'admin-accounts-api':['directory','create'],
    'teacher-catalog-api':['home','organizations','base','students','update','visibility','delete'],
-   'teacher-organization-api':['live_activities','live_activity','live_status','live_create','live_theme','live_start','live_get','live_history','live_review','live_share','live_shares','live_revoke','organizations','create_organization','base','create_class','students','review','import','import_status','import_organize','import_review','import_commit','google_complete','update_name'],
+   'teacher-organization-api':['live_manage','live_activities','live_activity','live_status','live_create','live_theme','live_start','live_get','live_history','live_review','live_share','live_shares','live_revoke','organizations','create_organization','base','create_class','students','review','import','import_status','import_organize','import_review','import_commit','google_complete','update_name'],
    'live-correction-beta-api':['directory','start','upload','finalize','list','queue','delete_file','delete_submission'],
    'proposal-beta-api':['bootstrap','get','save','save_all','generate','credits','update_status','delete'],'live-correction-api':['queue','list'], 'proposal-api':['bootstrap','get'],
    'official-correction-beta-api':['get','approve'],'ai-correction-beta-api':['get','status','correct','approve'],
