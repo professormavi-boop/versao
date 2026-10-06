@@ -1,4 +1,6 @@
-# Auditoria ENEM — implementação preparada em 06/10/2026
+# Auditoria ENEM — implantação de 06/10/2026
+
+**Estado atual:** código publicado em produção no commit `304437741179c51dc8945a4b01a4aa184c60bdf2`; API normal v29 e Ao Vivo v15. As seções anteriores à autorização documentam etapas históricas. Reprocessamentos pagos ainda não executados.
 
 Branch local: `fix/enem-evidence-review`. Base limpa: `9e328e691ddb4773b281cbfbfcbcfb25cf5e65b0`.
 Estado remoto consultado somente por leitura: `ai-correction-beta-api` v28 e `teacher-organization-api` v14. A leitura de ACL confirmou `EXECUTE=false` para `anon` e `authenticated` nas quatro RPCs de conclusão/aprovação/revisão/compartilhamento; clientes não podem chamar diretamente essas funções. Nenhuma função, credencial, nota, link existente ou configuração remota foi alterada.
@@ -114,3 +116,27 @@ Esta etapa não criou projeto, deployment, branch remota, PR, usuário ou regist
 Marcus autorizou expressamente a implantação deste pacote em produção após a apresentação dos resultados. A restrição anterior de somente entrega local está superada exclusivamente para o código pertinente. A autorização não cobre alterar Auth/credenciais nem cobrar reprocessamentos sem teto confirmado. Reprocessamento posterior das duas submissões exatas aguardará identificação do auditor e aprovação do gasto.
 
 Preparação final: main9e328e6 e originais das funções v28/v14 reconferidos byte a byte; acrescentada exigência de `review_policy_version` no corpo de revisão, para que a implantação backend→frontend bloqueie abas antigas até atualização. Nenhuma mudança de schema/RPC/credencial. A versão de contrato do banco permanece a mesma. Rollback completo mantido. Smoke remoto preferirá metadados/fontes e requisições sem autenticação ou sem operação de escrita; não haverá geração paga de teste.
+
+
+## Resultado da publicação autorizada
+
+- `main` avançou por fast-forward, sem force push e sem divergências concorrentes detectadas, até `304437741179c51dc8945a4b01a4aa184c60bdf2`.
+- Vercel produção: projeto `prj_5OC7zfjEgapvbrapPjas2lLvvut7`, deployment `dpl_7ttXvat8wfN4kyRm8Chejo4VY22L`, READY, target production, alias `app.versaoprofessor.com`, sem aliasError. A consulta do domínio e a do deployment devolveram o mesmo commit.
+- Supabase: `ai-correction-beta-api` v29 e `teacher-organization-api` v15, ACTIVE, JWT preservado. Os 5+14 arquivos ativos foram obtidos depois do deploy e comparados byte a byte com o pacote preparado; todos iguais.
+- O primeiro deployment (`dpl_7wUnejiAtYETM2Cmj18YNKpAsp5a`, commit d5f7f40) mostrou `alias_in_use` para os domínios da landing herdados de vercel.json. Corrigido retirando somente `alias`, deixando os domínios já cadastrados no projeto. Nenhum domínio foi criado/transferido; DNS/Auth/env/credenciais não foram alterados. O deployment final não tem o erro.
+- Os 29 scripts de teste e `npm run check` passaram no commit final. O typecheck dos dois módulos de qualidade e a sintaxe dos 19 módulos preparados passaram; manifesto SHA-256 conferido. Logs: `/tmp/enem-production-final-tests.log`.
+- Não houve migração, mudança de RPC/grants, mudança de notas, reprocessamento, envio de devolutiva ou chamada paga. Os clientes antigos precisam atualizar a página para enviar a nova versão da política antes de aprovar.
+
+Limites da verificação remota: OPTIONS das duas funções foi bloqueado pelo proxy deste executor com HTTP403; acesso interrompido sem contorno. A árvore de arquivos do deployment Git não está disponível pelo endpoint de listagem de arquivos da Vercel (404). Assim, a confirmação de frontend é de deployment, commit e aliases declarados pela plataforma, e a confirmação de backend inclui fonte ativa exata; não se alega HTTP direto, login, uso real ou nova análise por IA homologados. Os testes HTTP/DOM são locais.
+
+Rollback: restaurar o deployment anterior `dpl_E5aE4EbNhqLfougynxcwA4D6oiA5`/código9e328e6 para o frontend e os arquivos originais v28/v14 para as duas funções, sem apagar dados. A versão de contrato JSON do banco não mudou. Para novo deploy por Git do código antigo, preservar a remoção do alias indevido da landing. Qualquer rollback remoto deve ser comunicado e autorizado conforme o incidente, sem alterar notas.
+
+### Preparação do reprocessamento — não executado
+
+Alvos exatos fornecidos pelo auditor e reconferidos por IDs, sem download de conteúdos ou seleção por nome aproximado. Uma submissão mantém a nota oficial880 v1; a outra não tem nota oficial. Ambas mantêm análises anteriores e um arquivo cada (JPEG/PDF). Nenhum job novo foi criado por esta implantação.
+
+Cobrança conferida por leitura das funções SQL: `reserve_correction_credit` reserva1 crédito; `restart_correction_evidence` valida a análise anterior e chama `start_correction_beta(...,true)`, que insere novo job, preserva `previous_score_id` e não altera o estado aprovado da submissão. O fluxo correto futuro é `correct` com `force:true`, `previous_job_id` exato e `credit_confirmed:true`, autenticado como o docente indicado; nunca `repair`, que reaproveita o job antigo. Nenhuma aprovação automática.
+
+O pai recebeu saldo/consumo e a referência histórica de custo; a nova execução aguarda confirmação de2 créditos e teto monetário aplicável. Valores históricos não são orçamento nem autorização. Também será necessário um caminho de execução autorizado na sessão do docente; não será criada credencial, modificada autenticação ou usada outra conta para contornar as restrições do ambiente. Antes de executar, reconferir último job, arquivo e nota oficial para evitar corrida com trabalho humano.
+
+Fontes operacionais consultadas: [deploy de Edge Functions](https://supabase.com/docs/guides/functions/deploy) e [exclusão de arquivos Vercel](https://vercel.com/docs/deployments/vercel-ignore). O changelog markdown Supabase não pôde ser lido pelo navegador por tipo de conteúdo não suportado; não houve mudança de API ou autenticação da plataforma nesta entrega.
