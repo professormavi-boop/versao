@@ -15,7 +15,7 @@ Não houve reprocessamento pago, dados pessoais em fixtures, amostragem de reda�
 - Duplicatas são identificadas pelo intervalo literal no texto normalizado (NFC/espaços). Descrições equivalentes de localização e contextos de tamanhos diferentes não criam ocorrências distintas. Trechos repetidos sem contexto suficiente são ambíguos e vão para revisão; não se escolhe uma ocorrência arbitrariamente.
 - Confirmação não é o padrão. Toda ocorrência exige decisão explícita; índices duplicados, ausentes ou fora do conjunto original são rejeitados. O servidor também valida: não basta `review_confirmed=true`.
 - Todas as pendências essenciais exigem resolução textual vinculada à pendência exata. A fundamentação é uma declaração humana, não uma verificação automática da verdade da resposta. Descartes, mudança de C1 e análises legadas sem auditoria desta política exigem reavaliação de C1, mesmo para manter a nota. O diagnóstico revisado substitui o anterior na publicação.
-- A interface normal e Ao Vivo usam o mesmo núcleo, com teste de equivalência das três cópias. As decisões do Ao Vivo só são restauradas como revisadas quando vieram da nova política; confirmações históricas automáticas não são reaproveitadas silenciosamente.
+- A interface normal e Ao Vivo usam o mesmo núcleo, com teste de equivalência das três cópias. As confirmações do Ao Vivo só são restauradas como revisadas quando vieram da nova política; confirmações históricas automáticas não são reaproveitadas silenciosamente. Textos editados e descartes históricos explícitos são preservados ao reabrir.
 - C2/C3 permanecem qualitativos: legitimidade, pertinência e produtividade contextual; projeto e desenvolvimento. As instruções não proíbem autores/repertórios por lista fixa e evitam dupla penalização automática. Títulos, nomes e grafias históricas exigem cautela documental. C5 admite detalhamento de agente, ação, meio ou efeito/finalidade.
 - Novos links do Ao Vivo de professor exigem revisão com a nova política. Para aluno, análises legadas sem auditoria atual, com desvios ou pendências essenciais não podem gerar novos links antes de revisão docente; estimativas atuais sem essas pendências preservam compartilhamento. A interface exibe a mensagem retornada pela API. **O fluxo atual não transfere uma redação do aluno para professor; encaminhamento desse caso continua uma limitação do produto.** Links já emitidos não são revogados.
 - A auditoria de revisão não inclui relógio variável no payload canônico, preservando a idempotência da RPC de aprovação após falha/repetição. Datas reais de aprovação/revisão continuam sendo responsabilidade das RPCs existentes.
@@ -54,3 +54,56 @@ Nenhum push/PR/deploy foi executado. O push pode disparar deployments por integr
 ## Rollback proposto
 
 Reverter somente os commits desta branch no frontend e restaurar o conjunto original completo da API normal v28 e da API Ao Vivo v14, após autorização da operação remota. Os originais estão em `backend/enem/original`, com hashes no manifesto. Não apagar revisões, recibos, notas ou campos JSON já gravados; os campos adicionais são ignoráveis pelo contrato antigo. Não há migração a desfazer. A restauração também remove os novos bloqueios: avaliar suspensão de novas aprovações/compartilhamentos durante uma regressão, em vez de restaurar silenciosamente o comportamento inseguro. Não modificar links ou notas anteriores como parte do rollback.
+
+
+## Segunda revisão e rota de homologação — 06/10/2026
+
+Consultas exclusivamente de leitura, sem push, deploy, chamadas pagas, login ou escrita remota. O `git fetch` trouxe somente o commit já publicado de preview para inspeção local, sem mudar a branch de trabalho.
+
+### Vínculos confirmados
+
+| Camada | Teste | Produção |
+|---|---|---|
+| Domínio | https://teste.versaoprofessor.com | https://app.versaoprofessor.com |
+| Projeto Vercel | `prj_7mEBS5QDaBWrG4hjnBKelNkU90OY` — versao-teste-etapa12-consolidada | `prj_5OC7zfjEgapvbrapPjas2lLvvut7` — versao-producao |
+| Deployment atual | `dpl_6GNTiy533KRMvjNmw8BpKcCgTmU7`, READY, target null (preview) | `dpl_E5aE4EbNhqLfougynxcwA4D6oiA5`, READY, target production |
+| Branch | `feat/ao-vivo-preview` | `main` |
+| Commit | `8681844d7d31a5ee495c1a50297eab825d5521d2` | `9e328e691ddb4773b281cbfbfcbcfb25cf5e65b0` |
+| Backend no código desse commit | `https://huccxcpwoydwuisrmboc.supabase.co` | O mesmo |
+
+A consulta específica de domínios confirmou `teste.versaoprofessor.com` verificado e vinculado à branch de preview nesse projeto. A proteção SSO informada pelo projeto é `all_except_custom_domains`: o domínio customizado não deve ser considerado protegido por SSO da Vercel. Auth da aplicação continua necessário, mas não foi homologado nesta etapa.
+
+Os dois commits têm a mesma árvore Git `458c876e73e15cc6f28b09818ba40982f1584250`. O `core.e12.js` tem SHA-256 `db9a40866bfca0082a90a7c12245514249afefe7230a441ae29e8b35ba7b4e9c` em ambos. Esse código fixa o mesmo BASE Supabase, mesma configuração pública de cliente e mesmas rotas: correção normal `ai-correction-beta-api`; Ao Vivo `teacher-organization-api`. A listagem remota confirmou funções ACTIVE/JWT: normal v28, Ao Vivo v14; APIs auxiliares `official-correction-beta-api` v5 e `live-correction-beta-api` v6.
+
+A listagem Supabase retornou Versao e outro produto, Adapte. Não há projeto de homologação do Versão identificado nessa conta; `list_branches` de Versao retornou vazio. Adapte não deve ser reutilizado. **Existe isolamento do frontend, não do backend.** Auth, tabelas, Storage, créditos, jobs, RPCs e Edge Functions do código de preview apontam ao ambiente compartilhado. As flags de frontend não são uma barreira de isolamento: a allowlist permite ações como `correct`, `approve`, `live_start`, `live_review` e `live_share`.
+
+Limite da evidência: GET do HTML e do core em ambos os domínios foi bloqueado pelo proxy do executor (`Tunnel connection failed: 403 Forbidden`). Esse acesso foi interrompido, sem usar URL alternativa para contornar o bloqueio. O vínculo está confirmado pela Vercel e a configuração pelo código exato do commit declarado pelo deployment; não se afirma comparação byte a byte dos assets efetivamente servidos nesta etapa.
+
+### Revisão do diff e preservação histórica
+
+A revisão encontrou uma regressão local em `liveDeviationReviews`: filtrar toda a auditoria antiga para eliminar confirmações implícitas também descartava sugestões/regras editadas e decisões históricas de descarte ao preencher o editor. Corrigido localmente: carregar textos, razões e descartes de todas as versões, mas aceitar confirmação prévia somente da nova política. A decisão histórica `confirmed` volta a `pending`; não se publica nem grava ao abrir.
+
+Acrescentadas verificações sintéticas aos testes existentes para esse caso e para uma revisão histórica com nota 920: tentativa de gerar novo link sem nova política retorna bloqueio; reaprovação incompleta também retorna bloqueio; o objeto histórico permanece byte a byte igual e não ocorre RPC de escrita. A regressão existente de exibição oficial confirmou nota 880 em vez da análise preliminar 840, sem vazamento de feedback antigo. Esses testes e a inspeção de fluxo sustentam que **bloqueio não apaga nem recalcula notas já aprovadas**. Não equivalem a prova sobre todo dado legado possível ou a teste em banco real.
+
+Resultado: **29 scripts de teste passaram — 25 existentes e 4 novos ENEM**, com múltiplas asserções internas; esse número não é uma contagem de 29 cenários individuais. A suíte completa foi reexecutada após a correção histórica. `npm run check`, typecheck dos dois núcleos de qualidade e `git diff --check` também passaram. Logs locais: `/tmp/enem-independent-review-final.log`; prova inicial de histórico em `/tmp/enem-history-handler-review.cjs`, posteriormente incorporada à suíte versionada.
+
+Limitações materiais ainda abertas:
+
+- Backend isolado inexistente; a versão preparada ainda não executou em Deno/Supabase real nem contra as RPCs reais em sandbox. Não há dump completo do schema no checkout.
+- Não foram executados login real, CAPTCHA, OAuth, teste visual/mobile, upload real de imagem/PDF, geração/cobrança/estorno real, prova de manifesto durante polling/reconciliação real ou entrega de link externo. Os testes de handlers substituem banco e transporte por mocks; o provedor não é chamado.
+- Não há scripts próprios de lint/build nem typecheck integral das funções. O check sintático/estático e o typecheck limitado não devem ser apresentados como esses testes.
+- As regras C2/C3/C5 e cautela com grafias históricas estão no prompt; testes de contrato não provam obediência semântica do modelo. O DOCX permanece indisponível para cotejo.
+- Revisões anteriores podem ser consultadas; novos links exigem política atual. Aluno sem revisão docente e com pendências fica bloqueado, e não existe fluxo de transferência dessa redação ao professor. Esse efeito de produto precisa ser homologado, sem remover o bloqueio silenciosamente.
+- A resolução de pendências aceita fundamentação humana textual; o programa não comprova sua veracidade. Resultados anteriores sem manifesto não passam a ter proveniência retroativa.
+
+### Próximo passo proposto e autorizações específicas faltantes
+
+A proposta é **preparar backend de homologação separado antes de publicar o frontend novo**. O deployment de teste atual pode servir de referência visual, mas não de sandbox de dados. Não recomendo ativar as novas funções em `huccxcpwoydwuisrmboc` para viabilizar um teste.
+
+1. Autorizar criação de um **novo projeto Supabase exclusivo**, nome proposto `versao-homologacao-enem`, com limite de gasto de infraestrutura definido pelo usuário. Seu ID/URL só serão conhecidos após criação. Autorizar exportação apenas do schema necessário (tabelas, funções, RLS e grants), sem linhas, usuários, redações, arquivos ou saldos da produção. Conferir dependências de Auth/Storage e RPCs; nenhum clone de dados de alunos. Não usar Adapte.
+2. Autorizar implantação nesse backend das duas funções preparadas e das dependências necessárias ao fluxo normal/Ao Vivo; criar somente perfis, escola/turma/proposta e saldos **sintéticos**, sem vínculos comerciais. Configurar segredos exclusivos de teste por canal seguro, sem imprimir nem copiar credenciais de produção. Login/CAPTCHA e eventual OAuth precisam ser configurados para o domínio de teste no ambiente isolado; qualquer ajuste em configuração compartilhada requer autorização separada.
+3. Autorizar ajuste do frontend de homologação para o novo BASE/configuração pública, com verificação que impeça fallback ao Supabase de produção. O BASE atual é literal no JavaScript: mudar somente variáveis Vercel não troca o backend. Autorizar deploy **Preview apenas** no projeto `prj_7mEBS5QDaBWrG4hjnBKelNkU90OY` e no domínio `teste.versaoprofessor.com`. Preferir deployment explicitamente direcionado; não fazer push até confirmar que integrações Git não dispararão outro projeto. Main e app.versaoprofessor.com permanecem intactos.
+4. Autorizar execução real de **até cinco correções sintéticas**, com tema fornecido para evitar geração adicional: normal com imagem e PDF; Ao Vivo com texto, imagem e PDF. Definir também teto monetário total, incluindo chamadas auxiliares de pesquisa do provedor; cinco jobs não equivalem a preço fixo. Usar textos inventados, sem dados pessoais, contas de teste e créditos sintéticos. Sem retry/regeneração automática. Autorizar explicitamente as gravações de revisão/aprovação e geração/revogação de links **somente no backend novo**, verificando bloqueios, totais, versões, preservação da nota anterior, manifesto, polling e recuperação.
+5. Após evidência desses testes, decidir separadamente qualquer publicação no backend compartilhado ou em produção. Essas autorizações ainda não existem para esta mudança; não serão inferidas de autorização de homologação.
+
+Esta etapa não criou projeto, deployment, branch remota, PR, usuário ou registro. A única escrita foi local em código de correção da regressão, testes e documentação.

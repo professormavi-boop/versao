@@ -18,10 +18,11 @@ window.liveEvidenceHtml=function(value){
 };
 // Índices sempre se referem à análise original, inclusive após descartar ocorrências.
 window.liveDeviationReviews=job=>{
- const decisions=job.review?.review_audit?.policy_version==='enem-review-2026-10-06'?job.review.review_audit.decisions||[]:[];
+ const decisions=job.review?.review_audit?.decisions||[];
+ const currentPolicy=job.review?.review_audit?.policy_version==='enem-review-2026-10-06';
  return (job.result.c1_deviations||[]).map((d,index)=>{
   const saved=decisions.find(x=>x.index===index);
-  return {index,decision:['discarded','confirmed'].includes(saved?.decision)?saved.decision:'pending',correction:saved?.correction??d.correction??'',rule:saved?.rule??d.rule??'',reason:saved?.reason??''};
+  return {index,decision:saved?.decision==='discarded'?'discarded':currentPolicy&&saved?.decision==='confirmed'?'confirmed':'pending',correction:saved?.correction??d.correction??'',rule:saved?.rule??d.rule??'',reason:saved?.reason??''};
  });
 };
 window.liveDeviationEditorHtml=job=>{

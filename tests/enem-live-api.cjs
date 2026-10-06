@@ -13,6 +13,10 @@ let response=await call({action:'live_share'});assert.equal(response.status,409)
 response=await call({...review(),review_confirmed:false});assert.equal(response.status,400);assert.equal(writes.length,0);
 response=await call(review());assert.equal(response.status,200);assert.equal(job.review.total_score,800);assert.equal(job.review.review_audit.policy_version,'enem-review-2026-10-06');
 response=await call({action:'live_share'});assert.equal(response.status,200);assert.equal(writes.at(-1),'share_live_job');
+fresh();job.review={total_score:920,competencies:{C1:{score:200,diagnostic:'Diagnóstico histórico aprovado.'}},review_audit:{confirmed:true,decisions:[{index:0,decision:'discarded'}]}};delete job.result.evidence_audit;
+const historical=JSON.stringify(job),historicalWrites=writes.length;
+response=await call({action:'live_share'});assert.equal(response.status,409);assert.equal(JSON.stringify(job),historical);assert.equal(writes.length,historicalWrites);
+response=await call(review());assert.notEqual(response.status,200);assert.equal(JSON.stringify(job),historical);assert.equal(writes.length,historicalWrites);
 fresh();role='student';response=await call({action:'live_share'});assert.equal(response.status,200);
 job.result.review_requirements=['Pendência histórica'];const pendingWrites=writes.length;response=await call({action:'live_share'});assert.equal(response.status,409);assert.equal(writes.length,pendingWrites);delete job.result.review_requirements;
 job.result.transcription+=' [?]';const before=writes.length;response=await call({action:'live_share'});assert.equal(response.status,409);assert.equal(writes.length,before);
