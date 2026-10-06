@@ -33,6 +33,6 @@ const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
  assert.match(QUALITY_INSTRUCTIONS,/grafias históricas/);assert.match(QUALITY_INSTRUCTIONS,/C2: avalie legitimidade, pertinência e produtividade/);assert.match(QUALITY_INSTRUCTIONS,/agente, ação, meio ou efeito/);assert.match(QUALITY_INSTRUCTIONS,/não duplique automaticamente/);
  const transport={model:'synthetic',instructions:'Test instructions',text:{format:{schema:{type:'object'}}},input:[{content:[{type:'input_text',text:'PRIVATE ESSAY'},{type:'input_image',image_url:'SECRET URL',detail:'high'},{type:'input_file',file_url:'SECRET PDF'}]}]};
  const manifest=await inputManifest(transport);assert.deepEqual(manifest.inputs.map(i=>i.type),['input_text','input_image','input_file']);assert.match(manifest.instructions_sha256,/^[a-f0-9]{64}$/);assert.doesNotMatch(JSON.stringify(manifest),/PRIVATE|SECRET|url/);assert.deepEqual(manifest,await inputManifest(transport));assert.notEqual(manifest.instructions_sha256,(await inputManifest({...transport,instructions:'Changed'})).instructions_sha256);
- assert(!code.includes('reviewedEvidence(base,{...body,scores,review_policy_version:'enem-review-2026-10-06',review_confirmed:true})'));
+ assert(!code.includes('reviewedEvidence(base,{...body,scores,review_confirmed:true})'));
  console.log('PASS ENEM: five regressions, uncertainty, positions, deterministic retry, explicit review, C1 rationale, every band and invalid score, normal/live parity');
 })().catch(e=>{console.error(e);process.exitCode=1});
