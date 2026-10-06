@@ -1,7 +1,7 @@
 const {JSDOM}=require('jsdom'),fs=require('fs'),assert=require('node:assert/strict');
 (async()=>{
  const d=new JSDOM('<main id="view"></main>',{url:'https://app.example.test',runScripts:'outside-only'}),w=d.window,calls=[],essays=new Map(),activities=new Map();
- const result={competencies:Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,{score:160,diagnostic:'Diagnóstico'}])),transcription:'Texto',main_strength:'Argumentação',next_step:'Revisar',total_score:800};let job;
+ const result={quality_version:'enem-evidence-2026-09-20',evidence_audit:{version:'enem-review-2026-10-06',removed:[]},syntax_assessment:'Períodos articulados.',essay_status:'regular',proposal_complete:true,reading_quality:'good',competencies:Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,{score:160,diagnostic:'Diagnóstico'}])),transcription:'Texto',main_strength:'Argumentação',next_step:'Revisar',total_score:800};let job;
  w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=t=>'<h1>'+t+'</h1>';w.fmtDate=s=>s||'';w.navigationCurrent=()=>true;w.S={profile:{role:'teacher'}};
  w.edge=async(_,b)=>{calls.push(b);switch(b.action){
  case'live_status':return{enabled:true};case'organizations':return{organizations:[]};case'live_history':return{essays:[...essays.values()].filter(e=>!b.activity_id||e.activity_id===b.activity_id)};
@@ -9,7 +9,7 @@ const {JSDOM}=require('jsdom'),fs=require('fs'),assert=require('node:assert/stri
  case'live_activity':{let a=activities.get(b.activity_id);if(!a){a={id:b.activity_id,name:b.name,theme:b.theme,theme_origin:b.theme_origin};activities.set(a.id,a);}const e={...essays.get(b.essay_id),activity_id:a.id,theme:a.theme,theme_origin:a.theme_origin,theme_confirmed_at:'now'};essays.set(e.id,e);return{essay:e,activity:a};}
  case'live_activities':return{activities:[...activities.values()]};case'live_start':job={id:b.request_id,purpose:'correction',status:'completed',result,theme:'Tema de teste'};return{job};case'live_review':job={...job,review:result};return{job};default:throw Error(b.action);}};
  const click=async id=>w.$(id).onclick({target:w.$(id)});
- w.eval(fs.readFileSync('teacher-live.e12.js','utf8'));await w.renderTeacherLive(1);
+ w.eval(fs.readFileSync('enem-review.e12.js','utf8'));w.eval(fs.readFileSync('teacher-live.e12.js','utf8'));await w.renderTeacherLive(1);
  w.$('tlActivityEnabled').checked=true;w.$('tlActivityEnabled').onchange({target:w.$('tlActivityEnabled')});
  w.$('tlActivityName').value='Redação da aula';w.$('tlName').value='Aluno anterior';w.$('tlSchool').value='Escola anterior';w.$('tlText').value='Redação de teste para assegurar que o conteúdo anterior seja limpo. '.repeat(3);
  await click('tlNext');w.$('tlTheme').value='Desafios da educação brasileira';w.$('tlConfirmed').checked=true;w.$('tlConfirmed').onchange({target:w.$('tlConfirmed')});await click('tlNext');

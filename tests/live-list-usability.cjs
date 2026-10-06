@@ -5,7 +5,7 @@ w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&am
 const result={c1_deviations:[],competencies:Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,{score:160,diagnostic:'Diagnóstico'}])),transcription:'Texto',next_step:'Revisar',total_score:800};
 const jobs=[{id:'theme',purpose:'theme',status:'completed',result:{theme:'Outro tema'}},{id:'latest',purpose:'correction',status:'completed',result},{id:'older',purpose:'correction',status:'completed',result}];
 w.edge=async(_,b)=>{calls.push(b);switch(b.action){case'live_status':return{enabled:true,management:true};case'organizations':return{organizations:[]};case'live_activities':return{activities:[{id:'a',name:'Atividade',theme:'Tema',essay_count:2,pending_review_count:1}],has_more:false};case'live_history':return{essays:[{id:'e',student_label:'Ana',theme:'Tema',summary:{state:'review',score:800}},{id:'z',student_label:'Zero',theme:'Tema',summary:{state:'reviewed',score:0}}],has_more:!b.offset};case'live_get':return{essay:{id:'e',theme:'Tema'},jobs};default:throw Error(b.action);}};
-w.eval(fs.readFileSync('teacher-live.e12.js','utf8'));
+w.eval(fs.readFileSync('enem-review.e12.js','utf8'));w.eval(fs.readFileSync('teacher-live.e12.js','utf8'));
 await w.renderTeacherLive({route:'teacher-live-history'});
 assert.match(w.document.body.textContent,/Aguardando revisão/);assert.match(w.document.body.textContent,/0 \/ 1000/);assert.match(w.document.body.textContent,/Editar identificação/);
 w.$('tlSearchInput').value='Ana';await w.$('tlListSearch').onsubmit({preventDefault(){}});await new Promise(r=>setTimeout(r,0));

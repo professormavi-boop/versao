@@ -1,0 +1,38 @@
+const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
+(async()=>{
+ const folder='backend/enem/prepared/',source=fs.readFileSync(folder+'ai-correction-beta-api/correction-quality.ts','utf8');
+ assert.equal(source,fs.readFileSync(folder+'teacher-organization-api/correction-quality.ts','utf8'));
+ assert(fs.readFileSync('enem-review.e12.js','utf8').includes(source.replaceAll('export ','')),'browser/server parity');
+ const {validateEvidence,reviewedEvidence,QUALITY_VERSION,QUALITY_INSTRUCTIONS,inputManifest}=await import('../'+folder+'ai-correction-beta-api/correction-quality.ts');
+ const live=await import('../'+folder+'teacher-organization-api/live-ai.ts');
+ const code=fs.readFileSync(folder+'ai-correction-beta-api/index.ts','utf8');
+ const normal=code.slice(code.indexOf('    function normalizeResult('),code.indexOf('    function extractOutputText(')).replace('(Object.values(comps) as any[])','Object.values(comps)');
+ const context={validateEvidence,QUALITY_VERSION,SCORING_CALIBRATION:'test',VALID_SCORES:new Set([0,40,80,120,160,200])};vm.createContext(context);vm.runInContext(normal,context);
+ const deviation={original:'os problema',correction:'os problemas',rule:'Concordância nominal no contexto.',category:'concordância',location:'P1',evidence:'os problema persistem'};
+ const base=()=>({transcription:'Hoje os problema persistem.',c1_deviations:[{...deviation}],syntax_assessment:'Período articulado com concordância localizada.',essay_status:'regular',proposal_complete:true,reading_quality:'good',repertoire_checks:[],competencies:Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,{score:160,diagnostic:'Bom domínio.'}]))});
+ const normalize=raw=>{const evidence=validateEvidence(raw);return {...raw,...evidence};};
+ const body=b=>({scores:Object.fromEntries(Object.entries(b.competencies).map(([k,v])=>[k,v.score])),review_confirmed:true,deviation_reviews:b.c1_deviations.map((d,index)=>({index,decision:'confirmed',correction:d.correction,rule:d.rule})),requirement_resolutions:[],review_note:''});
+ const resolve=(b,q)=>{const probe=structuredClone(b),v=validateEvidence(probe);q.requirement_resolutions=[...new Set([...(b.review_requirements||[]),...v.review_requirements])].map((requirement,index)=>({index,requirement,resolution:'Conferido no texto e na proposta pelo professor.'}));q.c1_reassessment={score:q.scores.C1,diagnostic:'Faixa sustentada pela construção sintática.',rationale:'Estruturas regulares; ocorrência localizada, sem frequência sistemática.',syntax_assessment:'Períodos articulados conforme trechos conferidos.'};return q;};
+ // All five reported regressions, preserving score instead of inventing a replacement.
+ let raw=base();raw.c1_deviations[0].evidence='frase inexistente';let b=normalize(raw);assert.equal(b.c1_deviations.length,0);assert.equal(b.competencies.C1.score,160);assert(b.c1_reassessment_required);assert.throws(()=>reviewedEvidence(b,body(b)),/pendência/);let q=resolve(b,body(b));delete q.c1_reassessment;assert.throws(()=>reviewedEvidence(b,q),/Reavalie/);q=resolve(b,q);assert.equal(reviewedEvidence(b,q).review_audit.c1_reassessment.score,160);
+ raw=base();raw.transcription='Hoje [?] persistem.';raw.c1_deviations[0]={...deviation,original:'[?]',evidence:'Hoje [?] persistem.'};b=normalize(raw);assert.equal(b.c1_deviations.length,0);assert(b.needs_manual_review);assert.equal(b.evidence_audit.removed[0].reason,'uncertain_reading');
+ b=normalize(base());q=body(b);q.deviation_reviews=[];assert.throws(()=>reviewedEvidence(b,q),/explicitamente/);q=body(b);q.review_confirmed=false;assert.throws(()=>reviewedEvidence(b,q),/Confirme/);
+ raw=base();raw.c1_deviations.push({...deviation,location:'primeiro parágrafo',evidence:'Hoje os problema persistem.'});b=normalize(raw);assert.equal(b.c1_deviations.length,1);assert.equal(b.evidence_audit.removed[0].reason,'duplicate');
+ b=normalize(base());q=body(b);q.deviation_reviews[0].decision='discarded';assert.throws(()=>reviewedEvidence(b,q),/Reavalie/);q=resolve(b,q);assert.equal(reviewedEvidence(b,q).c1_deviations.length,0);assert.equal(q.scores.C1,160);
+ // Legacy results require fresh qualitative C1 assessment, never reuse an old implicit confirmation.
+ b=normalize(base());delete b.evidence_audit;q=body(b);assert.throws(()=>reviewedEvidence(b,q),/Reavalie/);q=resolve(b,q);assert.equal(reviewedEvidence(b,q).review_audit.c1_reassessment.score,160);
+ assert(fs.readFileSync('.vercelignore','utf8').includes('!enem-review.e12.js'));
+ // Repeat validation and approval are deterministic; interrupted review never yields an audit.
+ raw=base();raw.c1_deviations[0].evidence='ausente';normalize(raw);const a=validateEvidence(raw),again=validateEvidence(raw);assert.deepEqual(a,again);assert(a.c1_reassessment_required);
+ b=normalize(base());q=body(b);assert.deepEqual(reviewedEvidence(b,q),reviewedEvidence(b,q));assert.throws(()=>reviewedEvidence(b,{...q,deviation_reviews:[{...q.deviation_reviews[0],decision:'pending'}]}),/explicitamente/);
+ assert.throws(()=>reviewedEvidence(b,{...q,deviation_reviews:[q.deviation_reviews[0],q.deviation_reviews[0]]}),/explicitamente/);
+ for(const bad of [-40,1,159,201,240,NaN,'160',null]){raw=base();raw.competencies.C2.score=bad;assert.throws(()=>live.normalizeResult(raw),/Pontuação/);assert.throws(()=>context.normalizeResult(raw),/Pontuação/);assert.throws(()=>reviewedEvidence(b,{...q,scores:{...q.scores,C2:bad}}),/Pontuação/);}
+ for(const score of [0,40,80,120,160,200]){raw=base();Object.values(raw.competencies).forEach(c=>c.score=score);const x=live.normalizeResult(structuredClone(raw)),y=context.normalizeResult(structuredClone(raw));assert.equal(x.total_score,score*5);assert.equal(y.total_score,x.total_score);assert.equal(JSON.stringify(x),JSON.stringify(y).replaceAll('"test"','"c2-c3-2026-09-22"'));}
+ raw=base();raw.transcription+=' Novamente os problema persistem.';b=normalize(raw);assert.equal(b.c1_deviations.length,0);assert.equal(b.evidence_audit.removed[0].reason,'ambiguous_occurrence');
+ raw=base();raw.c1_deviations[0].original='Hoje';raw.c1_deviations[0].correction='hoje';b=normalize(raw);assert(b.c1_reassessment_required);assert.equal(b.c1_deviations.length,0);
+ assert.match(QUALITY_INSTRUCTIONS,/grafias históricas/);assert.match(QUALITY_INSTRUCTIONS,/C2: avalie legitimidade, pertinência e produtividade/);assert.match(QUALITY_INSTRUCTIONS,/agente, ação, meio ou efeito/);assert.match(QUALITY_INSTRUCTIONS,/não duplique automaticamente/);
+ const transport={model:'synthetic',instructions:'Test instructions',text:{format:{schema:{type:'object'}}},input:[{content:[{type:'input_text',text:'PRIVATE ESSAY'},{type:'input_image',image_url:'SECRET URL',detail:'high'},{type:'input_file',file_url:'SECRET PDF'}]}]};
+ const manifest=await inputManifest(transport);assert.deepEqual(manifest.inputs.map(i=>i.type),['input_text','input_image','input_file']);assert.match(manifest.instructions_sha256,/^[a-f0-9]{64}$/);assert.doesNotMatch(JSON.stringify(manifest),/PRIVATE|SECRET|url/);assert.deepEqual(manifest,await inputManifest(transport));assert.notEqual(manifest.instructions_sha256,(await inputManifest({...transport,instructions:'Changed'})).instructions_sha256);
+ assert(!code.includes('reviewedEvidence(base,{...body,scores,review_confirmed:true})'));
+ console.log('PASS ENEM: five regressions, uncertainty, positions, deterministic retry, explicit review, C1 rationale, every band and invalid score, normal/live parity');
+})().catch(e=>{console.error(e);process.exitCode=1});
