@@ -107,3 +107,10 @@ A proposta é **preparar backend de homologação separado antes de publicar o f
 5. Após evidência desses testes, decidir separadamente qualquer publicação no backend compartilhado ou em produção. Essas autorizações ainda não existem para esta mudança; não serão inferidas de autorização de homologação.
 
 Esta etapa não criou projeto, deployment, branch remota, PR, usuário ou registro. A única escrita foi local em código de correção da regressão, testes e documentação.
+
+
+## Autorização de produção recebida — 06/10/2026
+
+Marcus autorizou expressamente a implantação deste pacote em produção após a apresentação dos resultados. A restrição anterior de somente entrega local está superada exclusivamente para o código pertinente. A autorização não cobre alterar Auth/credenciais nem cobrar reprocessamentos sem teto confirmado. Reprocessamento posterior das duas submissões exatas aguardará identificação do auditor e aprovação do gasto.
+
+Preparação final: main9e328e6 e originais das funções v28/v14 reconferidos byte a byte; acrescentada exigência de `review_policy_version` no corpo de revisão, para que a implantação backend→frontend bloqueie abas antigas até atualização. Nenhuma mudança de schema/RPC/credencial. A versão de contrato do banco permanece a mesma. Rollback completo mantido. Smoke remoto preferirá metadados/fontes e requisições sem autenticação ou sem operação de escrita; não haverá geração paga de teste.

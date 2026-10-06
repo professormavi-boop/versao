@@ -65,6 +65,7 @@ function validateEvidence(raw,sources=[]){
 }
 function reviewedEvidence(base,body){
  if(base.quality_version!==QUALITY_VERSION)throw Error('Esta análise é anterior à revisão de evidências. Use a correção manual.');
+ if(body.review_policy_version!==REVIEW_POLICY_VERSION)throw Error('Atualize a página para usar a revisão de evidências atual antes de publicar.');
  if(body.review_confirmed!==true)throw Error('Confirme a revisão antes de publicar.');
  for(const c of codes)if(!bands.has(body.scores?.[c]))throw Error(`Pontuação inválida em ${c}.`);
  const deviations=base.c1_deviations||[],supplied=body.deviation_reviews;
@@ -98,7 +99,7 @@ async function inputManifest(payload){
  return {version:1,policy_version:REVIEW_POLICY_VERSION,quality_version:QUALITY_VERSION,model:String(payload.model||''),instructions_sha256:await digest(String(payload.instructions||'')),schema_sha256:await digest(JSON.stringify(payload.text?.format?.schema||{})),inputs:(payload.input||[]).flatMap(item=>(item.content||[]).map(part=>({type:part.type,image_detail:part.type==='input_image'?part.detail||'auto':null})))};
 }
 
-window.EnemReview={validateEvidence,reviewedEvidence,QUALITY_VERSION};
+window.EnemReview={validateEvidence,reviewedEvidence,QUALITY_VERSION,REVIEW_POLICY_VERSION};
 })();
 
 window.enemReviewRequirements=base=>{
@@ -111,6 +112,7 @@ window.enemReviewFields=(base,saved={})=>{
  return `<section data-enem-review><h4>Concluir revisão de evidências</h4>${requirements.map((text,index)=>`<label class="field">${esc(text)}<textarea data-enem-resolution="${index}">${esc(saved.requirement_resolutions?.find(x=>x.requirement===text)?.resolution||'')}</textarea></label>`).join('')}<p>Em análises anteriores a esta revisão, ao descartar evidências ou mudar C1, reavalie a faixa sem contar erros. A manutenção da nota também precisa de fundamento.</p><label class="field">Diagnóstico reavaliado de C1<textarea data-enem-diagnostic>${esc(saved.c1_reassessment?.diagnostic||'')}</textarea></label><label class="field">Estrutura sintática reavaliada<textarea data-enem-syntax>${esc(saved.c1_reassessment?.syntax_assessment||'')}</textarea></label><label class="field">Fundamento da faixa: sintaxe, frequência e recorrência<textarea data-enem-rationale>${esc(saved.c1_reassessment?.rationale||'')}</textarea></label></section>`;
 };
 window.enemReviewBody=(host,base,scores)=>({
+ review_policy_version:window.EnemReview.REVIEW_POLICY_VERSION,
  requirement_resolutions:window.enemReviewRequirements(base).map((requirement,index)=>({index,requirement,resolution:host.querySelector(`[data-enem-resolution="${index}"]`)?.value.trim()||''})),
  c1_reassessment:{score:scores.C1,diagnostic:host.querySelector('[data-enem-diagnostic]')?.value.trim()||'',syntax_assessment:host.querySelector('[data-enem-syntax]')?.value.trim()||'',rationale:host.querySelector('[data-enem-rationale]')?.value.trim()||''}
 });

@@ -63,6 +63,7 @@ export function validateEvidence(raw,sources=[]){
 }
 export function reviewedEvidence(base,body){
  if(base.quality_version!==QUALITY_VERSION)throw Error('Esta análise é anterior à revisão de evidências. Use a correção manual.');
+ if(body.review_policy_version!==REVIEW_POLICY_VERSION)throw Error('Atualize a página para usar a revisão de evidências atual antes de publicar.');
  if(body.review_confirmed!==true)throw Error('Confirme a revisão antes de publicar.');
  for(const c of codes)if(!bands.has(body.scores?.[c]))throw Error(`Pontuação inválida em ${c}.`);
  const deviations=base.c1_deviations||[],supplied=body.deviation_reviews;
