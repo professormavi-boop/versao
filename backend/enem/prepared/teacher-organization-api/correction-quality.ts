@@ -83,13 +83,18 @@ export function reviewedEvidence(base,body){
   confirmed.push(item);
  }
  const requirements=[...new Set([...(base.review_requirements||[]),...validation.review_requirements])];
- const resolutions=body.requirement_resolutions||[];
- if(resolutions.length!==requirements.length||requirements.some((requirement,index)=>!resolutions.some(r=>r.index===index&&r.requirement===requirement&&clean(r.resolution))))throw Error('Resolva cada pendência essencial antes de publicar.');
+ // Individual notes are optional. Final teacher approval remains mandatory above.
+ // Never fabricate a resolution or claim each observation was individually checked.
+ const suppliedResolutions=Array.isArray(body.requirement_resolutions)?body.requirement_resolutions:[];
+ const resolutions=requirements.flatMap((requirement,index)=>{
+  const entry=suppliedResolutions.find(r=>r?.index===index&&r.requirement===requirement&&clean(r.resolution));
+  return entry?[{index,requirement,resolution:clean(entry.resolution)}]:[];
+ });
  const reassess=base.evidence_audit?.version!==REVIEW_POLICY_VERSION||base.c1_reassessment_required===true||validation.c1_reassessment_required||decisions.some(d=>d.decision==='discarded')||body.scores.C1!==base.competencies.C1.score;
  const assessment=body.c1_reassessment;
  if(reassess&&(!assessment||assessment.score!==body.scores.C1||!clean(assessment.diagnostic)||!clean(assessment.rationale)||!clean(assessment.syntax_assessment)))throw Error('Reavalie a faixa, o diagnóstico e a sintaxe de C1 e justifique a manutenção ou mudança da nota.');
  if(base.essay_status==='zero_candidate'&&codes.some(c=>body.scores[c]!==0))throw Error('Para alterar o enquadramento de anulação, utilize a correção manual e justifique a reavaliação.');
- return {...base.detailed_analysis,main_strength:String(body.main_strength??base.main_strength??''),next_step:String(body.overall_feedback??base.next_step??''),c1_deviations:confirmed,repertoire_checks:validation.repertoire_checks,competency_improvements:body.detailed_analysis?.competency_improvements||{},teacher_notes:String(body.detailed_analysis?.deviations_rules||''),review_audit:{quality_version:QUALITY_VERSION,policy_version:REVIEW_POLICY_VERSION,confirmed:true,note:clean(body.review_note),decisions,requirement_resolutions:resolutions,c1_reassessment:reassess?assessment:null},syntax_assessment:reassess?assessment.syntax_assessment:base.syntax_assessment};
+ return {...base.detailed_analysis,main_strength:String(body.main_strength??base.main_strength??''),next_step:String(body.overall_feedback??base.next_step??''),c1_deviations:confirmed,repertoire_checks:validation.repertoire_checks,competency_improvements:body.detailed_analysis?.competency_improvements||{},teacher_notes:String(body.detailed_analysis?.deviations_rules||''),review_audit:{quality_version:QUALITY_VERSION,policy_version:REVIEW_POLICY_VERSION,confirmed:true,note:clean(body.review_note),decisions,review_requirements:requirements,requirement_resolutions:resolutions,c1_reassessment:reassess?assessment:null},syntax_assessment:reassess?assessment.syntax_assessment:base.syntax_assessment};
 }
 
 export async function inputManifest(payload){

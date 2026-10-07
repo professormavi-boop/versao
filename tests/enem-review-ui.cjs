@@ -6,13 +6,13 @@ Object.assign(w,{$:id=>w.document.getElementById(id),esc:x=>String(x??'').replac
 w.HTMLElement.prototype.scrollIntoView=function(){};
 for(const file of ['enem-review.e12.js','correction.e12.js'])require('node:vm').runInContext(fs.readFileSync(file,'utf8'),dom.getInternalVMContext());
 const base={report_format:'essential-v1',quality_version:'enem-evidence-2026-09-20',transcription:'Os problema continuam.',syntax_assessment:'Sintaxe regular.',reading_quality:'good',essay_status:'regular',proposal_complete:true,c1_deviations:[{original:'Os problema',correction:'Os problemas',category:'concordância',rule:'Concordância nominal.',location:'P1',evidence:'Os problema continuam.'}],competencies:Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,{score:160,diagnostic:'Bom domínio.'}])),main_strength:'Progressão.',overall_feedback:'Revisar concordância.',improvement_priority:'Concordância.',total_score:800};
-Object.assign(base,w.EnemReview.validateEvidence(base));
+Object.assign(base,w.EnemReview.validateEvidence(base));base.review_requirements=['Conferir repertório no contexto.'];
 w.edge=async(_,body)=>{approveCalls++;last=body;w.EnemReview.reviewedEvidence(base,body);if(fail)throw Error('Rede interrompida');return {approved:true,score:{id:'synthetic'}};};
 w.renderAiResult('test',{id:'job',status:'completed',result:base},null,null,{});
 const $=s=>w.document.querySelector(s),approve=()=> $('[data-approve-ai]').onclick();
 assert.equal($('[data-deviation-confirm]'),null);
 confirm=false;await approve();assert.equal(approveCalls,0);
-confirm=true;await approve();assert.equal(approveCalls,1);assert.equal(last.deviation_reviews[0].decision,'confirmed');assert.equal(last.review_confirmed,true);approveCalls=0;
+confirm=true;await approve();assert.equal(approveCalls,1);assert.equal(last.deviation_reviews[0].decision,'confirmed');assert.equal(last.review_confirmed,true);assert.equal(last.requirement_resolutions[0].resolution,'');assert.match($('[data-enem-review]').textContent,/opcional/);approveCalls=0;
 $('[data-deviation-discard="0"]').checked=true;await approve();assert.equal(approveCalls,0);assert.match($('[data-approve-status]').textContent,/Reavalie/);
 $('[data-enem-diagnostic]').value='Bom domínio, sustentado por estrutura e frequência.';$('[data-enem-syntax]').value='Períodos articulados.';$('[data-enem-rationale]').value='Manutenção da faixa após conferência qualitativa.';
 confirm=false;await approve();assert.equal(approveCalls,0);confirm=true;await approve();assert.equal(approveCalls,1);assert.match($('[data-approve-status]').textContent,/Rede interrompida/);assert.equal($('[data-deviation-discard="0"]').checked,true);

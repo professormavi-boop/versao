@@ -20,8 +20,8 @@ response=await call(review());assert.notEqual(response.status,200);assert.equal(
 fresh();role='student';response=await call({action:'live_share'});assert.equal(response.status,200);
 job.result.review_requirements=['Pendência histórica'];const pendingWrites=writes.length;response=await call({action:'live_share'});assert.equal(response.status,409);assert.equal(writes.length,pendingWrites);delete job.result.review_requirements;
 job.result.transcription+=' [?]';const before=writes.length;response=await call({action:'live_share'});assert.equal(response.status,409);assert.equal(writes.length,before);
-role='teacher';response=await call(review());assert.notEqual(response.status,200);assert.equal(writes.length,before);
+role='teacher';response=await call(review());assert.equal(response.status,200);assert.equal(writes.length,before+1);assert.equal(job.review.review_audit.requirement_resolutions.length,0);assert(job.review.review_audit.review_requirements.length>0);
 const pending=quality.validateEvidence(structuredClone(job.result)).review_requirements;
 response=await call({...review(),requirement_resolutions:pending.map((requirement,index)=>({requirement,index,resolution:'Leitura conferida no original.'}))});assert.equal(response.status,200);
-console.log('PASS actual live handler: review/publication gates, required decisions/resolutions, score total, teacher/student sharing, no provider calls');
+console.log('PASS actual live handler: review/publication gates, final approval and optional individual notes, score total, teacher/student sharing, no provider calls');
 })().catch(e=>{console.error(e);process.exitCode=1});
