@@ -109,10 +109,46 @@ window.enemReviewRequirements=base=>{
 };
 window.enemReviewFields=(base,saved={})=>{
  let requirements;try{requirements=window.enemReviewRequirements(base);}catch{return '<p class="safe-note">Análise incompleta. Use a correção manual para conferir as evidências.</p>';}
- return `<section data-enem-review><h4>Concluir revisão de evidências</h4>${requirements.map((text,index)=>`<label class="field">${esc(text)}<textarea data-enem-resolution="${index}">${esc(saved.requirement_resolutions?.find(x=>x.requirement===text)?.resolution||'')}</textarea></label>`).join('')}<p>Em análises anteriores a esta revisão, ao descartar evidências ou mudar C1, reavalie a faixa sem contar erros. A manutenção da nota também precisa de fundamento.</p><label class="field">Diagnóstico reavaliado de C1<textarea data-enem-diagnostic>${esc(saved.c1_reassessment?.diagnostic||'')}</textarea></label><label class="field">Estrutura sintática reavaliada<textarea data-enem-syntax>${esc(saved.c1_reassessment?.syntax_assessment||'')}</textarea></label><label class="field">Fundamento da faixa: sintaxe, frequência e recorrência<textarea data-enem-rationale>${esc(saved.c1_reassessment?.rationale||'')}</textarea></label></section>`;
+ return `<section data-enem-review><h4>Revisão do professor — pendente</h4><p>Os campos abaixo são preenchidos por você após conferir a redação original. Campos vazios não significam que a IA deixou de responder. Nenhuma revisão é confirmada automaticamente.</p>${requirements.map((text,index)=>`<label class="field">${esc(text)}<small>Registre o que conferiu e como resolveu esta pendência.</small><textarea placeholder="Preencha após conferir a redação original" data-enem-resolution="${index}">${esc(saved.requirement_resolutions?.find(x=>x.requirement===text)?.resolution||'')}</textarea></label>`).join('')}<div data-enem-c1 hidden><p data-enem-reason></p><details><summary>Análise original da IA — referência</summary><p><b>Diagnóstico:</b> ${esc(base.competencies?.C1?.diagnostic||"Não registrado.")}</p><p><b>Sintaxe:</b> ${esc(base.syntax_assessment||"Não registrada.")}</p></details><p>Registre sua reavaliação. Manter a nota também exige fundamento, sem contar erros.</p><label class="field">Diagnóstico reavaliado de C1<textarea data-enem-diagnostic>${esc(saved.c1_reassessment?.diagnostic||'')}</textarea></label><label class="field">Estrutura sintática reavaliada<textarea data-enem-syntax>${esc(saved.c1_reassessment?.syntax_assessment||'')}</textarea></label><label class="field">Fundamento da faixa: sintaxe, frequência e recorrência<textarea data-enem-rationale>${esc(saved.c1_reassessment?.rationale||'')}</textarea></label></div></section>`;
 };
 window.enemReviewBody=(host,base,scores)=>({
  review_policy_version:window.EnemReview.REVIEW_POLICY_VERSION,
  requirement_resolutions:window.enemReviewRequirements(base).map((requirement,index)=>({index,requirement,resolution:host.querySelector(`[data-enem-resolution="${index}"]`)?.value.trim()||''})),
  c1_reassessment:{score:scores.C1,diagnostic:host.querySelector('[data-enem-diagnostic]')?.value.trim()||'',syntax_assessment:host.querySelector('[data-enem-syntax]')?.value.trim()||'',rationale:host.querySelector('[data-enem-rationale]')?.value.trim()||''}
 });
+
+// Session-only drafts: never carry a teacher's unfinished review to another job/account.
+window.enemReviewDrafts=new Map();
+window.enemReviewBindings=new WeakMap();
+window.enemReviewKey=job=>`${(typeof S!=='undefined'?S.session?.user?.id:null)||'session'}:${job.id}`;
+window.enemReviewClear=job=>window.enemReviewDrafts.delete(window.enemReviewKey(job));
+window.enemAnalysisHeader=job=>{
+ job=job||{};
+ const b=job.result||{},date=new Date(job.completed_at||b.generated_at||job.created_at||'');
+ const when=Number.isNaN(date.getTime())?'Data não registrada':date.toLocaleString('pt-BR');
+ const pdf=b.request_manifest?.inputs?.some(x=>x.type==='input_file');
+ return `<section class="safe-note"><h4>Análise da IA</h4><p style="overflow-wrap:anywhere">${esc(when)} · Versão da análise: ${esc(job.id||'não registrada')}</p>${b.reading_quality&&b.reading_quality!=='good'?`<p><b>Limitação de leitura relatada pela IA:</b> ${esc(b.reading_notes||b.manual_review_reason||'Confira o original.')}</p>${pdf?'<p>O registro do envio inclui um arquivo. Isso não comprova que a IA conseguiu conferir visualmente todas as páginas. A declaração de ausência de imagem é um relato da IA, não uma confirmação de falha no envio.</p>':''}`:''}</section>`;
+};
+window.enemReviewBind=(host,job)=>{
+ if(!host.querySelector('[data-enem-review]'))return;
+ const base=job.result,key=window.enemReviewKey(job);
+ const previous=window.enemReviewBindings.get(host);if(previous)for(const event of ['input','change','toggle'])host.removeEventListener(event,previous,true);
+ const identity=el=>el.id?`id:${el.id}`:Array.from(el.attributes).filter(a=>/^data-(ai|deviation|review|enem|live)-/.test(a.name)).map(a=>a.name+'='+a.value).join('|');
+ const fields=()=>Array.from(host.querySelectorAll('textarea,select,input')).filter(el=>identity(el)&&el.id!=='tlReview');
+ const draft=window.enemReviewDrafts.get(key);
+ if(draft)for(const el of fields()){const saved=draft.find(x=>x.key===identity(el));if(saved){el.value=saved.value;if(el.tagName==='SELECT')el.onchange?.();if(el.type==='checkbox')el.checked=saved.checked;}}
+ const update=()=>{
+  const reasons=[];let validation;
+  try{validation=window.EnemReview.validateEvidence(JSON.parse(JSON.stringify(base)),base.consulted_sources||[]);}catch{reasons.push('Análise anterior ou incompleta: confira os dados pela correção manual.');}
+  if(base.evidence_audit?.version!==window.EnemReview.REVIEW_POLICY_VERSION)reasons.push('Análise anterior à política atual de revisão.');
+  if(base.c1_reassessment_required===true||validation?.c1_reassessment_required)reasons.push('Evidências foram removidas da análise.');
+  if(host.querySelector('[data-deviation-discard]:checked,[data-live-discard]:checked'))reasons.push('Você descartou um apontamento.');
+  const score=host.querySelector('[data-ai-score="C1"],#tlC1');
+  if(score&&Number(score.value)!==base.competencies?.C1?.score)reasons.push('Você alterou a nota de C1.');
+  host.querySelector('[data-enem-c1]').hidden=!reasons.length;
+  host.querySelector('[data-enem-reason]').textContent='Reavaliação necessária: '+reasons.join(' ');
+ };
+ const changed=()=>{if(!host.querySelector('[data-enem-review]'))return;update();window.enemReviewDrafts.set(key,fields().map(el=>({key:identity(el),value:el.value,checked:el.checked})));};
+ for(const event of ['input','change','toggle'])host.addEventListener(event,changed,true);
+ window.enemReviewBindings.set(host,changed);update();
+};

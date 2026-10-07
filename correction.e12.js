@@ -56,7 +56,8 @@ function renderAiResult(id,job,official,usage,row){
   const cost=usage&&Number.isFinite(Number(usage.estimated_cost_usd))?Number(usage.estimated_cost_usd):null;
   box.innerHTML=`<div class="box-head editor-head"><div><h2>${r.report_format==='essential-v1'&&jobStatus==='completed'?'Correção pronta':'Correção Inteligente VERSÃO'}</h2><p>${esc(row?.student_name||'Aluno')} · análise da redação</p></div><span class="pill ${jobStatus==='approved'?'ok':jobStatus==='completed'?'warn':''}">${esc(statusText)}</span></div>
   <div class="box-body ai-report">
-    ${r.report_format==='essential-v1'?`<section class="ai-section"><h4>Nota e competências</h4><div class="score-total" data-ai-total>${total??'—'} / 1000</div><div class="ai-competencies">${codes.map(c=>`<div class="ai-comp"><b>${c}</b> ${compData[c].score??'—'}</div>`).join('')}</div><p><b>C5</b></p>${[['action','Ação'],['agent','Agente'],['means','Meio/modo'],['purpose','Finalidade/efeito'],['detail','Detalhamento']].map(([key,label])=>`<p>${label}: ${esc(r.c5_check?.[key]||'Não informado')}</p>`).join('')}</section>
+    ${window.enemAnalysisHeader?.(job)||""}
+    ${r.report_format==='essential-v1'?`<section class="ai-section"><h4>Nota e competências</h4><div class="score-total" data-ai-total>${total??'—'} / 1000</div><div class="ai-competencies">${codes.map(c=>`<div class="ai-comp"><b>${c}</b> ${compData[c].score??'—'}</div>`).join('')}</div><p><b>C5</b></p>${[['action','Ação'],['agent','Agente'],['means','Meio/modo'],['purpose','Finalidade/efeito'],['detail','Detalhamento']].map(([key,label])=>`<p>${label}: ${esc(r.c5_check?.[key]||'Não informado')}</p>`).join('')}<p>Direitos humanos: ${esc(r.c5_check?.human_rights||'Não registrado nesta análise.')}</p><p>Vínculo argumentativo: ${esc(r.c5_check?.argument_alignment||'Não registrado nesta análise.')}</p></section>
 <section class="ai-section"><h4>Ponto forte</h4><p>${esc(r.main_strength||'Não informado')}</p></section>
 <section class="ai-section"><h4>Prioridade de melhoria</h4><p>${esc(r.improvement_priority||'Não informada')}</p></section>
 <section class="ai-section"><h4>Desvios</h4>${c1.map(d=>`<p><b>Trecho:</b> ${esc(d.original)}<br><b>Tipo:</b> ${esc(reportPortuguese(d.category))}<br><b>Explicação:</b> ${esc(d.rule)}<br><b>Sugestão:</b> ${esc(d.correction)}</p>`).join('')||(Array.isArray(r.c1_deviations)?'<p>Nenhum desvio confirmado identificado.</p>':`<p>${esc(rawDev||'Desvios não disponíveis nesta versão da correção.')}</p>`)}</section>
@@ -84,6 +85,7 @@ ${r.review_requirements?.length?`<div class="safe-note">${r.review_requirements.
     <div class="safe-note"><b>Correção Inteligente com IA.</b> Novas leituras só são iniciadas por clique explícito em “Correção Inteligente”. A nota continua preliminar até revisão/aprovação do professor.</div>
   </div>`;
   box.querySelectorAll('[data-ai-score]').forEach(el=>el.onchange=()=>{box.querySelector('[data-ai-total]').textContent=codes.reduce((n,c)=>n+Number(box.querySelector(`[data-ai-score="${c}"]`).value),0)+' / 1000';});
+  window.enemReviewBind?.(box,job);
   const redo=box.querySelector('[data-ai-redo]');
   if(redo)redo.onclick=async()=>{
     if(redo.disabled)return;redo.disabled=true;
@@ -124,7 +126,7 @@ ${r.review_requirements?.length?`<div class="safe-note">${r.review_requirements.
       status.textContent='Publicando correção...';approve.textContent='Publicando...';
       const result=await edge(API.ai,{action:'approve',submission_id:id,job_id:job.id,improvement_priority:priority,...edits});
       if(!result.approved||!result.score?.id)throw Error('O servidor não confirmou a aprovação.');
-      aiQueueStatus(id,'approved');S.cache={};
+      window.enemReviewClear?.(job);aiQueueStatus(id,'approved');S.cache={};
       notice('Correção validada e publicada com sucesso.');approve.textContent='Correção validada';approve.dataset.done='true';
       const badge=box.querySelector('.box-head .pill');if(badge){badge.textContent='Correção oficial';badge.className='pill ok';}
       box.querySelectorAll('select,textarea,input').forEach(el=>el.disabled=true);
