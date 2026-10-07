@@ -19,15 +19,14 @@ window.liveEvidenceHtml=function(value){
 // Índices sempre se referem à análise original, inclusive após descartar ocorrências.
 window.liveDeviationReviews=job=>{
  const decisions=job.review?.review_audit?.decisions||[];
- const currentPolicy=job.review?.review_audit?.policy_version==='enem-review-2026-10-06';
  return (job.result.c1_deviations||[]).map((d,index)=>{
   const saved=decisions.find(x=>x.index===index);
-  return {index,decision:saved?.decision==='discarded'?'discarded':currentPolicy&&saved?.decision==='confirmed'?'confirmed':'pending',correction:saved?.correction??d.correction??'',rule:saved?.rule??d.rule??'',reason:saved?.reason??''};
+  return {index,decision:saved?.decision==='discarded'?'discarded':'confirmed',correction:saved?.correction??d.correction??'',rule:saved?.rule??d.rule??'',reason:saved?.reason??''};
  });
 };
 window.liveDeviationEditorHtml=job=>{
  const reviews=window.liveDeviationReviews(job);
- return `<section class="tl-result-section" id="tlDeviationEditor"><h3>Revisar desvios</h3><p>Edite a sugestão e a regra ou ignore o apontamento. Ignorados não aparecem na devolutiva. A nota de C1 pode ser ajustada acima.</p>${reviews.map(d=>{const original=job.result.c1_deviations[d.index];return `<article class="tl-evidence-card" data-live-deviation="${d.index}"><h4>Ocorrência ${d.index+1}</h4><p><b>Trecho original:</b> ${esc(original.original)}</p><p>${esc(original.location||'')}</p><blockquote>${esc(original.evidence||'')}</blockquote><label class="field">Sugestão de escrita<textarea data-live-correction="${d.index}">${esc(d.correction)}</textarea></label><label class="field">Regra aplicada no contexto<textarea data-live-rule="${d.index}">${esc(d.rule)}</textarea></label><label class="tl-confirm"><input type="checkbox" data-live-confirm="${d.index}" ${d.decision==='confirmed'?'checked':''}> Confirmar evidência e regra</label><label class="tl-confirm"><input type="checkbox" data-live-discard="${d.index}" ${d.decision==='discarded'?'checked':''}> Ignorar este apontamento</label><p class="tl-muted">Para restaurar, desmarque ignorar e confirme a evidência.</p></article>`;}).join('')||'<p>Nenhum desvio apontado nesta análise.</p>'}<label class="field">Observação da revisão (opcional)<textarea id="tlReviewNote" maxlength="4000">${esc(job.review?.review_audit?.note||'')}</textarea></label></section>`;
+ return `<section class="tl-result-section" id="tlDeviationEditor"><h3>Revisar desvios</h3><p>Os apontamentos são mantidos por padrão. Edite a sugestão e a regra ou ignore o apontamento. Ignorados não aparecem na devolutiva. A nota de C1 pode ser ajustada acima.</p>${reviews.map(d=>{const original=job.result.c1_deviations[d.index];return `<article class="tl-evidence-card" data-live-deviation="${d.index}"><h4>Ocorrência ${d.index+1}</h4><p><b>Trecho original:</b> ${esc(original.original)}</p><p>${esc(original.location||'')}</p><blockquote>${esc(original.evidence||'')}</blockquote><label class="field">Sugestão de escrita<textarea data-live-correction="${d.index}">${esc(d.correction)}</textarea></label><label class="field">Regra aplicada no contexto<textarea data-live-rule="${d.index}">${esc(d.rule)}</textarea></label><label class="tl-confirm"><input type="checkbox" data-live-discard="${d.index}" ${d.decision==='discarded'?'checked':''}> Ignorar este apontamento</label><p class="tl-muted">Para restaurar, desmarque ignorar.</p></article>`;}).join('')||'<p>Nenhum desvio apontado nesta análise.</p>'}<label class="field">Observação da revisão (opcional)<textarea id="tlReviewNote" maxlength="4000">${esc(job.review?.review_audit?.note||'')}</textarea></label></section>`;
 };
 window.renderTeacherLive=async function(navigation){
  const studentMode=S.profile.role==='student';
@@ -169,7 +168,7 @@ window.renderTeacherLive=async function(navigation){
   if($('tlCancelReview'))$('tlCancelReview').onclick=()=>{window.enemReviewClear?.(job);reviewEditing=false;result();};
   if(editing){
    window.enemReviewBind?.($('view'),job);
-   const readReviews=()=>initialReviews.map(d=>({...d,decision:document.querySelector(`[data-live-discard="${d.index}"]`).checked?'discarded':document.querySelector(`[data-live-confirm="${d.index}"]`).checked?'confirmed':'pending',correction:document.querySelector(`[data-live-correction="${d.index}"]`).value.trim(),rule:document.querySelector(`[data-live-rule="${d.index}"]`).value.trim()}));
+   const readReviews=()=>initialReviews.map(d=>({...d,decision:document.querySelector(`[data-live-discard="${d.index}"]`).checked?'discarded':'confirmed',correction:document.querySelector(`[data-live-correction="${d.index}"]`).value.trim(),rule:document.querySelector(`[data-live-rule="${d.index}"]`).value.trim()}));
    const changed=()=>JSON.stringify(readReviews())!==JSON.stringify(initialReviews)||$('tlReviewNote').value!==initialNote||!job.review||['C1','C2','C3','C4','C5'].some(c=>Number($('tl'+c).value)!==Number(value.competencies[c].score))||$('tlFeedback').value!==feedback||Array.from(document.querySelectorAll('[data-enem-review] textarea')).some(x=>x.value!==x.defaultValue);
    const updateSave=()=>{$('tlSave').disabled=!changed()||!$('tlReview').checked;};
    $('tlReview').onchange=updateSave;
