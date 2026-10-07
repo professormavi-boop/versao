@@ -223,9 +223,10 @@ async function aiCorrection(id,options={}){
     if(!aiPanelCurrent(ctx))return;
     if(['completed','approved'].includes(job?.status)&&!options.redo){await aiShowJob(ctx,job);return}
     if(options.redo&&job?.id!==options.previousJob){if(!await aiShowJob(ctx,job))await aiWatch(ctx,job);return}
-    if(job?.status==='processing'||previous?.promise||((!options.retry)&&aiPending(key))){await aiWatch(ctx,job);return}
-    if(['failed','cancelled'].includes(job?.status)&&!options.retry){await aiShowJob(ctx,job);return}
-    if(options.readOnly){aiNotice(ctx,job?.status==='queued'?'A redação está na fila e ainda não iniciou. Clique em Correção Inteligente para iniciar.':'Não há execução em andamento. Clique em Correção Inteligente para iniciar.');return}
+    if(['failed','cancelled'].includes(job?.status)&&!options.retry&&!previous?.promise){await aiShowJob(ctx,job);return}
+    if(job?.status==='processing'||previous?.promise){await aiWatch(ctx,job);return}
+    if(options.readOnly){aiNotice(ctx,job?.status==='queued'?'A redação está na fila. Acompanhar consulta o andamento sem iniciar uma nova análise.':'Nenhuma execução foi retornada nesta consulta. Se o envio foi interrompido, acompanhe novamente para confirmar o resultado.');return}
+    if(!options.retry&&aiPending(key)){await aiWatch(ctx,job);return}
     if(job&&!['queued','failed','cancelled'].includes(job.status)&&!(options.redo&&['completed','approved'].includes(job.status)))throw Error('Estado da correção não reconhecido. Nenhuma execução foi iniciada.');
     if(!PAID_AI_ENABLED)throw Error('A geração paga de IA está bloqueada neste ambiente.');
     const status=await aiRead({action:'status'});
