@@ -1,6 +1,6 @@
 # Correção parcial: pacote preparado para revisão
 
-Estado: implementação preparada e testada localmente. NÃO aplicada ao Supabase. Frontend condicionado a `live_status.partial_correction === true`; com backend atual permanece bloqueado.
+Estado: ativada em 07/10/2026, após autorização explícita de Marcus às17h02 BRT. Migration live_partial_scope aplicada; teacher-organization-api18 ACTIVE, JWT obrigatório e15módulos conferidos; flag live_partial_correction=true. Frontend disponível em teste.versaoprofessor.com, sem promoção do frontend de produção. Sem correção paga real executada pelo agente.
 
 ## Escopo desta entrega
 
@@ -30,3 +30,7 @@ Sem variáveis, segredo, provedor, domínio, DNS, Auth, Storage ou configuraçã
 ## Verificação já feita
 
 Contratos e evidências literais; handler real preparado com provedor simulado; falha devolvendo crédito; aprovação única e edição docente; aluno sem edição; DOM do início ao link/revogação; SQL em PGlite com snapshot imutável, proprietário, reserva de1, repetição sem novo débito e estorno único; regressões da correção completa. Nenhum dado pessoal usado como fixture. Falta IA real, dispositivo móvel e teste autenticado remoto.
+
+## Resultado da ativação
+Campos/defaults/gatilhos conferidos; RLS preservado em live_essays/live_jobs. Função privada sem EXECUTE para anon/authenticated. Zero jobs em processamento antes da implantação. Testes locais repetidos PASS. Sem validação autenticada remota ou IA real; usuário pode testar com1crédito pela interface.
+Advisors consultados após DDL: não apontam a nova função privada. Mantêm avisos em objetos fora desta mudança: [funções públicas SECURITY DEFINER](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable), [funções autenticadas](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) e [proteção de senhas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection). Não alterar ACL/Auth fora do escopo desta ativação. RLS sem policies nas tabelas do Ao Vivo restringe acesso direto, com operações intermediadas pelo backend autorizado.
