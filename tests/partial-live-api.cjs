@@ -1,0 +1,28 @@
+'use strict';
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),{stripTypeScriptTypes}=require('node:module');
+(async()=>{
+ const context={Response,Request,crypto,TextEncoder,console,AbortSignal,Date};vm.createContext(context);
+ context.partial=vm.runInContext('(function(){'+stripTypeScriptTypes(fs.readFileSync('backend/writing/prepared/partial.ts','utf8').replace('export const partial=','const partial='))+';return partial;})()',context);
+ vm.runInContext(stripTypeScriptTypes(fs.readFileSync('backend/writing/prepared/live.ts','utf8').replace(/^import .*;\s*$/gm,'').replace('export async function handleLive','async function handleLive')),context);
+ const id='00000000-0000-4000-8000-000000000001';let enabled=true,role='teacher',providerCalls=0,writes=[],job,essay;
+ const text='Texto sintético de introdução para testar análise e evidências. '.repeat(3);
+ const contract=require('../backend/writing/partial-correction.cjs');
+ const report={report_format:'partial-v1',mode:'partial',stage:'introduction',criteria:['Contextualização','Recorte do tema','Tese'].map(name=>({name,status:'partial',feedback:'Explique sua posição.',evidence:'Texto sintético'})),strength:'Tema presente',improvement:'Explicite a tese',next_step:'Qual posição você defende?',context_limitations:'Somente introdução',deviations:[]};
+ function reset(){writes=[];providerCalls=0;essay={id,owner_id:id,correction_scope:'introduction',input_text:text,theme:'Tema sintético para teste',theme_origin:'provided'};job={id,essay_id:id,owner_id:id,purpose:'correction',status:'processing',credit_status:'reserved',correction_scope:'introduction',input_snapshot:text,theme_snapshot:essay.theme,theme_origin:'provided',created_at:new Date().toISOString()};}reset();
+ const admin={auth:{getUser:async()=>({data:{user:{id}}})},from(table){let eqs={},patch;const data=()=>({profiles:{id,role,approval_status:'approved',organization_id:id},students:{auth_user_id:id,organization_id:id},system_feature_flags:{is_enabled:eqs.feature_key==='live_partial_correction'?enabled:true,config:{}},correction_credit_wallets:{balance:2},live_essays:essay,live_jobs:job})[table];return{select(){return this},eq(k,v){eqs[k]=v;return this},update(p){patch=p;return this},maybeSingle:async()=>{if(patch){job={...job,...patch};writes.push('save_provider');}return{data:data()}}};},rpc:async(name,p)=>{writes.push(name);if(name==='start_live_job')return{data:{claimed:!job.provider_id,job}};if(name==='finish_live_job'){job={...job,status:p.p_error?'failed':'completed',result:p.p_result,credit_status:p.p_error?'refunded':'consumed'};return{data:job}};if(name==='review_live_job'){job={...job,review:p.p_review};return{data:job}};if(name==='share_live_job')return{data:{id}};throw Error(name)}};
+ Object.assign(context,{verifyLiveInput:async()=>({ok:true}),schema:()=>({}),ESSENTIAL_PROTOCOL:'COMPLETE_ONLY',QUALITY_INSTRUCTIONS:'COMPLETE_ONLY',inputManifest:async()=>({version:'test'}),extractOutputText:p=>JSON.stringify(p.report),meteredFetch:async(_a,_m,_u,options)=>{providerCalls++;const payload=JSON.parse(options.body);assert.equal(payload.text.format.name,'live_partial_correction');assert(!payload.instructions.includes('COMPLETE_ONLY'));assert.equal(payload.tools,undefined);assert.equal(payload.text.format.schema.properties.stage.enum[0],'introduction');return{ok:true,json:async()=>({id:'provider',status:'completed',report})}}});
+ const deps={createClient:()=>admin,fetch:()=>{throw Error('No network')},env:()=> 'synthetic'};
+ const call=body=>context.handleLive(new Request('https://local',{method:'POST',headers:{Authorization:'Bearer synthetic','Content-Type':'application/json'},body:JSON.stringify({essay_id:id,job_id:id,request_id:id,...body})}),deps);
+ enabled=false;assert.equal((await call({action:'live_start',purpose:'correction',credit_confirmed:true})).status,409);assert.equal(writes.length,0);
+ enabled=true;assert.equal((await call({action:'live_start',purpose:'correction'})).status,400);assert.equal(writes.length,0);
+ assert.equal((await call({action:'live_start',purpose:'theme'})).status,400);assert.equal(writes.length,0);
+ let response=await call({action:'live_start',purpose:'correction',credit_confirmed:true});assert.equal(response.status,200,await response.clone().text());assert.equal(job.status,'completed');assert.equal(job.credit_status,'consumed');assert.equal(job.result.mode,'partial');assert.equal(providerCalls,1);
+ response=await call({action:'live_start',purpose:'correction',credit_confirmed:true});assert.equal(response.status,200);assert.equal(providerCalls,1);
+ assert.equal((await call({action:'live_share'})).status,409);
+ assert.equal((await call({action:'live_review',review_confirmed:true,partial_review:{...report,total_score:1000}})).status,400);
+ assert.equal((await call({action:'live_review',review_confirmed:true,partial_review:report})).status,200);
+ assert.equal((await call({action:'live_share'})).status,200);
+ role='student';assert.equal((await call({action:'live_review',review_confirmed:true,partial_review:report})).status,403);assert.equal((await call({action:'live_share'})).status,200);
+ reset();report.criteria[0].evidence='trecho inventado';assert.equal((await call({action:'live_start',purpose:'correction',credit_confirmed:true})).status,200);assert.equal(job.status,'failed');assert.equal(job.credit_status,'refunded');
+ console.log('PASS handler parcial preparado: capability, confirmação, payload isolado, repetição, evidência inválida/estorno, revisão docente e compartilhamento por perfil. Provedor simulado.');
+})().catch(e=>{console.error(e);process.exitCode=1});

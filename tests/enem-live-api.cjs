@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm'),{stripTypeScriptTypes}=require('node:module');
 (async()=>{
 const quality=await import('../backend/enem/prepared/teacher-organization-api/correction-quality.ts');
-const src=stripTypeScriptTypes(fs.readFileSync('backend/enem/prepared/teacher-organization-api/live.ts','utf8').replace(/^import .*;\s*$/gm,'').replace('export async function handleLive','async function handleLive'),{mode:'strip'});
+const src=stripTypeScriptTypes(fs.readFileSync(process.env.LIVE_HANDLER_PATH||'backend/enem/prepared/teacher-organization-api/live.ts','utf8').replace(/^import .*;\s*$/gm,'').replace('export async function handleLive','async function handleLive'),{mode:'strip'});
 const context={...quality,Response,Request,crypto,TextEncoder,console};vm.createContext(context);vm.runInContext(src,context);
 const id='00000000-0000-4000-8000-000000000001';let role='teacher',writes=[],job;
 const fresh=()=>{const raw={quality_version:quality.QUALITY_VERSION,transcription:'Texto sintético para avaliação.',syntax_assessment:'Período articulado.',essay_status:'regular',proposal_complete:true,reading_quality:'good',c1_deviations:[],competencies:Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,{score:160,diagnostic:'Bom domínio.'}]))};Object.assign(raw,quality.validateEvidence(raw));job={id,owner_id:id,status:'completed',purpose:'correction',result:raw};};fresh();

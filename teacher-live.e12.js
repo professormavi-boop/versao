@@ -63,7 +63,7 @@ window.renderTeacherLive=async function(navigation){
  }
  function listSearchHtml(value,label){return `<form id="tlListSearch" class="tl-search"><label class="field">${label}<input id="tlSearchInput" type="search" maxlength="100" value="${esc(value)}" placeholder="Digite para buscar"></label><button class="btn" type="submit">Buscar</button>${value?'<button class="btn ghost" type="button" id="tlSearchClear">Limpar</button>':''}</form>`;}
  function bindListSearch(run){$('tlListSearch').onsubmit=e=>{e.preventDefault();act($('tlListSearch').querySelector('[type="submit"]'),()=>run($('tlSearchInput').value.trim()));};if($('tlSearchClear'))$('tlSearchClear').onclick=e=>act(e.target,()=>run(''));}
- function summaryHtml(e){const state=e.summary?.state;const label={draft:'Rascunho',ready:'Pronta para corrigir',processing:'Em análise',failed:'Não concluída',review:studentMode?'Concluída':'Aguardando revisão',reviewed:'Revisada'}[state]||(!e.theme?'Rascunho':'Situação indisponível');const score=e.summary?.score;return `<span class="tl-badge">${label}</span>${typeof score==='number'?`<p class="tl-muted"><b>${score} / 1000</b>${state==='review'?' · Nota estimada':''}</p>`:''}`;}
+ function summaryHtml(e){const state=e.summary?.state;const label={draft:'Rascunho',ready:'Pronta para corrigir',processing:'Em análise',failed:'Não concluída',review:studentMode?'Concluída':'Aguardando revisão',reviewed:'Revisada'}[state]||(!e.theme?'Rascunho':'Situação indisponível');const score=e.summary?.score;return `${e.correction_scope&&e.correction_scope!=='complete'?`<p class="tl-muted">${esc(window.WritingStages?.stages[e.correction_scope]?.label||'Etapa')} · Sem nota ENEM</p>`:''}<span class="tl-badge">${label}</span>${typeof score==='number'?`<p class="tl-muted"><b>${score} / 1000</b>${state==='review'?' · Nota estimada':''}</p>`:''}`;}
  function summaryAction(e){return ({draft:'Continuar',ready:'Corrigir',processing:'Acompanhar',failed:'Ver tentativa',review:studentMode?'Ver devolutiva':'Revisar',reviewed:'Ver devolutiva'})[e.summary?.state]||'Abrir redação';}
  function managementButtons(item,kind){return available.management?`<button class="btn tl-text-button" data-edit-${kind}="${esc(item.id)}">${kind==='essay'?'Editar identificação':'Editar'}</button><button class="btn tl-text-button tl-danger" data-delete-${kind}="${esc(item.id)}">Excluir</button>`:'';}
  function bindManagement(items,kind,refresh){
@@ -90,25 +90,28 @@ window.renderTeacherLive=async function(navigation){
   if($('tlNextActivity'))$('tlNextActivity').onclick=e=>act(e.target,()=>activities(offset+20));
  }
  async function create(){
-  window.WritingStagesUI?.assertReady(correctionScope);
+  window.WritingStagesUI?.assertReady(correctionScope,available.partial_correction===true);
   if(essay)return;
   const id=draftId;
+  if(correctionScope!=='complete'&&file)throw Error('Para corrigir uma etapa, cole o trecho em texto.');
   if(file){
    const form=new FormData();form.set('action','live_upload');form.set('essay_id',id);form.set('file',file);form.set('student_label',name);form.set('school_label',school);
    const response=await request(BASE+'/functions/v1/teacher-organization-api',{method:'POST',headers:authHeaders(S.session.access_token,false),body:form});
    const data=await response.json();if(!response.ok)throw Error(data.error||'Não foi possível enviar.');essay=data.essay;
-  }else essay=(await api({action:'live_create',essay_id:id,input_text:text,student_label:name,school_label:school})).essay;
+  }else essay=(await api({action:'live_create',essay_id:id,input_text:text,correction_scope:correctionScope,student_label:name,school_label:school})).essay;
  }
  function updateTextScope(){
   const label=correctionScope==='complete'?'Redação completa':window.WritingStages.stages[correctionScope].label;
   if($('tlTextLabel'))$('tlTextLabel').textContent=label;
-  $('tlInputHint').textContent=correctionScope==='complete'?'Fotografe, envie um arquivo ou cole a redação completa.':'Fotografe, envie um arquivo ou cole apenas o trecho de '+label.toLocaleLowerCase('pt-BR')+' que deseja corrigir.';
+  for(const id of ['tlCamera','tlChoose'])if($(id))$(id).disabled=correctionScope!=='complete';
+  if($('tlText'))$('tlText').maxLength=correctionScope==='complete'?20000:16000;
+  $('tlInputHint').textContent=correctionScope==='complete'?'Fotografe, envie um arquivo ou cole a redação completa.':'Cole apenas o trecho de '+label.toLocaleLowerCase('pt-BR')+' que deseja corrigir.';
  }
  function render(){
   if(!available.enabled){shell('<div class="tl-card"><h2>Estamos preparando o Ao Vivo</h2><p>Esta ferramenta ainda não está disponível para novas correções.</p></div>');return;}
   if(step===1){
    shell(steps()+`<section class="tl-card"><h2>${studentMode?'Como vamos começar?':'Uma redação, um próximo passo mais claro.'}</h2>${studentMode?'':'<p>Receba a análise por competência, revise com seu olhar de professor e compartilhe as orientações com o aluno.</p>'}${!studentMode?(activity?`<div class="tl-note"><b>${esc(activity.name||'Atividade sem nome')}</b><p>${esc(activity.theme)}</p><span>O tema será reaproveitado. Nova redação, nova identificação.</span></div>`:`<label><input type="checkbox" id="tlActivityEnabled" ${activityEnabled?'checked':''}> Usar o mesmo tema em várias redações</label>${activityEnabled?`<label class="field">Nome da atividade (opcional)<input id="tlActivityName" maxlength="160" value="${esc(activityName)}"></label>`:''}`):''}<div id="tlWritingScope"></div><p id="tlInputHint"></p><div class="tl-actions"><button id="tlCamera" class="btn primary">Fotografar</button><button id="tlChoose" class="btn">Enviar arquivo</button><button id="tlPaste" class="btn">Colar texto</button></div><input id="tlPhoto" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden><input id="tlFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.docx" hidden><p class="tl-file">${file?esc(file.name):'JPG, PNG, WEBP, PDF ou DOCX · até 15 MB'}</p>${file?'':`<label class="field"><span id="tlTextLabel">Redação completa</span><textarea id="tlText" aria-describedby="tlInputHint" maxlength="20000">${esc(text)}</textarea></label>`}<label class="field">${studentMode?'Seu nome (opcional)':'Nome do aluno (opcional)'}<input id="tlName" maxlength="160" value="${esc(name)}"></label><label class="field">Escola (opcional)<input id="tlSchool" maxlength="160" value="${esc(school)}"></label><div id="tlSchoolSuggestions" aria-live="polite"></div><p>Esses campos não criam cadastros.</p><button id="tlNext" class="btn primary">Continuar →</button></section>`);
-   window.WritingStagesUI?.mount($('tlWritingScope'),{value:correctionScope,onChange:value=>{saveFields();correctionScope=value;updateTextScope();}});
+   window.WritingStagesUI?.mount($('tlWritingScope'),{value:correctionScope,enabled:available.partial_correction===true,onChange:value=>{saveFields();correctionScope=value;updateTextScope();}});
    updateTextScope();
    if($('tlActivityEnabled'))$('tlActivityEnabled').onchange=e=>{saveFields();activityEnabled=e.target.checked;render();};
    $('tlSchool').oninput=()=>{const host=$('tlSchoolSuggestions');host.replaceChildren();const matches=window.SchoolNames?.match($('tlSchool').value,schoolCatalog);for(const name of matches?.suggestions||[]){const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='Usar '+name+'?';b.onclick=()=>{$('tlSchool').value=name;school=name;host.replaceChildren();};host.append(b);}};
@@ -117,14 +120,14 @@ window.renderTeacherLive=async function(navigation){
    for(const id of ['tlPhoto','tlFile'])$(id).onchange=e=>{saveFields();const picked=e.target.files[0];if(!picked)return;if(picked.size>15728640){status('Use um arquivo de até 15 MB.');return;}file=picked;render();};
    $('tlNext').onclick=e=>act(e.target,async()=>{saveFields();if(!file&&text.trim().length<80)throw Error('Envie um arquivo ou cole pelo menos 80 caracteres.');await create();if(activity){const linked=await api({action:'live_activity',essay_id:essay.id,activity_id:activity.id,confirmed:true});essay=linked.essay;theme=activity.theme;origin=activity.theme_origin;confirmed=true;}step=2;render();});
   }else if(step===2){
-   shell(steps()+`<section class="tl-card"><h2>Qual é o tema?</h2>${activity?`<p class="tl-note">Tema confirmado da atividade ${esc(activity.name||'sem nome')}. Para usar outro tema, comece uma nova redação fora desta atividade.</p>`:''}<div class="tl-actions" ${activity?'hidden':''}><button class="btn" id="tlKnown">Tenho o tema</button><button class="btn" id="tlInfer">Verificar tema com inteligência</button></div><p class="tl-note">${origin==='inferred'?'Sem a proposta original, a C2 considera o recorte confirmado. Isso não comprova ausência de fuga ao tema.':'Informe o tema ou enunciado original que orientará a correção.'}</p><label class="field">Tema e recorte<textarea id="tlTheme" maxlength="4000" ${activity?'readonly':''}>${esc(theme)}</textarea></label><label class="tl-confirm"><input type="checkbox" id="tlConfirmed" ${confirmed?'checked':''}> Conferi o tema e o recorte.</label><div class="tl-actions"><button class="btn" id="tlReplace">Trocar foto, arquivo ou texto</button><button class="btn primary" id="tlNext">Revisar e continuar →</button></div></section>`);
+   shell(steps()+`<section class="tl-card"><h2>Qual é o tema?</h2>${activity?`<p class="tl-note">Tema confirmado da atividade ${esc(activity.name||'sem nome')}. Para usar outro tema, comece uma nova redação fora desta atividade.</p>`:''}<div class="tl-actions" ${activity?'hidden':''}><button class="btn" id="tlKnown">Tenho o tema</button><button class="btn" id="tlInfer" ${correctionScope!=='complete'?'hidden':''}>Verificar tema com inteligência</button></div><p class="tl-note">${origin==='inferred'?'Sem a proposta original, a C2 considera o recorte confirmado. Isso não comprova ausência de fuga ao tema.':'Informe o tema ou enunciado original que orientará a correção.'}</p><label class="field">Tema e recorte<textarea id="tlTheme" maxlength="${correctionScope==='complete'?4000:1000}" ${activity?'readonly':''}>${esc(theme)}</textarea></label><label class="tl-confirm"><input type="checkbox" id="tlConfirmed" ${confirmed?'checked':''}> Conferi o tema e o recorte.</label><div class="tl-actions"><button class="btn" id="tlReplace">Trocar foto, arquivo ou texto</button><button class="btn primary" id="tlNext">Revisar e continuar →</button></div></section>`);
    $('tlReplace').onclick=replaceInput;
    $('tlTheme').oninput=()=>{confirmed=false;$('tlConfirmed').checked=false;};$('tlConfirmed').onchange=e=>confirmed=e.target.checked;
    $('tlKnown').onclick=()=>{saveFields();origin='provided';confirmed=false;render();};
    $('tlInfer').onclick=e=>act(e.target,async()=>{saveFields();await startAnalysis(true);});
    $('tlNext').onclick=e=>act(e.target,async()=>{saveFields();if(!confirmed||theme.trim().length<10)throw Error('Informe o tema e confirme o recorte.');if(!studentMode&&activityEnabled){const linked=await api({action:'live_activity',essay_id:essay.id,activity_id:activity?.id||activityDraftId,name:activityName,theme,theme_origin:origin,confirmed:true});essay=linked.essay;activity=linked.activity;theme=activity.theme;origin=activity.theme_origin;}else essay=(await api({action:'live_theme',essay_id:essay.id,theme,theme_origin:origin,student_label:name,school_label:school,confirmed:true})).essay;step=3;render();});
   }else{
-   shell(steps()+`<section class="tl-card"><h2>Pronto para uma boa devolutiva</h2>${[...(activity?[['Atividade',activity.name||'Sem nome']]:[]),['Aluno',name||'Sem identificação'],['Escola',school||'Não informada'],['Redação',file?.name||essay?.file_name||'Texto salvo'],['Tema',theme]].map(([label,value])=>`<div class="tl-summary"><span>${label}</span><b>${esc(value)}</b></div>`).join('')}<p class="tl-note">Esta correção usa <b>1 crédito</b>. Se a análise falhar, o crédito será devolvido. ${studentMode?'Você receberá uma estimativa da IA, sem revisão de professor.':'Você poderá revisar antes de compartilhar.'}</p><label class="tl-confirm"><input type="checkbox" id="tlCredit"> Confirmo o uso de 1 crédito.</label><div class="tl-actions"><button class="btn" id="tlReplace">Trocar foto, arquivo ou texto</button><button class="btn" id="tlBack">← Ajustar tema</button><button class="btn primary" id="tlStart">Iniciar correção</button></div></section>`);
+   shell(steps()+`<section class="tl-card"><h2>Pronto para uma boa devolutiva</h2>${[...(activity?[['Atividade',activity.name||'Sem nome']]:[]),['Aluno',name||'Sem identificação'],['Escola',school||'Não informada'],[correctionScope==='complete'?'Redação completa':window.WritingStages.stages[correctionScope].label,file?.name||essay?.file_name||'Texto salvo'],['Tema',theme]].map(([label,value])=>`<div class="tl-summary"><span>${label}</span><b>${esc(value)}</b></div>`).join('')}<p class="tl-note">Esta correção usa <b>1 crédito</b>. Se a análise falhar, o crédito será devolvido. ${studentMode?'Você receberá uma estimativa da IA, sem revisão de professor.':'Você poderá revisar antes de compartilhar.'}</p><label class="tl-confirm"><input type="checkbox" id="tlCredit"> Confirmo o uso de 1 crédito.</label><div class="tl-actions"><button class="btn" id="tlReplace">Trocar foto, arquivo ou texto</button><button class="btn" id="tlBack">← Ajustar tema</button><button class="btn primary" id="tlStart">Iniciar correção</button></div></section>`);
    $('tlReplace').onclick=replaceInput;
    $('tlBack').onclick=()=>{step=2;render();};$('tlStart').onclick=e=>act(e.target,async()=>{if(!$('tlCredit').checked)throw Error('Confirme o uso de 1 crédito.');await startAnalysis(false);});
   }
@@ -140,7 +143,7 @@ window.renderTeacherLive=async function(navigation){
   tick();elapsedTimer=setInterval(tick,1000);
  }
  async function startAnalysis(themeOnly){
-  window.WritingStagesUI?.assertReady(correctionScope);
+  window.WritingStagesUI?.assertReady(correctionScope,available.partial_correction===true);
   const purpose=themeOnly?'theme':'correction';analysisStartedAt=Date.now();job=null;loading(themeOnly);
   try{job=(await api({action:'live_start',essay_id:essay.id,purpose,request_id:(requests[purpose]||=crypto.randomUUID()),...(!themeOnly?{credit_confirmed:true}:{})})).job;await watch(themeOnly);}
   catch(error){render();throw error;}
@@ -161,8 +164,21 @@ window.renderTeacherLive=async function(navigation){
   if(themeOnly){theme=job.result.theme;origin='inferred';confirmed=false;step=2;render();return;}
   result();
  }
+ function partialResult(){
+  const value=job.review||job.result,editing=!studentMode&&(!job.review||reviewEditing);
+  shell(window.WritingStagesUI.feedbackHtml(value)+`<section class="tl-card"><p>${studentMode?'Análise por IA · sem revisão de professor.':job.review?'Devolutiva revisada pelo professor.':'Confira a devolutiva antes de compartilhar.'}</p>${editing?`${window.WritingStagesUI.reviewEditorHtml(value)}<label class="tl-confirm"><input type="checkbox" id="tlPartialConfirmed"> Conferi a devolutiva.</label><button class="btn primary" id="tlPartialSave">Salvar revisão</button>${job.review?'<button class="btn" id="tlPartialCancel">Cancelar</button>':''}`:`<button class="btn primary" id="tlShare">Compartilhar devolutiva</button>${studentMode?'':'<button class="btn" id="tlPartialEdit">Editar revisão</button>'}`}<button class="btn" id="tlPartialRedo">Refazer correção · 1 crédito</button><div id="tlSharePanel"></div></section>`);
+  if($('tlPartialSave'))$('tlPartialSave').onclick=e=>act(e.target,async()=>{
+   if(!$('tlPartialConfirmed').checked)throw Error('Confirme a revisão antes de salvar.');
+   const review=window.WritingStagesUI.readReview(document,value);
+   job=(await api({action:'live_review',essay_id:essay.id,job_id:job.id,review_confirmed:true,partial_review:review})).job;reviewEditing=false;result();
+  });
+  if($('tlPartialEdit'))$('tlPartialEdit').onclick=()=>{reviewEditing=true;result();};
+  if($('tlPartialCancel'))$('tlPartialCancel').onclick=()=>{reviewEditing=false;result();};
+  if($('tlShare'))$('tlShare').onclick=e=>act(e.target,share);
+  $('tlPartialRedo').onclick=()=>{requests.correction=null;step=3;render();};
+ }
  function result(){
-  if(window.WritingStagesUI?.isPartial(job?.result)){shell(window.WritingStagesUI.feedbackHtml(job.review||job.result));return;}
+  if(window.WritingStagesUI?.isPartial(job?.result)){partialResult();return;}
   if(studentMode){studentResult();return;}
   const value=job.review||job.result,editing=!job.review||reviewEditing;
   const feedback=value.next_step||value.overall_feedback||'';
@@ -218,7 +234,7 @@ window.renderTeacherLive=async function(navigation){
    const data=await api({action:'live_get',essay_id:b.dataset.essay});essay=data.essay;correctionScope=essay.correction_scope||'complete';reviewEditing=false;file=null;requests.theme=null;requests.correction=null;name=essay.student_label;school=essay.school_label;theme=essay.theme;origin=essay.theme_origin;confirmed=!!essay.theme_confirmed_at;activity=null;activityEnabled=false;activityName='';if(!studentMode&&essay.activity_id){const rows=await api({action:'live_activities',activity_id:essay.activity_id});activity=rows.activities[0]||null;activityEnabled=!!activity;activityName=activity?.name||'';}text=essay.input_text||'';
    detailBack=()=>history(offset,group);
    const versions=()=>{detailVersions=null;
-   shell(`<section class="tl-card tl-list"><div class="tl-list-heading"><h2>Versões desta redação</h2><p>${esc(essay.student_label||'Sem identificação')}</p></div><div class="tl-version-list">${data.jobs.map(j=>`<article class="tl-version"><div><strong>${j.purpose==='theme'?'Verificação de tema':'Correção ENEM'}</strong><p class="tl-muted">${esc(fmtDate(j.created_at))}</p><span class="tl-badge">${esc(({processing:'Em análise',completed:j.review?'Revisada':'Concluída',failed:'Não concluída'})[j.status]||j.status)}</span></div><button class="btn" data-job="${esc(j.id)}">Ver ${j.purpose==='theme'?'tema':'correção'}</button></article>`).join('')}</div></section>`);
+   shell(`<section class="tl-card tl-list"><div class="tl-list-heading"><h2>Versões desta redação</h2><p>${esc(essay.student_label||'Sem identificação')}</p></div><div class="tl-version-list">${data.jobs.map(j=>`<article class="tl-version"><div><strong>${j.purpose==='theme'?'Verificação de tema':j.correction_scope&&j.correction_scope!=='complete'?esc(window.WritingStages?.stages[j.correction_scope]?.label||'Correção por etapa'):'Correção ENEM'}</strong><p class="tl-muted">${esc(fmtDate(j.created_at))}</p><span class="tl-badge">${esc(({processing:'Em análise',completed:j.review?'Revisada':'Concluída',failed:'Não concluída'})[j.status]||j.status)}</span></div><button class="btn" data-job="${esc(j.id)}">Ver ${j.purpose==='theme'?'tema':'correção'}</button></article>`).join('')}</div></section>`);
    document.querySelectorAll('[data-job]').forEach(button=>button.onclick=()=>{job=data.jobs.find(j=>j.id===button.dataset.job);detailVersions=versions;analysisStartedAt=null;watch(job.purpose==='theme').catch(error=>status(error.message));});
    };
    detailVersions=data.jobs.length?versions:null;

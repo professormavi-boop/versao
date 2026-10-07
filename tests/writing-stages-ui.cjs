@@ -2,10 +2,10 @@
 const {JSDOM}=require('jsdom'),fs=require('fs'),assert=require('node:assert/strict');
 const vm=require('node:vm');
 const source=p=>fs.readFileSync(p,'utf8');
-function env(role='student'){
+function env(role='student',partialEnabled=false){
  const dom=new JSDOM('<main id="view"></main>',{url:'https://test.invalid',runScripts:'outside-only'}),w=dom.window,calls=[];
  w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=t=>'<h1>'+t+'</h1>';w.fmtDate=s=>s;w.navigationCurrent=()=>true;w.S={profile:{role},cache:{},session:{user:{id:'owner'}}};w.navigate=()=>{};
- w.edge=async(_,b)=>{calls.push(b);switch(b.action){case'live_status':return{enabled:true};case'live_history':return{essays:[]};case'organizations':return{organizations:[]};case'live_create':return{essay:{id:'essay',...b}};default:throw Error(b.action);}};
+ w.edge=async(_,b)=>{calls.push(b);switch(b.action){case'live_status':return{enabled:true,partial_correction:partialEnabled};case'live_history':return{essays:[]};case'organizations':return{organizations:[]};case'live_create':return{essay:{id:'essay',...b}};case'live_theme':return{essay:{id:'essay',...b}};case'live_start':return{job:{id:'job',status:'completed',result:sample(w)}};case'live_review':return{job:{id:'job',status:'completed',result:sample(w),review:b.partial_review}};case'live_share':return{token:'a'.repeat(64),expires_at:'synthetic'};case'live_revoke':return{ok:true};default:throw Error(b.action);}};
  w.eval(source('custom-selects.e12.js'));w.eval(source('writing-stages.e12.js'));w.eval(source('writing-stages-ui.e12.js'));
  return {dom,w,calls};
 }
@@ -27,6 +27,25 @@ function sample(w){return {mode:'partial',report_format:'partial-v1',stage:'intr
    const before=calls.length;await w.$('tlNext').onclick({target:w.$('tlNext')});assert.equal(calls.length,before);assert.match(w.$('tlStatus').textContent,/nenhum crédito/);
   }
   select(w,'complete');assert.equal(w.$('tlTextLabel').textContent,'Redação completa');assert.match(w.$('tlInputHint').textContent,/redação completa/);await w.$('tlNext').onclick({target:w.$('tlNext')});assert.equal(calls.filter(c=>c.action==='live_create').length,1);assert(w.$('tlTheme'));
+  dom.window.close();
+ }
+ for(const role of ['teacher','student']){
+  const {dom,w,calls}=env(role,true);w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1);
+  select(w,'introduction');w.$('tlText').value='Texto para análise parcial. '.repeat(5);
+  assert(w.$('tlCamera').disabled);await w.$('tlNext').onclick({target:w.$('tlNext')});
+  assert.equal(calls.find(c=>c.action==='live_create').correction_scope,'introduction');assert(w.$('tlInfer').hidden);
+  w.$('tlTheme').value='Tema sintético para avaliação';w.$('tlConfirmed').checked=true;w.$('tlConfirmed').onchange({target:w.$('tlConfirmed')});await w.$('tlNext').onclick({target:w.$('tlNext')});
+  await w.$('tlStart').onclick({target:w.$('tlStart')});assert(!calls.some(c=>c.action==='live_start'));
+  w.$('tlCredit').checked=true;await w.$('tlStart').onclick({target:w.$('tlStart')});
+  assert(!w.document.querySelector('.tl-total-score'));assert(!w.$('view').textContent.includes('/ 1000'));
+  if(role==='teacher'){
+   assert(!w.$('tlShare'));await w.$('tlPartialSave').onclick({target:w.$('tlPartialSave')});assert(!calls.some(c=>c.action==='live_review'));
+   w.document.querySelector('[data-partial-field="next_step"]').value='Revise sua tese.';w.$('tlPartialConfirmed').checked=true;
+   await w.$('tlPartialSave').onclick({target:w.$('tlPartialSave')});assert.equal(calls.find(c=>c.action==='live_review').partial_review.next_step,'Revise sua tese.');
+   assert(!('total_score' in calls.find(c=>c.action==='live_review').partial_review));
+  }else assert(!w.$('tlPartialSave'));
+  await w.$('tlShare').onclick({target:w.$('tlShare')});assert(w.$('tlLink').value.endsWith('a'.repeat(64)));
+  await w.$('tlRevoke').onclick({target:w.$('tlRevoke')});assert.match(w.$('tlSharePanel').textContent,/revogado/);
   dom.window.close();
  }
  {
