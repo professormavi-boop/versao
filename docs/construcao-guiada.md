@@ -68,3 +68,9 @@ Interface preparada na branch de desenvolvimento:
 - Mesmos componentes visuais, CSS e identidade aprovados. Nenhum CSS ou menu foi redesenhado. Pedido de Marcus em 07/10: manter layout padrão aprovado.
 
 Ainda não concluído: contrato persistente de etapa no servidor, correção parcial real, revisão docente parcial, compartilhamento, entrega do aluno escolar, editor guiado e tutoria real. Não habilitar a opção em produção enquanto esses fluxos não estiverem prontos. Próxima implementação precisa de backend isolado ou autorização específica após apresentação de arquivos/funções/tabelas e rollback; o backend compartilhado não foi alterado.
+
+## Ajuste aprovado em 07/10 às 16h32
+
+Marcus definiu seletor suspenso com Redação completa como padrão e 1 crédito para cada correção, inclusive parcial. O seletor reutiliza custom-selects.e12.js e seus estilos; não abre picker nativo. Orientações do tutor permanecem fora dessa regra de preço: pacote de construção guiada ainda não definido. Mudança de seleção não consome crédito.
+
+Contrato de backend preparado em backend/writing/partial-correction.cjs, sem publicação: schema por etapa, mensagens de análise, validação de evidências literais e custo fixo definido no servidor. Rejeita notas e critérios incompletos/duplicados. Não é endpoint: falta integrar autenticação, autorização, persistência, reserva/estorno atômicos, idempotência, execução de IA, revisão e compartilhamento. Testes sintéticos não comprovam comportamento de modelo real.

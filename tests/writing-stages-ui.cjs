@@ -6,18 +6,23 @@ function env(role='student'){
  const dom=new JSDOM('<main id="view"></main>',{url:'https://test.invalid',runScripts:'outside-only'}),w=dom.window,calls=[];
  w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=t=>'<h1>'+t+'</h1>';w.fmtDate=s=>s;w.navigationCurrent=()=>true;w.S={profile:{role},cache:{},session:{user:{id:'owner'}}};w.navigate=()=>{};
  w.edge=async(_,b)=>{calls.push(b);switch(b.action){case'live_status':return{enabled:true};case'live_history':return{essays:[]};case'organizations':return{organizations:[]};case'live_create':return{essay:{id:'essay',...b}};default:throw Error(b.action);}};
- w.eval(source('writing-stages.e12.js'));w.eval(source('writing-stages-ui.e12.js'));
+ w.eval(source('custom-selects.e12.js'));w.eval(source('writing-stages.e12.js'));w.eval(source('writing-stages-ui.e12.js'));
  return {dom,w,calls};
 }
-function select(w,value){const radio=w.document.querySelector('input[value="'+value+'"]');radio.checked=true;radio.dispatchEvent(new w.Event('change',{bubbles:true}));}
+function select(w,value){
+ const select=w.document.querySelector('[id^="writing-scope-"]');
+ select.dispatchEvent(new w.MouseEvent('pointerdown',{bubbles:true,cancelable:true}));
+ const label=select.querySelector('option[value="'+value+'"]').textContent;
+ const option=[...w.document.querySelectorAll('.versao-select-option')].find(o=>o.textContent===label);assert(option);option.click();
+}
 function sample(w){return {mode:'partial',report_format:'partial-v1',stage:'introduction',criteria:w.WritingStages.stages.introduction.criteria.map(name=>({name,status:'partial',feedback:'Explique a relação com o tema.',evidence:'<img src=x onerror=alert(1)>'})),strength:'Tema apresentado',improvement:'Explicitar a tese',next_step:'Qual posição você defenderá?',context_limitations:'Somente a introdução foi analisada.',deviations:[],total_score:1000,competencies:{C1:{score:200}}};}
 (async()=>{
  for(const role of ['teacher','student']){
   const {dom,w,calls}=env(role);w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1);
-  assert.equal(w.document.querySelector('input[type=radio]:checked').value,'complete');
+  assert.equal(w.document.querySelector('[id^="writing-scope-"]').value,'complete');
   const draft='Texto do aluno. '.repeat(12);w.$('tlText').value=draft;
   for(const stage of Object.keys(w.WritingStages.stages)){
-   select(w,stage);assert.equal(w.$('tlText').value,draft);
+   select(w,stage);assert.equal(w.$('tlText').value,draft);assert.match(w.document.querySelector('[data-stage-description]').textContent,/1 crédito/);
    const before=calls.length;await w.$('tlNext').onclick({target:w.$('tlNext')});assert.equal(calls.length,before);assert.match(w.$('tlStatus').textContent,/nenhum crédito/);
   }
   select(w,'complete');await w.$('tlNext').onclick({target:w.$('tlNext')});assert.equal(calls.filter(c=>c.action==='live_create').length,1);assert(w.$('tlTheme'));
@@ -38,7 +43,7 @@ function sample(w){return {mode:'partial',report_format:'partial-v1',stage:'intr
   w.teacherQueue=async()=>[{submission_id:'one',student_name:'Aluno',theme:'Tema'}];w.ensure=async()=>({access_token:'dummy'});w.authHeaders=()=>({});w.BASE='https://test.invalid';w.API={credit:'credit'};w.fetch=async()=>({ok:true,json:async()=>({channels:{}})});
   vm.runInContext(source('correction-redesign.e12.js'),dom.getInternalVMContext());await w.renderCorrection(1);
   w.document.querySelector('[data-cx-stage]').click();select(w,'conclusion');await w.$('cxStageContinue').onclick({target:w.$('cxStageContinue')});assert.equal(calls.length,0);assert.match(w.$('cxStageStatus').textContent,/nenhum crédito/);
-  assert.equal(w.document.querySelector('select'),null);dom.window.close();
+  assert.equal(w.document.querySelector('select').value,'conclusion');assert.equal(w.__VERSAO_UI_RULES__.nativeSelectPicker,false);dom.window.close();
  }
  console.log('PASS etapas UI: dois perfis, texto preservado, zero chamadas parciais, fluxo completo, fila, XSS, resultado sem nota e contrato incompleto.');
 })().catch(e=>{console.error(e);process.exitCode=1});

@@ -6,9 +6,9 @@
  let serial=0;
  function mount(host,{value='complete',onChange=()=>{}}={}){
   let selected=W.scope(value);const group='writing-scope-'+(++serial);
-  host.innerHTML=`<fieldset class="form-section"><legend>O que deseja corrigir?</legend><div class="writing-stage-options">${[['complete','Redação completa'],...Object.entries(W.stages).map(([k,v])=>[k,v.label])].map(([key,label])=>`<label class="check-row"><input type="radio" name="${group}" value="${key}" ${key===selected?'checked':''}> ${label}</label>`).join('')}</div><p data-stage-description aria-live="polite"></p></fieldset>`;
-  function explain(){host.querySelector('[data-stage-description]').textContent=selected==='complete'?'Análise do texto completo pelas cinco competências.':W.stages[selected].criteria.join(' · ')+'. Devolutiva formativa, sem nota ENEM. '+unavailable;}
-  host.querySelectorAll('input').forEach(el=>el.onchange=()=>{if(!el.checked)return;selected=W.scope(el.value);explain();onChange(selected);});
+  host.innerHTML=`<div class="form-section"><label class="field" for="${group}">Tipo de correção<select id="${group}" aria-describedby="${group}-description">${[['complete','Redação completa'],...Object.entries(W.stages).map(([k,v])=>[k,v.label])].map(([key,label])=>`<option value="${key}" ${key===selected?'selected':''}>${label}</option>`).join('')}</select></label><p id="${group}-description" data-stage-description aria-live="polite"></p></div>`;
+  function explain(){host.querySelector('[data-stage-description]').textContent=selected==='complete'?'Análise do texto completo pelas cinco competências. Custo: 1 crédito.':W.stages[selected].criteria.join(' · ')+'. Devolutiva formativa, sem nota ENEM. Custo: 1 crédito por correção da etapa. '+unavailable;}
+  host.querySelector('select').onchange=e=>{selected=W.scope(e.target.value);explain();onChange(selected);};
   explain();return {value:()=>selected};
  }
  function assertReady(stage){if(W.scope(stage)!=='complete')throw Error(unavailable);}
