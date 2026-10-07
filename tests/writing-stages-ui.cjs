@@ -20,12 +20,13 @@ function sample(w){return {mode:'partial',report_format:'partial-v1',stage:'intr
  for(const role of ['teacher','student']){
   const {dom,w,calls}=env(role);w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1);
   assert.equal(w.document.querySelector('[id^="writing-scope-"]').value,'complete');
+  assert.equal(w.$('tlTextLabel').textContent,'Redação completa');
   const draft='Texto do aluno. '.repeat(12);w.$('tlText').value=draft;
   for(const stage of Object.keys(w.WritingStages.stages)){
-   select(w,stage);assert.equal(w.$('tlText').value,draft);assert.match(w.document.querySelector('[data-stage-description]').textContent,/1 crédito/);
+   select(w,stage);assert.equal(w.$('tlTextLabel').textContent,w.WritingStages.stages[stage].label);assert.match(w.$('tlInputHint').textContent,/apenas o trecho/);assert.equal(w.$('tlText').value,draft);assert.match(w.document.querySelector('[data-stage-description]').textContent,/1 crédito/);
    const before=calls.length;await w.$('tlNext').onclick({target:w.$('tlNext')});assert.equal(calls.length,before);assert.match(w.$('tlStatus').textContent,/nenhum crédito/);
   }
-  select(w,'complete');await w.$('tlNext').onclick({target:w.$('tlNext')});assert.equal(calls.filter(c=>c.action==='live_create').length,1);assert(w.$('tlTheme'));
+  select(w,'complete');assert.equal(w.$('tlTextLabel').textContent,'Redação completa');assert.match(w.$('tlInputHint').textContent,/redação completa/);await w.$('tlNext').onclick({target:w.$('tlNext')});assert.equal(calls.filter(c=>c.action==='live_create').length,1);assert(w.$('tlTheme'));
   dom.window.close();
  }
  {
