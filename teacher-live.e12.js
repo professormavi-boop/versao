@@ -36,6 +36,7 @@ window.renderTeacherLive=async function(navigation){
  let step=1,essay=null,file=null,text='',name='',school='',theme='',origin='provided',confirmed=false,job=null,busy=false,pollTimer=null,elapsedTimer=null,analysisStartedAt=null;
  let draftId=crypto.randomUUID(),activity=null,activityEnabled=false,activityName='',activityDraftId=crypto.randomUUID();
  let reviewEditing=false,activeMenu='tlNew',activitySearch='',historySearch='',activityOffset=0,detailBack=null,detailVersions=null;
+ let correctionScope='complete';
  const requests={theme:null,correction:null};
  const schoolCatalog=[];
  if(available.enabled){const sources=await Promise.allSettled([studentMode?Promise.resolve({organizations:[]}):api({action:'organizations'}),api({action:'live_history'})]);for(const item of sources){if(item.status==='fulfilled'){schoolCatalog.push(...(item.value.organizations||[]).map(x=>x.name),...(item.value.essays||[]).map(x=>x.school_label));}}}
@@ -49,7 +50,7 @@ window.renderTeacherLive=async function(navigation){
  function nextEssay(selected){
   if(studentMode||busy||selected.deleted_at)return;
   activeMenu='tlNew';activity=selected;activityEnabled=true;activityName=selected.name;activityDraftId=selected.id;
-  draftId=crypto.randomUUID();essay=null;file=null;text='';name='';school='';job=null;
+  draftId=crypto.randomUUID();essay=null;file=null;text='';name='';school='';job=null;correctionScope='complete';
   requests.theme=null;requests.correction=null;theme=selected.theme;origin=selected.theme_origin;confirmed=true;step=1;render();
  }
  function replaceInput(){
@@ -89,6 +90,7 @@ window.renderTeacherLive=async function(navigation){
   if($('tlNextActivity'))$('tlNextActivity').onclick=e=>act(e.target,()=>activities(offset+20));
  }
  async function create(){
+  window.WritingStagesUI?.assertReady(correctionScope);
   if(essay)return;
   const id=draftId;
   if(file){
@@ -100,7 +102,8 @@ window.renderTeacherLive=async function(navigation){
  function render(){
   if(!available.enabled){shell('<div class="tl-card"><h2>Estamos preparando o Ao Vivo</h2><p>Esta ferramenta ainda não está disponível para novas correções.</p></div>');return;}
   if(step===1){
-   shell(steps()+`<section class="tl-card"><h2>${studentMode?'Como vamos começar?':'Uma redação, um próximo passo mais claro.'}</h2>${studentMode?'':'<p>Receba a análise por competência, revise com seu olhar de professor e compartilhe as orientações com o aluno.</p>'}${!studentMode?(activity?`<div class="tl-note"><b>${esc(activity.name||'Atividade sem nome')}</b><p>${esc(activity.theme)}</p><span>O tema será reaproveitado. Nova redação, nova identificação.</span></div>`:`<label><input type="checkbox" id="tlActivityEnabled" ${activityEnabled?'checked':''}> Usar o mesmo tema em várias redações</label>${activityEnabled?`<label class="field">Nome da atividade (opcional)<input id="tlActivityName" maxlength="160" value="${esc(activityName)}"></label>`:''}`):''}<p>Fotografe, envie um arquivo ou cole o texto.</p><div class="tl-actions"><button id="tlCamera" class="btn primary">Fotografar</button><button id="tlChoose" class="btn">Enviar arquivo</button><button id="tlPaste" class="btn">Colar texto</button></div><input id="tlPhoto" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden><input id="tlFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.docx" hidden><p class="tl-file">${file?esc(file.name):'JPG, PNG, WEBP, PDF ou DOCX · até 15 MB'}</p>${file?'':`<label class="field">Redação<textarea id="tlText" maxlength="20000">${esc(text)}</textarea></label>`}<label class="field">${studentMode?'Seu nome (opcional)':'Nome do aluno (opcional)'}<input id="tlName" maxlength="160" value="${esc(name)}"></label><label class="field">Escola (opcional)<input id="tlSchool" maxlength="160" value="${esc(school)}"></label><div id="tlSchoolSuggestions" aria-live="polite"></div><p>Esses campos não criam cadastros.</p><button id="tlNext" class="btn primary">Continuar →</button></section>`);
+   shell(steps()+`<section class="tl-card"><h2>${studentMode?'Como vamos começar?':'Uma redação, um próximo passo mais claro.'}</h2>${studentMode?'':'<p>Receba a análise por competência, revise com seu olhar de professor e compartilhe as orientações com o aluno.</p>'}${!studentMode?(activity?`<div class="tl-note"><b>${esc(activity.name||'Atividade sem nome')}</b><p>${esc(activity.theme)}</p><span>O tema será reaproveitado. Nova redação, nova identificação.</span></div>`:`<label><input type="checkbox" id="tlActivityEnabled" ${activityEnabled?'checked':''}> Usar o mesmo tema em várias redações</label>${activityEnabled?`<label class="field">Nome da atividade (opcional)<input id="tlActivityName" maxlength="160" value="${esc(activityName)}"></label>`:''}`):''}<div id="tlWritingScope"></div><p>Fotografe, envie um arquivo ou cole o texto.</p><div class="tl-actions"><button id="tlCamera" class="btn primary">Fotografar</button><button id="tlChoose" class="btn">Enviar arquivo</button><button id="tlPaste" class="btn">Colar texto</button></div><input id="tlPhoto" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden><input id="tlFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.docx" hidden><p class="tl-file">${file?esc(file.name):'JPG, PNG, WEBP, PDF ou DOCX · até 15 MB'}</p>${file?'':`<label class="field">Redação<textarea id="tlText" maxlength="20000">${esc(text)}</textarea></label>`}<label class="field">${studentMode?'Seu nome (opcional)':'Nome do aluno (opcional)'}<input id="tlName" maxlength="160" value="${esc(name)}"></label><label class="field">Escola (opcional)<input id="tlSchool" maxlength="160" value="${esc(school)}"></label><div id="tlSchoolSuggestions" aria-live="polite"></div><p>Esses campos não criam cadastros.</p><button id="tlNext" class="btn primary">Continuar →</button></section>`);
+   window.WritingStagesUI?.mount($('tlWritingScope'),{value:correctionScope,onChange:value=>{saveFields();correctionScope=value;}});
    if($('tlActivityEnabled'))$('tlActivityEnabled').onchange=e=>{saveFields();activityEnabled=e.target.checked;render();};
    $('tlSchool').oninput=()=>{const host=$('tlSchoolSuggestions');host.replaceChildren();const matches=window.SchoolNames?.match($('tlSchool').value,schoolCatalog);for(const name of matches?.suggestions||[]){const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='Usar '+name+'?';b.onclick=()=>{$('tlSchool').value=name;school=name;host.replaceChildren();};host.append(b);}};
    $('tlSchool').onblur=()=>{const match=window.SchoolNames?.match($('tlSchool').value,schoolCatalog);if(match?.exact)$('tlSchool').value=match.exact;};
@@ -131,6 +134,7 @@ window.renderTeacherLive=async function(navigation){
   tick();elapsedTimer=setInterval(tick,1000);
  }
  async function startAnalysis(themeOnly){
+  window.WritingStagesUI?.assertReady(correctionScope);
   const purpose=themeOnly?'theme':'correction';analysisStartedAt=Date.now();job=null;loading(themeOnly);
   try{job=(await api({action:'live_start',essay_id:essay.id,purpose,request_id:(requests[purpose]||=crypto.randomUUID()),...(!themeOnly?{credit_confirmed:true}:{})})).job;await watch(themeOnly);}
   catch(error){render();throw error;}
@@ -152,6 +156,7 @@ window.renderTeacherLive=async function(navigation){
   result();
  }
  function result(){
+  if(window.WritingStagesUI?.isPartial(job?.result)){shell(window.WritingStagesUI.feedbackHtml(job.review||job.result));return;}
   if(studentMode){studentResult();return;}
   const value=job.review||job.result,editing=!job.review||reviewEditing;
   const feedback=value.next_step||value.overall_feedback||'';
@@ -204,7 +209,7 @@ window.renderTeacherLive=async function(navigation){
   if($('tlPreviousPage'))$('tlPreviousPage').onclick=e=>act(e.target,()=>history(Math.max(0,offset-20),group));
   if($('tlNextPage'))$('tlNextPage').onclick=e=>act(e.target,()=>history(offset+20,group));
   document.querySelectorAll('[data-essay]').forEach(b=>b.onclick=()=>act(b,async()=>{
-   const data=await api({action:'live_get',essay_id:b.dataset.essay});essay=data.essay;reviewEditing=false;file=null;requests.theme=null;requests.correction=null;name=essay.student_label;school=essay.school_label;theme=essay.theme;origin=essay.theme_origin;confirmed=!!essay.theme_confirmed_at;activity=null;activityEnabled=false;activityName='';if(!studentMode&&essay.activity_id){const rows=await api({action:'live_activities',activity_id:essay.activity_id});activity=rows.activities[0]||null;activityEnabled=!!activity;activityName=activity?.name||'';}text=essay.input_text||'';
+   const data=await api({action:'live_get',essay_id:b.dataset.essay});essay=data.essay;correctionScope=essay.correction_scope||'complete';reviewEditing=false;file=null;requests.theme=null;requests.correction=null;name=essay.student_label;school=essay.school_label;theme=essay.theme;origin=essay.theme_origin;confirmed=!!essay.theme_confirmed_at;activity=null;activityEnabled=false;activityName='';if(!studentMode&&essay.activity_id){const rows=await api({action:'live_activities',activity_id:essay.activity_id});activity=rows.activities[0]||null;activityEnabled=!!activity;activityName=activity?.name||'';}text=essay.input_text||'';
    detailBack=()=>history(offset,group);
    const versions=()=>{detailVersions=null;
    shell(`<section class="tl-card tl-list"><div class="tl-list-heading"><h2>Versões desta redação</h2><p>${esc(essay.student_label||'Sem identificação')}</p></div><div class="tl-version-list">${data.jobs.map(j=>`<article class="tl-version"><div><strong>${j.purpose==='theme'?'Verificação de tema':'Correção ENEM'}</strong><p class="tl-muted">${esc(fmtDate(j.created_at))}</p><span class="tl-badge">${esc(({processing:'Em análise',completed:j.review?'Revisada':'Concluída',failed:'Não concluída'})[j.status]||j.status)}</span></div><button class="btn" data-job="${esc(j.id)}">Ver ${j.purpose==='theme'?'tema':'correção'}</button></article>`).join('')}</div></section>`);

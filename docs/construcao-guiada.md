@@ -56,3 +56,15 @@ Arquivos: writing-stages.e12.js, tests/writing-stages.cjs, docs/construcao-guiad
 Executar node tests/writing-stages.cjs, npm run check e git diff --check. Como nenhum módulo ativo foi alterado, não afirmar que UI, login, autosave, IA ou cobrança estão funcionando. Integração futura deve testar HTTP/assets/console e os três perfis, com dados sintéticos. Homologação oficial: https://teste.versaoprofessor.com/ no projeto isolado, branch feat/ao-vivo-preview. Produção somente após revisão e autorização da mudança concreta.
 
 Rollback da primeira entrega: reverter o commit aditivo; não há migração ou dado a restaurar. Nenhum deploy, variável, domínio, autenticação ou integração foi modificado.
+
+## Segunda entrega em desenvolvimento
+
+Interface preparada na branch de desenvolvimento:
+- Seleção padrão completa e quatro etapas no Ao Vivo compartilhado entre professor e aluno.
+- Entrada opcional “Escolher etapa da redação” na fila docente, mantendo o botão de correção completa.
+- Critérios e aviso formativo por etapa, sem apagar o texto ao alternar.
+- Renderer parcial estrito: critérios, evidência, ponto forte, melhoria, desvios, próximo passo e limites de contexto; não mostra C1–C5 nem total, mesmo que o payload contenha esses campos.
+- Bloqueio explícito antes de qualquer upload ou envio parcial para os endpoints atuais. Backend parcial, revisão/publicação e histórico parcial ainda não foram implementados. A devolutiva parcial foi validada apenas com fixtures sintéticas.
+- Mesmos componentes visuais, CSS e identidade aprovados. Nenhum CSS ou menu foi redesenhado. Pedido de Marcus em 07/10: manter layout padrão aprovado.
+
+Ainda não concluído: contrato persistente de etapa no servidor, correção parcial real, revisão docente parcial, compartilhamento, entrega do aluno escolar, editor guiado e tutoria real. Não habilitar a opção em produção enquanto esses fluxos não estiverem prontos. Próxima implementação precisa de backend isolado ou autorização específica após apresentação de arquivos/funções/tabelas e rollback; o backend compartilhado não foi alterado.

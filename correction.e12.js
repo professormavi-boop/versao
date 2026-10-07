@@ -43,6 +43,7 @@ async function saveManual(id,publish){
 
 function renderAiResult(id,job,official,usage,row){
   const slot=$('slot-'+id),box=slot?.querySelector('.box');if(!box)return;
+  if(window.WritingStagesUI?.isPartial(job?.result)){box.innerHTML=window.WritingStagesUI.feedbackHtml(job.result);return;}
   const r={...(official?{}:job?.result||{})};if(official){r.report_format=official.detailed_analysis?.report_format||'essential-v1';r.main_strength=official.detailed_analysis?.main_strength;r.next_step=official.detailed_analysis?.next_step;r.total_score=official.total_score;r.overall_feedback=official.feedback;r.improvement_priority=official.improvement_priority;r.detailed_analysis=official.detailed_analysis||{};r.c5_check=r.detailed_analysis.c5_check;r.c1_deviations=r.detailed_analysis.c1_deviations;r.competencies=Object.fromEntries(CC.map(([c])=>[c,{...(r.competencies?.[c]||{}),score:official.competencies?.[c],diagnostic:official.competency_justifications?.[c],improvement:official.detailed_analysis?.competency_improvements?.[c]||r.competencies?.[c]?.improvement}]));}const codes=['C1','C2','C3','C4','C5'],compData={};
   for(const c of codes){
     const rc=r.competencies?.[c]||{},offScore=official?.competencies?.[c];
@@ -209,6 +210,7 @@ async function aiWatch(ctx,initialJob){
 }
 async function aiCorrection(id,options={}){
   const slot=$('slot-'+id);if(!slot)return;
+  if(options.stage&&options.stage!=='complete'){slot.textContent=window.WritingStagesUI?.unavailable||'Correção por etapas ainda não habilitada.';return;}
   const key=aiKey(id),row=(S.cache.correctionRows||[]).find(x=>x.submission_id===id);
   const previous=aiInFlight.get(key);
   if(previous?.starting)return;
