@@ -33,7 +33,7 @@ function sample(w){return {mode:'partial',report_format:'partial-v1',stage:'intr
   const {dom,w,calls}=env(role,true);w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1);
   select(w,'introduction');w.$('tlText').value='Texto para análise parcial. '.repeat(5);
   assert(w.$('tlCamera').disabled);await w.$('tlNext').onclick({target:w.$('tlNext')});
-  assert.equal(calls.find(c=>c.action==='live_create').correction_scope,'introduction');assert(w.$('tlInfer').hidden);
+  assert.equal(calls.find(c=>c.action==='live_create').correction_scope,'introduction');assert(!w.$('tlInfer').hidden);
   w.$('tlTheme').value='Tema sintético para avaliação';w.$('tlConfirmed').checked=true;w.$('tlConfirmed').onchange({target:w.$('tlConfirmed')});await w.$('tlNext').onclick({target:w.$('tlNext')});
   await w.$('tlStart').onclick({target:w.$('tlStart')});assert(!calls.some(c=>c.action==='live_start'));
   w.$('tlCredit').checked=true;await w.$('tlStart').onclick({target:w.$('tlStart')});

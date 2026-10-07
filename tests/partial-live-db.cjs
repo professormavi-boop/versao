@@ -17,6 +17,7 @@ const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('
  if not found then raise exception 'Saldo insuficiente.';end if;return b;end $$;`);
  await db.exec(fs.readFileSync('tests/fixtures/live-credit-rpcs.sql','utf8'));
  await db.exec(fs.readFileSync('backend/writing/supabase/migrations/20261007195224_live_partial_scope.sql','utf8'));
+ await db.exec(fs.readFileSync('backend/writing/supabase/migrations/20261007210939_partial_theme_inference.sql','utf8'));
  const actor='00000000-0000-4000-8000-000000000001',other='00000000-0000-4000-8000-000000000002',essay='00000000-0000-4000-8000-000000000003',job='00000000-0000-4000-8000-000000000004',job2='00000000-0000-4000-8000-000000000005';
  const text='Trecho sintético para análise parcial. '.repeat(5);
  await db.query("insert into profiles values($1,'teacher','approved'),($2,'teacher','approved')",[actor,other]);
@@ -37,7 +38,7 @@ const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('
  claim=await start(job2);assert.equal(claim.claimed,true);assert.equal(await balance(),1);
  await db.query('select finish_live_job($1,$2,$3,null,null)',[actor,job2,{mode:'partial'}]);assert.equal(await balance(),1);
  await db.query('select finish_live_job($1,$2,null,null,$3)',[actor,job2,'Falha tardia']);assert.equal(await balance(),1);
- await assert.rejects(start('00000000-0000-4000-8000-000000000006',actor,'theme'));
+ const beforeTheme=await balance();const theme=await start('00000000-0000-4000-8000-000000000006',actor,'theme');assert.equal(theme.claimed,true);assert.equal(theme.job.credit_status,'none');assert.equal(theme.job.input_snapshot,text);assert.equal(await balance(),beforeTheme);assert.equal((await start('00000000-0000-4000-8000-000000000006',actor,'theme')).claimed,false);assert.equal(await balance(),beforeTheme);
  const acl=await db.query("select has_function_privilege('anon','private.live_partial_snapshot()','execute') a,has_function_privilege('authenticated','private.live_partial_snapshot()','execute') u");assert.equal(acl.rows[0].a,false);assert.equal(acl.rows[0].u,false);
  await db.close();console.log('PASS SQL local: snapshot imutável, isolamento, reserva1, repetição sem débito, estorno único e resultado terminal preservado. Ledger local simulado; sem banco remoto.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
