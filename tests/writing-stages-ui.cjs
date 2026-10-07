@@ -5,7 +5,7 @@ const source=p=>fs.readFileSync(p,'utf8');
 function env(role='student',partialEnabled=false){
  const dom=new JSDOM('<main id="view"></main>',{url:'https://test.invalid',runScripts:'outside-only'}),w=dom.window,calls=[];
  w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=t=>'<h1>'+t+'</h1>';w.fmtDate=s=>s;w.navigationCurrent=()=>true;w.S={profile:{role},cache:{},session:{user:{id:'owner'}}};w.navigate=()=>{};
- w.edge=async(_,b)=>{calls.push(b);switch(b.action){case'live_status':return{enabled:true,partial_correction:partialEnabled};case'live_history':return{essays:[]};case'organizations':return{organizations:[]};case'live_create':return{essay:{id:'essay',...b}};case'live_theme':return{essay:{id:'essay',...b}};case'live_start':return{job:{id:'job',status:'completed',result:sample(w)}};case'live_review':return{job:{id:'job',status:'completed',result:sample(w),review:b.partial_review}};case'live_share':return{token:'a'.repeat(64),expires_at:'synthetic'};case'live_revoke':return{ok:true};default:throw Error(b.action);}};
+ w.edge=async(_,b)=>{calls.push(b);switch(b.action){case'live_status':return{enabled:true,partial_correction:partialEnabled,partial_input:'text-or-file'};case'live_history':return{essays:[]};case'organizations':return{organizations:[]};case'live_create':return{essay:{id:'essay',...b}};case'live_theme':return{essay:{id:'essay',...b}};case'live_start':return{job:{id:'job',status:'completed',result:sample(w)}};case'live_review':return{job:{id:'job',status:'completed',result:sample(w),review:b.partial_review}};case'live_share':return{token:'a'.repeat(64),expires_at:'synthetic'};case'live_revoke':return{ok:true};case'live_transcribe':return{text:'Trecho transcrito sintético. '.repeat(8),note:'Confira a leitura.'};case'live_confirm_text':return{essay:{id:'essay',input_text:b.input_text,correction_scope:'introduction'}};default:throw Error(b.action);}};
  w.eval(source('custom-selects.e12.js'));w.eval(source('writing-stages.e12.js'));w.eval(source('writing-stages-ui.e12.js'));
  return {dom,w,calls};
 }
@@ -32,7 +32,7 @@ function sample(w){return {mode:'partial',report_format:'partial-v1',stage:'intr
  for(const role of ['teacher','student']){
   const {dom,w,calls}=env(role,true);w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1);
   select(w,'introduction');w.$('tlText').value='Texto para análise parcial. '.repeat(5);
-  assert(w.$('tlCamera').disabled);await w.$('tlNext').onclick({target:w.$('tlNext')});
+  assert(!w.$('tlCamera').disabled);await w.$('tlNext').onclick({target:w.$('tlNext')});
   assert.equal(calls.find(c=>c.action==='live_create').correction_scope,'introduction');assert(!w.$('tlInfer').hidden);
   w.$('tlTheme').value='Tema sintético para avaliação';w.$('tlConfirmed').checked=true;w.$('tlConfirmed').onchange({target:w.$('tlConfirmed')});await w.$('tlNext').onclick({target:w.$('tlNext')});
   await w.$('tlStart').onclick({target:w.$('tlStart')});assert(!calls.some(c=>c.action==='live_start'));
@@ -47,6 +47,14 @@ function sample(w){return {mode:'partial',report_format:'partial-v1',stage:'intr
   await w.$('tlShare').onclick({target:w.$('tlShare')});assert(w.$('tlLink').value.endsWith('a'.repeat(64)));
   await w.$('tlRevoke').onclick({target:w.$('tlRevoke')});assert.match(w.$('tlSharePanel').textContent,/revogado/);
   dom.window.close();
+ }
+ {
+  const {dom,w,calls}=env('teacher',true);w.BASE='https://test.invalid';w.authHeaders=()=>({});w.request=async(url,options)=>{calls.push({action:'upload',scope:options.body.get('correction_scope')});return{ok:true,json:async()=>({essay:{id:'essay',correction_scope:'introduction',input_text:null}})}};
+  w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1);select(w,'introduction');
+  w.$('tlPhoto').onchange({target:{files:[new w.File(['image'],'photo.png',{type:'image/png'})]}});
+  await w.$('tlNext').onclick({target:w.$('tlNext')});assert(w.$('tlTranscribedText'));assert.equal(calls.find(c=>c.action==='upload').scope,'introduction');
+  await w.$('tlConfirmText').onclick({target:w.$('tlConfirmText')});assert(!calls.some(c=>c.action==='live_confirm_text'));
+  w.$('tlTranscriptionConfirmed').checked=true;await w.$('tlConfirmText').onclick({target:w.$('tlConfirmText')});assert(w.$('tlTheme'));assert(!calls.some(c=>c.action==='live_start'));dom.window.close();
  }
  {
   const {dom,w,calls}=env('teacher');w.document.getElementById('view').innerHTML='<div id="slot-one"><div class="box"></div></div>';

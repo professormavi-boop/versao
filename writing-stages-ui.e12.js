@@ -7,7 +7,7 @@
  function mount(host,{value='complete',enabled=false,onChange=()=>{}}={}){
   let selected=W.scope(value);const group='writing-scope-'+(++serial);
   host.innerHTML=`<div class="form-section"><label class="field" for="${group}">Tipo de correção<select id="${group}" aria-describedby="${group}-description">${[['complete','Redação completa'],...Object.entries(W.stages).map(([k,v])=>[k,v.label])].map(([key,label])=>`<option value="${key}" ${key===selected?'selected':''}>${label}</option>`).join('')}</select></label><p id="${group}-description" data-stage-description aria-live="polite"></p></div>`;
-  function explain(){host.querySelector('[data-stage-description]').textContent=selected==='complete'?'Análise do texto completo pelas cinco competências. Custo: 1 crédito.':W.stages[selected].criteria.join(' · ')+'. Devolutiva formativa, sem nota ENEM. Custo: 1 crédito por correção da etapa. '+(enabled?'Envie o trecho em texto e informe o tema original.':unavailable);}
+  function explain(){host.querySelector('[data-stage-description]').textContent=selected==='complete'?'Análise do texto completo pelas cinco competências. Custo: 1 crédito.':W.stages[selected].criteria.join(' · ')+'. Devolutiva formativa, sem nota ENEM. Custo: 1 crédito por correção da etapa. '+(enabled?'Envie apenas a etapa escolhida e confirme o tema.':unavailable);}
   host.querySelector('select').onchange=e=>{selected=W.scope(e.target.value);explain();onChange(selected);};
   explain();return {value:()=>selected};
  }

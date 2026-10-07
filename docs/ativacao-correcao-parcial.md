@@ -1,8 +1,14 @@
-# Correção parcial: pacote preparado para revisão
+# Correção parcial: implementação e ativação
 
 Estado: ativada em 07/10/2026, após autorização explícita de Marcus às17h02 BRT. Migration live_partial_scope aplicada; teacher-organization-api18 ACTIVE, JWT obrigatório e15módulos conferidos; flag live_partial_correction=true. Frontend disponível em teste.versaoprofessor.com, sem promoção do frontend de produção. Sem correção paga real executada pelo agente.
 
-## Escopo desta entrega
+## Atualização de 07/10 — câmera,20dias e editor
+
+API19 ACTIVE/JWT,16arquivos conferidos. Migration partial_camera_links_writing aplicada: transcrições e rascunhos privados com RLS e RPCs somente service_role; novo default20dias para links. Feature config camera/writing_editor ativas. Câmera/arquivo parcial agora é transcrito, revisado e confirmado antes da sugestão de tema e da correção. Tema por IA liberado também para trechos. Novo editor: planejamento, quatro parágrafos, modo livre ou causa-consequência, prévia e salvamento na conta com versão. Tutoria IA e vínculo escolar do editor ainda pendentes; perfil independente continua conforme regra atual de acesso do sistema.
+
+Rollback operacional: desabilitar config.camera e config.writing_editor e, se necessário, live_partial_correction; manter leitor do backend19 e schema para preservar trabalhos/transcrições já salvos. Não restaurar API18 sem avaliar rascunhos/imagens incompletas. As migrations de prazo não renovam links antigos. Testes locais PASS; teste pago real autorizado, ainda depende de sessão autenticada.
+
+## Histórico: escopo da primeira entrega
 
 Ao Vivo professor e aluno escolar já admitido pelo backend: texto digitado/colado de 80 a 16.000 caracteres, tema original informado (10 a 1.000 caracteres), quatro etapas. Um crédito confirmado por tentativa; nenhuma chamada ao corretor completo para análise parcial. Resultado por critérios/evidências, sem nota. Professor pode editar critérios, evidências, orientações e desvios, ignorar desvios e confirmar uma única revisão. Aluno recebe análise sem revisão docente. Compartilhamento com revogação e validade existentes.
 

@@ -4,8 +4,10 @@ const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('
  const db=new PGlite();
  await db.exec(`create role anon;create role authenticated;create role service_role;create schema private;
  create table profiles(id uuid primary key,role text,approval_status text);
- create table live_essays(id uuid primary key,owner_id uuid,input_text text,theme text,theme_origin text,theme_confirmed_at timestamptz,deleted_at timestamptz);
+ create table live_essays(id uuid primary key,owner_id uuid,input_text text,theme text,theme_origin text,theme_confirmed_at timestamptz,deleted_at timestamptz,updated_at timestamptz default now());
  create table live_jobs(id uuid primary key,essay_id uuid,owner_id uuid,purpose text,status text default 'processing',theme_snapshot text,theme_origin text,model text,credit_status text,result jsonb,usage jsonb,error_message text,completed_at timestamptz);
+ create table live_shares(id integer primary key,expires_at timestamptz default(now()+interval '7 days'));
+ insert into live_shares(id) values(1);
  create table live_files(essay_id uuid);create table live_input_checks(owner_id uuid,essay_id uuid,status text);
  create table correction_credit_wallets(profile_id uuid primary key,balance integer);
  create table ledger(key text primary key,amount integer);
@@ -18,6 +20,7 @@ const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('
  await db.exec(fs.readFileSync('tests/fixtures/live-credit-rpcs.sql','utf8'));
  await db.exec(fs.readFileSync('backend/writing/supabase/migrations/20261007195224_live_partial_scope.sql','utf8'));
  await db.exec(fs.readFileSync('backend/writing/supabase/migrations/20261007210939_partial_theme_inference.sql','utf8'));
+ await db.exec(fs.readFileSync('backend/writing/supabase/migrations/20261007211943_partial_camera_links.sql','utf8'));
  const actor='00000000-0000-4000-8000-000000000001',other='00000000-0000-4000-8000-000000000002',essay='00000000-0000-4000-8000-000000000003',job='00000000-0000-4000-8000-000000000004',job2='00000000-0000-4000-8000-000000000005';
  const text='Trecho sintético para análise parcial. '.repeat(5);
  await db.query("insert into profiles values($1,'teacher','approved'),($2,'teacher','approved')",[actor,other]);
@@ -40,5 +43,25 @@ const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('
  await db.query('select finish_live_job($1,$2,null,null,$3)',[actor,job2,'Falha tardia']);assert.equal(await balance(),1);
  const beforeTheme=await balance();const theme=await start('00000000-0000-4000-8000-000000000006',actor,'theme');assert.equal(theme.claimed,true);assert.equal(theme.job.credit_status,'none');assert.equal(theme.job.input_snapshot,text);assert.equal(await balance(),beforeTheme);assert.equal((await start('00000000-0000-4000-8000-000000000006',actor,'theme')).claimed,false);assert.equal(await balance(),beforeTheme);
  const acl=await db.query("select has_function_privilege('anon','private.live_partial_snapshot()','execute') a,has_function_privilege('authenticated','private.live_partial_snapshot()','execute') u");assert.equal(acl.rows[0].a,false);assert.equal(acl.rows[0].u,false);
+
+ const photo='00000000-0000-4000-8000-000000000008';
+ await db.query("insert into live_essays(id,owner_id,correction_scope) values($1,$2,'conclusion')",[photo,actor]);
+ const claimOcr=async(owner=actor)=>(await db.query('select claim_live_transcription($1,$2) as v',[owner,photo])).rows[0].v;
+ await assert.rejects(claimOcr(other));let ocr=await claimOcr();assert.equal(ocr.claimed,true);await assert.rejects(claimOcr());
+ await assert.rejects(db.query('select confirm_live_transcription($1,$2,$3)',[actor,photo,text]));
+ await db.query('select finish_live_transcription($1,$2,$3,$4,$5,null)',[actor,photo,ocr.transcription.attempt_id,text,'Confira.']);
+ assert.equal((await claimOcr()).claimed,false);
+ await db.query('select confirm_live_transcription($1,$2,$3)',[actor,photo,text]);await db.query('select confirm_live_transcription($1,$2,$3)',[actor,photo,text]);
+ await assert.rejects(db.query('select confirm_live_transcription($1,$2,$3)',[actor,photo,text+'Mudança']));
+ await db.query('insert into live_shares(id) values(2)');
+ const expiry=await db.query('select id,extract(epoch from(expires_at-now()))/86400 as days from live_shares order by id');assert(Math.abs(Number(expiry.rows[0].days)-7)<0.001);assert(Math.abs(Number(expiry.rows[1].days)-20)<0.001);
+ const perms=await db.query("select has_table_privilege('authenticated','public.live_transcriptions','select') as r,has_function_privilege('anon','public.claim_live_transcription(uuid,uuid)','execute') as f");assert.equal(perms.rows[0].r,false);assert.equal(perms.rows[0].f,false);
+
+ const draftId='00000000-0000-4000-8000-000000000009';
+ let draft=(await db.query('select save_live_writing_draft($1,$2,0,$3,$4) as d',[actor,draftId,'Tema',{}])).rows[0].d;assert.equal(draft.version,1);
+ await assert.rejects(db.query('select save_live_writing_draft($1,$2,1,$3,$4)',[other,draftId,'Outro tema',{}]));
+ await assert.rejects(db.query('select save_live_writing_draft($1,$2,0,$3,$4)',[actor,draftId,'Sobrescrever',{}]));
+ draft=(await db.query('select save_live_writing_draft($1,$2,1,$3,$4) as d',[actor,draftId,'Revisado',{}])).rows[0].d;assert.equal(draft.version,2);assert.equal(draft.theme,'Revisado');
+ const draftAcl=await db.query("select has_table_privilege('authenticated','public.live_writing_drafts','select') as r");assert.equal(draftAcl.rows[0].r,false);
  await db.close();console.log('PASS SQL local: snapshot imutável, isolamento, reserva1, repetição sem débito, estorno único e resultado terminal preservado. Ledger local simulado; sem banco remoto.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -28,7 +28,7 @@ window.liveDeviationEditorHtml=job=>{
  const reviews=window.liveDeviationReviews(job);
  return `<section class="tl-result-section" id="tlDeviationEditor"><h3>Revisar desvios</h3><p>Os apontamentos são mantidos por padrão. Edite a sugestão e a regra ou ignore o apontamento. Ignorados não aparecem na devolutiva. A nota de C1 pode ser ajustada acima.</p>${reviews.map(d=>{const original=job.result.c1_deviations[d.index];return `<article class="tl-evidence-card" data-live-deviation="${d.index}"><h4>Ocorrência ${d.index+1}</h4><p><b>Trecho original:</b> ${esc(original.original)}</p><p>${esc(original.location||'')}</p><blockquote>${esc(original.evidence||'')}</blockquote><label class="field">Sugestão de escrita<textarea data-live-correction="${d.index}">${esc(d.correction)}</textarea></label><label class="field">Regra aplicada no contexto<textarea data-live-rule="${d.index}">${esc(d.rule)}</textarea></label><label class="tl-confirm"><input type="checkbox" data-live-discard="${d.index}" ${d.decision==='discarded'?'checked':''}> Ignorar este apontamento</label><p class="tl-muted">Para restaurar, desmarque ignorar.</p></article>`;}).join('')||'<p>Nenhum desvio apontado nesta análise.</p>'}<label class="field">Observação da revisão (opcional)<textarea id="tlReviewNote" maxlength="4000">${esc(job.review?.review_audit?.note||'')}</textarea></label></section>`;
 };
-window.renderTeacherLive=async function(navigation){
+window.renderTeacherLive=async function(navigation,preset=null){
  const studentMode=S.profile.role==='student';
  if(!['teacher','student'].includes(S.profile.role))throw Error('Esta área não está disponível para o seu perfil.');
  const api=body=>edge('teacher-organization-api',body);
@@ -36,7 +36,8 @@ window.renderTeacherLive=async function(navigation){
  let step=1,essay=null,file=null,text='',name='',school='',theme='',origin='provided',confirmed=false,job=null,busy=false,pollTimer=null,elapsedTimer=null,analysisStartedAt=null;
  let draftId=crypto.randomUUID(),activity=null,activityEnabled=false,activityName='',activityDraftId=crypto.randomUUID();
  let reviewEditing=false,activeMenu='tlNew',activitySearch='',historySearch='',activityOffset=0,detailBack=null,detailVersions=null;
- let correctionScope='complete';
+ let correctionScope='complete',transcription=null;
+ if(preset){correctionScope=window.WritingStages.scope(preset.stage);text=String(preset.text||'');theme=String(preset.theme||'');}
  const requests={theme:null,correction:null};
  const schoolCatalog=[];
  if(available.enabled){const sources=await Promise.allSettled([studentMode?Promise.resolve({organizations:[]}):api({action:'organizations'}),api({action:'live_history'})]);for(const item of sources){if(item.status==='fulfilled'){schoolCatalog.push(...(item.value.organizations||[]).map(x=>x.name),...(item.value.essays||[]).map(x=>x.school_label));}}}
@@ -93,32 +94,48 @@ window.renderTeacherLive=async function(navigation){
   window.WritingStagesUI?.assertReady(correctionScope,available.partial_correction===true);
   if(essay)return;
   const id=draftId;
-  if(correctionScope!=='complete'&&file)throw Error('Para corrigir uma etapa, cole o trecho em texto.');
   if(file){
-   const form=new FormData();form.set('action','live_upload');form.set('essay_id',id);form.set('file',file);form.set('student_label',name);form.set('school_label',school);
+   const form=new FormData();form.set('action','live_upload');form.set('essay_id',id);form.set('file',file);form.set('correction_scope',correctionScope);form.set('student_label',name);form.set('school_label',school);
    const response=await request(BASE+'/functions/v1/teacher-organization-api',{method:'POST',headers:authHeaders(S.session.access_token,false),body:form});
    const data=await response.json();if(!response.ok)throw Error(data.error||'Não foi possível enviar.');essay=data.essay;
   }else essay=(await api({action:'live_create',essay_id:id,input_text:text,correction_scope:correctionScope,student_label:name,school_label:school})).essay;
  }
+ async function continueAfterInput(){
+  if(activity){const linked=await api({action:'live_activity',essay_id:essay.id,activity_id:activity.id,confirmed:true});essay=linked.essay;theme=activity.theme;origin=activity.theme_origin;confirmed=true;}
+  step=2;render();
+ }
+ async function readTranscription(){
+  status('Lendo o trecho com IA… Aguarde.');
+  transcription=await api({action:'live_transcribe',essay_id:essay.id});
+  if(!current())return;
+  if(transcription.confirmed){text=transcription.text;essay.input_text=text;await continueAfterInput();return;}
+  step='transcription';render();
+ }
  function updateTextScope(){
   const label=correctionScope==='complete'?'Redação completa':window.WritingStages.stages[correctionScope].label;
   if($('tlTextLabel'))$('tlTextLabel').textContent=label;
-  for(const id of ['tlCamera','tlChoose'])if($(id))$(id).disabled=correctionScope!=='complete';
+  for(const id of ['tlCamera','tlChoose'])if($(id))$(id).disabled=correctionScope!=='complete'&&available.partial_input!=='text-or-file';
   if($('tlText'))$('tlText').maxLength=correctionScope==='complete'?20000:16000;
-  $('tlInputHint').textContent=correctionScope==='complete'?'Fotografe, envie um arquivo ou cole a redação completa.':'Cole apenas o trecho de '+label.toLocaleLowerCase('pt-BR')+' que deseja corrigir.';
+  $('tlInputHint').textContent=correctionScope==='complete'?'Fotografe, envie um arquivo ou cole a redação completa.':'Fotografe, envie um arquivo ou cole apenas o trecho de '+label.toLocaleLowerCase('pt-BR')+' que deseja corrigir.';
  }
  function render(){
   if(!available.enabled){shell('<div class="tl-card"><h2>Estamos preparando o Ao Vivo</h2><p>Esta ferramenta ainda não está disponível para novas correções.</p></div>');return;}
-  if(step===1){
-   shell(steps()+`<section class="tl-card"><h2>${studentMode?'Como vamos começar?':'Uma redação, um próximo passo mais claro.'}</h2>${studentMode?'':'<p>Receba a análise por competência, revise com seu olhar de professor e compartilhe as orientações com o aluno.</p>'}${!studentMode?(activity?`<div class="tl-note"><b>${esc(activity.name||'Atividade sem nome')}</b><p>${esc(activity.theme)}</p><span>O tema será reaproveitado. Nova redação, nova identificação.</span></div>`:`<label><input type="checkbox" id="tlActivityEnabled" ${activityEnabled?'checked':''}> Usar o mesmo tema em várias redações</label>${activityEnabled?`<label class="field">Nome da atividade (opcional)<input id="tlActivityName" maxlength="160" value="${esc(activityName)}"></label>`:''}`):''}<div id="tlWritingScope"></div><p id="tlInputHint"></p><div class="tl-actions"><button id="tlCamera" class="btn primary">Fotografar</button><button id="tlChoose" class="btn">Enviar arquivo</button><button id="tlPaste" class="btn">Colar texto</button></div><input id="tlPhoto" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden><input id="tlFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.docx" hidden><p class="tl-file">${file?esc(file.name):'JPG, PNG, WEBP, PDF ou DOCX · até 15 MB'}</p>${file?'':`<label class="field"><span id="tlTextLabel">Redação completa</span><textarea id="tlText" aria-describedby="tlInputHint" maxlength="20000">${esc(text)}</textarea></label>`}<label class="field">${studentMode?'Seu nome (opcional)':'Nome do aluno (opcional)'}<input id="tlName" maxlength="160" value="${esc(name)}"></label><label class="field">Escola (opcional)<input id="tlSchool" maxlength="160" value="${esc(school)}"></label><div id="tlSchoolSuggestions" aria-live="polite"></div><p>Esses campos não criam cadastros.</p><button id="tlNext" class="btn primary">Continuar →</button></section>`);
-   window.WritingStagesUI?.mount($('tlWritingScope'),{value:correctionScope,enabled:available.partial_correction===true,onChange:value=>{saveFields();correctionScope=value;updateTextScope();}});
+  if(step==='transcription'){
+   shell(`<section class="tl-card"><h2>Confira o trecho lido</h2><p>Confirme que este é o trecho de ${esc(window.WritingStages.stages[correctionScope].label.toLocaleLowerCase('pt-BR'))} que deseja corrigir. Ajuste palavras ilegíveis antes de continuar.</p><p>${esc(transcription.note)}</p><label class="field">Texto extraído<textarea id="tlTranscribedText" maxlength="16000">${esc(transcription.text)}</textarea></label><label class="tl-confirm"><input type="checkbox" id="tlTranscriptionConfirmed"> Conferi o trecho e a leitura.</label><div class="tl-actions"><button class="btn primary" id="tlConfirmText">Confirmar e continuar</button><button class="btn" id="tlReplace">Trocar foto, arquivo ou texto</button></div></section>`);
+   $('tlReplace').onclick=replaceInput;
+   $('tlTranscribedText').oninput=()=>{$('tlTranscriptionConfirmed').checked=false;};
+   $('tlConfirmText').onclick=e=>act(e.target,async()=>{if(!$('tlTranscriptionConfirmed').checked)throw Error('Confira o trecho antes de continuar.');text=$('tlTranscribedText').value;essay=(await api({action:'live_confirm_text',essay_id:essay.id,input_text:text,confirmed:true})).essay;await continueAfterInput();});
+  }else if(step===1){
+   shell(steps()+`<section class="tl-card"><h2>${studentMode?'Como vamos começar?':'Uma redação, um próximo passo mais claro.'}</h2>${studentMode?'':'<p>Receba a análise por competência, revise com seu olhar de professor e compartilhe as orientações com o aluno.</p>'}${!studentMode?(activity?`<div class="tl-note"><b>${esc(activity.name||'Atividade sem nome')}</b><p>${esc(activity.theme)}</p><span>O tema será reaproveitado. Nova redação, nova identificação.</span></div>`:`<label><input type="checkbox" id="tlActivityEnabled" ${activityEnabled?'checked':''}> Usar o mesmo tema em várias redações</label>${activityEnabled?`<label class="field">Nome da atividade (opcional)<input id="tlActivityName" maxlength="160" value="${esc(activityName)}"></label>`:''}`):''}${available.writing_editor?'<div class="tl-actions"><button class="btn" id="tlWritingEditor">Construir redação por etapas</button></div>':''}<div id="tlWritingScope"></div><p id="tlInputHint"></p><div class="tl-actions"><button id="tlCamera" class="btn primary">Fotografar</button><button id="tlChoose" class="btn">Enviar arquivo</button><button id="tlPaste" class="btn">Colar texto</button></div><input id="tlPhoto" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden><input id="tlFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.docx" hidden><p class="tl-file">${file?esc(file.name):'JPG, PNG, WEBP, PDF ou DOCX · até 15 MB'}</p>${file?'':`<label class="field"><span id="tlTextLabel">Redação completa</span><textarea id="tlText" aria-describedby="tlInputHint" maxlength="20000">${esc(text)}</textarea></label>`}<label class="field">${studentMode?'Seu nome (opcional)':'Nome do aluno (opcional)'}<input id="tlName" maxlength="160" value="${esc(name)}"></label><label class="field">Escola (opcional)<input id="tlSchool" maxlength="160" value="${esc(school)}"></label><div id="tlSchoolSuggestions" aria-live="polite"></div><p>Esses campos não criam cadastros.</p><button id="tlNext" class="btn primary">Continuar →</button></section>`);
+   window.WritingStagesUI?.mount($('tlWritingScope'),{value:correctionScope,enabled:available.partial_correction===true,onChange:value=>{saveFields();if(essay&&correctionScope!==value){essay=null;draftId=crypto.randomUUID();requests.theme=null;requests.correction=null;}correctionScope=value;updateTextScope();}});
    updateTextScope();
+   if($('tlWritingEditor'))$('tlWritingEditor').onclick=()=>{if(busy)return;window.renderWritingEditor(navigation);};
    if($('tlActivityEnabled'))$('tlActivityEnabled').onchange=e=>{saveFields();activityEnabled=e.target.checked;render();};
    $('tlSchool').oninput=()=>{const host=$('tlSchoolSuggestions');host.replaceChildren();const matches=window.SchoolNames?.match($('tlSchool').value,schoolCatalog);for(const name of matches?.suggestions||[]){const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='Usar '+name+'?';b.onclick=()=>{$('tlSchool').value=name;school=name;host.replaceChildren();};host.append(b);}};
    $('tlSchool').onblur=()=>{const match=window.SchoolNames?.match($('tlSchool').value,schoolCatalog);if(match?.exact)$('tlSchool').value=match.exact;};
    $('tlCamera').onclick=()=>$('tlPhoto').click();$('tlChoose').onclick=()=>$('tlFile').click();$('tlPaste').onclick=()=>{saveFields();file=null;render();};
    for(const id of ['tlPhoto','tlFile'])$(id).onchange=e=>{saveFields();const picked=e.target.files[0];if(!picked)return;if(picked.size>15728640){status('Use um arquivo de até 15 MB.');return;}file=picked;render();};
-   $('tlNext').onclick=e=>act(e.target,async()=>{saveFields();if(!file&&text.trim().length<80)throw Error('Envie um arquivo ou cole pelo menos 80 caracteres.');await create();if(activity){const linked=await api({action:'live_activity',essay_id:essay.id,activity_id:activity.id,confirmed:true});essay=linked.essay;theme=activity.theme;origin=activity.theme_origin;confirmed=true;}step=2;render();});
+   $('tlNext').onclick=e=>act(e.target,async()=>{saveFields();if(!file&&text.trim().length<80)throw Error('Envie um arquivo ou cole pelo menos 80 caracteres.');await create();if(correctionScope!=='complete'&&!essay.input_text){await readTranscription();return;}await continueAfterInput();});
   }else if(step===2){
    shell(steps()+`<section class="tl-card"><h2>Qual é o tema?</h2>${activity?`<p class="tl-note">Tema confirmado da atividade ${esc(activity.name||'sem nome')}. Para usar outro tema, comece uma nova redação fora desta atividade.</p>`:''}<div class="tl-actions" ${activity?'hidden':''}><button class="btn" id="tlKnown">Tenho o tema</button><button class="btn" id="tlInfer">Verificar tema com inteligência</button></div><p class="tl-note">${origin==='inferred'?'O tema foi sugerido com base no texto. Confira o recorte: a sugestão não comprova qual era a proposta original.':'Informe o tema ou enunciado original que orientará a correção.'}</p><label class="field">Tema e recorte<textarea id="tlTheme" maxlength="${correctionScope==='complete'?4000:1000}" ${activity?'readonly':''}>${esc(theme)}</textarea></label><label class="tl-confirm"><input type="checkbox" id="tlConfirmed" ${confirmed?'checked':''}> Conferi o tema e o recorte.</label><div class="tl-actions"><button class="btn" id="tlReplace">Trocar foto, arquivo ou texto</button><button class="btn primary" id="tlNext">Revisar e continuar →</button></div></section>`);
    $('tlReplace').onclick=replaceInput;
@@ -232,6 +249,7 @@ window.renderTeacherLive=async function(navigation){
   if($('tlNextPage'))$('tlNextPage').onclick=e=>act(e.target,()=>history(offset+20,group));
   document.querySelectorAll('[data-essay]').forEach(b=>b.onclick=()=>act(b,async()=>{
    const data=await api({action:'live_get',essay_id:b.dataset.essay});essay=data.essay;correctionScope=essay.correction_scope||'complete';reviewEditing=false;file=null;requests.theme=null;requests.correction=null;name=essay.student_label;school=essay.school_label;theme=essay.theme;origin=essay.theme_origin;confirmed=!!essay.theme_confirmed_at;activity=null;activityEnabled=false;activityName='';if(!studentMode&&essay.activity_id){const rows=await api({action:'live_activities',activity_id:essay.activity_id});activity=rows.activities[0]||null;activityEnabled=!!activity;activityName=activity?.name||'';}text=essay.input_text||'';
+   if(correctionScope!=='complete'&&!essay.input_text){await readTranscription();return;}
    detailBack=()=>history(offset,group);
    const versions=()=>{detailVersions=null;
    shell(`<section class="tl-card tl-list"><div class="tl-list-heading"><h2>Versões desta redação</h2><p>${esc(essay.student_label||'Sem identificação')}</p></div><div class="tl-version-list">${data.jobs.map(j=>`<article class="tl-version"><div><strong>${j.purpose==='theme'?'Verificação de tema':j.correction_scope&&j.correction_scope!=='complete'?esc(window.WritingStages?.stages[j.correction_scope]?.label||'Correção por etapa'):'Correção ENEM'}</strong><p class="tl-muted">${esc(fmtDate(j.created_at))}</p><span class="tl-badge">${esc(({processing:'Em análise',completed:j.review?'Revisada':'Concluída',failed:'Não concluída'})[j.status]||j.status)}</span></div><button class="btn" data-job="${esc(j.id)}">Ver ${j.purpose==='theme'?'tema':'correção'}</button></article>`).join('')}</div></section>`);

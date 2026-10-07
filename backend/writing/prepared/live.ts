@@ -1,3 +1,4 @@
+import {transcribeLive} from './live-transcription.ts';
 import {partial} from './partial.ts';
 import {listSearch,essaySummaries,activitySummaries} from './live-list.ts';
 import {meteredFetch} from './ai-metering.ts';
@@ -37,12 +38,12 @@ export async function handleLive(req:Request,deps={createClient,fetch,env:(key:s
    try{body=JSON.parse(raw);}catch{return json({error:'Dados inválidos.'},400);}
   }
   const flag=checked(await admin.from('system_feature_flags').select('is_enabled,config').eq('feature_key',profile.role==='student'?'student_live':'teacher_live').maybeSingle());
-  const partialFlag=checked(await admin.from('system_feature_flags').select('is_enabled').eq('feature_key','live_partial_correction').maybeSingle());
+  const partialFlag=checked(await admin.from('system_feature_flags').select('is_enabled,config').eq('feature_key','live_partial_correction').maybeSingle());
   const partialEnabled=partialFlag?.is_enabled===true;
   const wallet=checked(await admin.from('correction_credit_wallets').select('balance').eq('profile_id',actor).maybeSingle());
   if(body.action==='live_status'){
    const balance=profile.role==='student'&&flag?.is_enabled?checked(await admin.rpc('claim_student_trial',{p_actor:actor})):wallet?.balance||0;
-   return json({enabled:!!flag?.is_enabled,balance,correction_credits:1,independent:false,management:true,partial_correction:partialEnabled,partial_input:'text'});
+   return json({enabled:!!flag?.is_enabled,balance,correction_credits:1,independent:false,management:true,partial_correction:partialEnabled,partial_input:partialFlag?.config?.camera===true?'text-or-file':'text',writing_editor:partialFlag?.config?.writing_editor===true});
   }
   if(!flag?.is_enabled)return json({error:'O Ao Vivo ainda não está disponível.'},409);
   async function ownEssay(id:string){if(!uuid(id))throw Error('Redação inválida.');const essay=checked(await admin.from('live_essays').select('*').eq('id',id).eq('owner_id',actor).maybeSingle());if(!essay||essay.deleted_at)throw Error('Redação não encontrada.');return essay;}
@@ -78,18 +79,37 @@ export async function handleLive(req:Request,deps={createClient,fetch,env:(key:s
    if(['failed','cancelled','incomplete'].includes(provider.status))return finish(job,provider,'A análise não foi concluída. O crédito desta tentativa será devolvido.');
    return job;
   }
+  if(body.action==='live_writing_list')return json({drafts:checked(await admin.from('live_writing_drafts').select('id,theme,version,updated_at').eq('owner_id',actor).order('updated_at',{ascending:false}).limit(50))});
+  if(['live_writing_get','live_writing_save'].includes(body.action)){
+   if(!uuid(body.id))return json({error:'Rascunho inválido.'},400);
+   if(body.action==='live_writing_get'){
+    const draft=checked(await admin.from('live_writing_drafts').select('*').eq('id',body.id).eq('owner_id',actor).maybeSingle());
+    return draft?json({draft}):json({error:'Rascunho não encontrado.'},404);
+   }
+   if(partialFlag?.config?.writing_editor!==true)return json({error:'O editor está temporariamente indisponível para salvar.'},409);
+   if(!Number.isInteger(body.version)||body.version<0||typeof body.theme!=='string'||body.theme.length>1000||!body.content||typeof body.content!=='object'||Array.isArray(body.content))return json({error:'Rascunho inválido.'},400);
+   const content:any={mode:body.content.mode==='cause-effect'?'cause-effect':'free',stages:{}};
+   for(const stage of ['introduction','development1','development2','conclusion']){
+    const data=body.content.stages?.[stage]||{};
+    if(typeof data.text!=='string'||data.text.length>16000||typeof data.plan!=='string'||data.plan.length>4000)return json({error:'Confira o texto e o planejamento de cada etapa.'},400);
+    content.stages[stage]={text:data.text,plan:data.plan};
+   }
+   return json({draft:checked(await admin.rpc('save_live_writing_draft',{p_actor:actor,p_id:body.id,p_version:body.version,p_theme:body.theme,p_content:content}))});
+  }
   if(body.action==='live_upload'){
-   if(partial.scope(body.correction_scope)!=='complete')return json({error:'Para corrigir uma etapa, cole o trecho em texto.'},400);
+   const correction_scope=partial.scope(body.correction_scope);
+   if(correction_scope!=='complete'&&(!partialEnabled||partialFlag?.config?.camera!==true))return json({error:'Câmera para correção parcial indisponível.'},409);
    if(!uuid(body.essay_id)||!upload)return json({error:'Arquivo inválido.'},400);
    if(upload.size>15728640)return json({error:'Use um arquivo de até 15 MB.'},413);
    const bytes=new Uint8Array(await upload.arrayBuffer()),mime=validateLiveFile(upload.name,bytes);
    let essay=checked(await admin.from('live_essays').select('*').eq('id',body.essay_id).eq('owner_id',actor).maybeSingle());
    if(essay){
+    if((essay.correction_scope||'complete')!==correction_scope)return json({error:'Comece uma nova redação para trocar a etapa.'},409);
     if(essay.deleted_at)return json({error:'Redação excluída. Comece uma nova redação.'},409);
     const current=checked(await admin.from('live_files').select('original_name').eq('essay_id',essay.id).maybeSingle());
     if(current)return json({essay,reused:true});
     if(essay.input_text)return json({error:'Comece uma nova redação para trocar o texto por arquivo.'},409);
-   }else essay=checked(await admin.from('live_essays').insert({id:body.essay_id,owner_id:actor,student_label:clean(body.student_label,160),school_label:clean(body.school_label,160)}).select('*').single());
+   }else essay=checked(await admin.from('live_essays').insert({id:body.essay_id,owner_id:actor,correction_scope,student_label:clean(body.student_label,160),school_label:clean(body.school_label,160)}).select('*').single());
    const path=actor+'/'+essay.id+'/'+crypto.randomUUID()+'.'+upload.name.split('.').pop()?.toLowerCase();
    checked(await admin.storage.from('live-private').upload(path,bytes,{contentType:mime,upsert:false}));
    try{checked(await admin.from('live_files').insert({essay_id:essay.id,storage_path:path,original_name:clean(upload.name,240),mime_type:mime,file_size:bytes.length}));}
@@ -138,6 +158,12 @@ export async function handleLive(req:Request,deps={createClient,fetch,env:(key:s
    return json(checked(await admin.rpc('attach_live_activity',{p_actor:actor,p_essay:body.essay_id,p_activity:body.activity_id,p_name:clean(body.name,160),p_theme:body.theme,p_origin:body.theme_origin})));
   }
   const essay=await ownEssay(body.essay_id);
+  if(['live_transcribe','live_confirm_text'].includes(body.action)){
+   if(!partialEnabled||!essay.correction_scope||essay.correction_scope==='complete')return json({error:'Leitura por etapa indisponível.'},409);
+   if(body.action==='live_transcribe')return json(await transcribeLive({admin,actor,essay,key,fetcher:deps.fetch}));
+   if(body.confirmed!==true||typeof body.input_text!=='string'||body.input_text.trim().length<80||body.input_text.length>16000)return json({error:'Confira o trecho, entre 80 e 16.000 caracteres.'},400);
+   return json({essay:checked(await admin.rpc('confirm_live_transcription',{p_actor:actor,p_essay:essay.id,p_text:body.input_text}))});
+  }
   if(['live_review','live_share','live_shares','live_revoke'].includes(body.action)){
    if(!uuid(body.job_id))return json({error:'Correção inválida.'},400);
    const job=checked(await admin.from('live_jobs').select('*').eq('id',body.job_id).eq('essay_id',essay.id).eq('owner_id',actor).maybeSingle());

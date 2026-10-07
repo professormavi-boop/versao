@@ -69,3 +69,5 @@ backend/
 
 !writing-stages.e12.js
 !writing-stages-ui.e12.js
+
+!writing-editor.e12.js

@@ -8,8 +8,8 @@ fs.mkdirSync(destination,{recursive:true});
 const hashes={};
 for(const file of fs.readdirSync(source)){
  const original=fs.readFileSync(path.join(source,file));hashes[file]=crypto.createHash('sha256').update(original).digest('hex');
- fs.writeFileSync(path.join(destination,file),file==='live.ts'?fs.readFileSync('backend/writing/prepared/live.ts'):original);
+ fs.writeFileSync(path.join(destination,file),fs.existsSync('backend/writing/prepared/'+file)?fs.readFileSync('backend/writing/prepared/'+file):original);
 }
-fs.copyFileSync('backend/writing/prepared/partial.ts',path.join(destination,'partial.ts'));
+for(const name of ['partial.ts','live-transcription.ts'])fs.copyFileSync('backend/writing/prepared/'+name,path.join(destination,name));
 fs.writeFileSync(path.join(destination,'baseline-v17.json'),JSON.stringify(hashes,null,2));
-console.log('Pacote privado preparado, 15 módulos; baseline v17 preservada no commit-base. Nenhum deploy.');
+console.log('Pacote privado preparado, 16 módulos; baseline v17 preservada no commit-base. Nenhum deploy.');
