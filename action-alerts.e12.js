@@ -36,7 +36,7 @@ function actionAlert(message,title='Ação concluída'){
 window.actionAlert=actionAlert;
 window.toast=function(message){
   const text=String(message||'');
-  const isError=/não foi possível|falh|erro|inválid|expirad|incorret|bloquead|insuficiente|conexão|interrompid|recusou|tente novamente|indisponível/i.test(text);
+  const isError=/pendência|reavalie|preencha|complete|confirme|resolva|falhou|não foi possível|falh|erro|inválid|expirad|incorret|bloquead|insuficiente|conexão|interrompid|recusou|tente novamente|indisponível/i.test(text);
   actionAlert(text,isError?'Atenção':'Ação concluída');
 };
 

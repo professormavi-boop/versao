@@ -63,3 +63,9 @@
 !school-name.e12.js
 
 !student-credits.e12.js
+
+backend/
+!enem-review.e12.js
+
+!writing-stages.e12.js
+!writing-stages-ui.e12.js

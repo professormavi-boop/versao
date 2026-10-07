@@ -1,0 +1,28 @@
+const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm'),{stripTypeScriptTypes}=require('node:module');
+(async()=>{
+const quality=await import('../backend/enem/prepared/teacher-organization-api/correction-quality.ts');
+const src=stripTypeScriptTypes(fs.readFileSync('backend/enem/prepared/teacher-organization-api/live.ts','utf8').replace(/^import .*;\s*$/gm,'').replace('export async function handleLive','async function handleLive'),{mode:'strip'});
+const context={...quality,Response,Request,crypto,TextEncoder,console};vm.createContext(context);vm.runInContext(src,context);
+const id='00000000-0000-4000-8000-000000000001';let role='teacher',writes=[],job;
+const fresh=()=>{const raw={quality_version:quality.QUALITY_VERSION,transcription:'Texto sintético para avaliação.',syntax_assessment:'Período articulado.',essay_status:'regular',proposal_complete:true,reading_quality:'good',c1_deviations:[],competencies:Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,{score:160,diagnostic:'Bom domínio.'}]))};Object.assign(raw,quality.validateEvidence(raw));job={id,owner_id:id,status:'completed',purpose:'correction',result:raw};};fresh();
+const admin={auth:{getUser:async()=>({data:{user:{id}}})},from(table){const data=()=>({profiles:{id,role,approval_status:'approved',organization_id:id},students:{auth_user_id:id,organization_id:id},system_feature_flags:{is_enabled:true},correction_credit_wallets:{balance:1},live_essays:{id,owner_id:id},live_jobs:job})[table];const chain={select(){return this;},eq(){return this;},maybeSingle:async()=>({data:data()})};return chain;},rpc:async(name,params)=>{writes.push(name);if(name==='review_live_job'){job={...job,review:params.p_review};return {data:job};}if(name==='share_live_job')return {data:{id,expires_at:'synthetic'}};throw Error('Unexpected write '+name);}};
+const deps={createClient:()=>admin,fetch:()=>{throw Error('No paid request permitted');},env:()=>''};
+const call=body=>context.handleLive(new Request('http://local',{method:'POST',headers:{Authorization:'Bearer synthetic','Content-Type':'application/json'},body:JSON.stringify({essay_id:id,job_id:id,...body})}),deps);
+const review=()=>({action:'live_review',review_policy_version:'enem-review-2026-10-06',review_confirmed:true,deviation_reviews:[],requirement_resolutions:[],scores:Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,160]))});
+let response=await call({action:'live_share'});assert.equal(response.status,409);assert.equal(writes.length,0);
+response=await call({...review(),review_confirmed:false});assert.equal(response.status,400);assert.equal(writes.length,0);
+response=await call(review());assert.equal(response.status,200);assert.equal(job.review.total_score,800);assert.equal(job.review.review_audit.policy_version,'enem-review-2026-10-06');
+response=await call({action:'live_share'});assert.equal(response.status,200);assert.equal(writes.at(-1),'share_live_job');
+fresh();job.review={total_score:920,competencies:{C1:{score:200,diagnostic:'Diagnóstico histórico aprovado.'}},review_audit:{confirmed:true,decisions:[{index:0,decision:'discarded'}]}};delete job.result.evidence_audit;
+const historical=JSON.stringify(job),historicalWrites=writes.length;
+response=await call({action:'live_share'});assert.equal(response.status,409);assert.equal(JSON.stringify(job),historical);assert.equal(writes.length,historicalWrites);
+response=await call(review());assert.equal(response.status,200);assert.equal(writes.length,historicalWrites+1);assert.equal(job.review.review_audit.c1_reassessment,null);
+fresh();role='student';response=await call({action:'live_share'});assert.equal(response.status,200);
+job.result.review_requirements=['Pendência histórica'];const pendingWrites=writes.length;response=await call({action:'live_share'});assert.equal(response.status,409);assert.equal(writes.length,pendingWrites);delete job.result.review_requirements;
+job.result.transcription+=' [?]';const before=writes.length;response=await call({action:'live_share'});assert.equal(response.status,409);assert.equal(writes.length,before);
+role='teacher';response=await call(review());assert.equal(response.status,200);assert.equal(writes.length,before+1);assert.equal(job.review.review_audit.requirement_resolutions.length,0);assert(job.review.review_audit.review_requirements.length>0);
+const pending=quality.validateEvidence(structuredClone(job.result)).review_requirements;
+response=await call({...review(),requirement_resolutions:pending.map((requirement,index)=>({requirement,index,resolution:'Leitura conferida no original.'}))});assert.equal(response.status,200);
+response=await call({...review(),c1_reassessment:{score:160,rationale:'Observação parcial.'}});assert.equal(response.status,200);assert.equal(job.review.competencies.C1.diagnostic,'Bom domínio.');
+console.log('PASS actual live handler: review/publication gates, final approval and optional individual notes, score total, teacher/student sharing, no provider calls');
+})().catch(e=>{console.error(e);process.exitCode=1});
