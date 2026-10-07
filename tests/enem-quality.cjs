@@ -18,14 +18,19 @@ const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
  const reviewed=reviewedEvidence(b,q);assert.equal(reviewed.review_audit.requirement_resolutions.length,0);assert.deepEqual(reviewed.review_audit.review_requirements,b.review_requirements);
  q.requirement_resolutions=[{index:0,requirement:b.review_requirements[0],resolution:'Comentário docente.'},{index:1,requirement:'Inventado',resolution:'Não usar'}];
  assert.equal(reviewedEvidence(b,q).review_audit.requirement_resolutions.length,1);q.review_confirmed=false;assert.throws(()=>reviewedEvidence(b,q),/Confirme/);}
+ // No extra C1 justification for retained/changed score, legacy or removed evidence.
+ {const b=normalize(base());b.c1_reassessment_required=true;const q=body(b);q.scores.C1=120;
+ assert.equal(reviewedEvidence(b,q).review_audit.c1_reassessment,null);assert.equal(q.scores.C1,120);
+ q.c1_reassessment={score:120,rationale:'Comentário opcional.'};const result=reviewedEvidence(b,q);assert.equal(result.syntax_assessment,b.syntax_assessment);assert.equal(result.review_audit.c1_reassessment.diagnostic,'');
+ q.c1_reassessment.score=160;assert.throws(()=>reviewedEvidence(b,q),/corresponder/);}
  // All five reported regressions, preserving score instead of inventing a replacement.
- let raw=base();raw.c1_deviations[0].evidence='frase inexistente';let b=normalize(raw);assert.equal(b.c1_deviations.length,0);assert.equal(b.competencies.C1.score,160);assert(b.c1_reassessment_required);assert.throws(()=>reviewedEvidence(b,body(b)),/Reavalie/);let q=resolve(b,body(b));delete q.c1_reassessment;assert.throws(()=>reviewedEvidence(b,q),/Reavalie/);q=resolve(b,q);assert.equal(reviewedEvidence(b,q).review_audit.c1_reassessment.score,160);
+ let raw=base();raw.c1_deviations[0].evidence='frase inexistente';let b=normalize(raw);assert.equal(b.c1_deviations.length,0);assert.equal(b.competencies.C1.score,160);assert(b.c1_reassessment_required);assert.equal(reviewedEvidence(b,body(b)).review_audit.c1_reassessment,null);let q=resolve(b,body(b));delete q.c1_reassessment;assert.equal(reviewedEvidence(b,q).review_audit.c1_reassessment,null);q=resolve(b,q);assert.equal(reviewedEvidence(b,q).review_audit.c1_reassessment.score,160);
  raw=base();raw.transcription='Hoje [?] persistem.';raw.c1_deviations[0]={...deviation,original:'[?]',evidence:'Hoje [?] persistem.'};b=normalize(raw);assert.equal(b.c1_deviations.length,0);assert(b.needs_manual_review);assert.equal(b.evidence_audit.removed[0].reason,'uncertain_reading');
  b=normalize(base());q=body(b);delete q.review_policy_version;assert.throws(()=>reviewedEvidence(b,q),/Atualize a página/);q=body(b);q.deviation_reviews=[];assert.throws(()=>reviewedEvidence(b,q),/explicitamente/);q=body(b);q.review_confirmed=false;assert.throws(()=>reviewedEvidence(b,q),/Confirme/);
  raw=base();raw.c1_deviations.push({...deviation,location:'primeiro parágrafo',evidence:'Hoje os problema persistem.'});b=normalize(raw);assert.equal(b.c1_deviations.length,1);assert.equal(b.evidence_audit.removed[0].reason,'duplicate');
- b=normalize(base());q=body(b);q.deviation_reviews[0].decision='discarded';assert.throws(()=>reviewedEvidence(b,q),/Reavalie/);q=resolve(b,q);assert.equal(reviewedEvidence(b,q).c1_deviations.length,0);assert.equal(q.scores.C1,160);
+ b=normalize(base());q=body(b);q.deviation_reviews[0].decision='discarded';assert.equal(reviewedEvidence(b,q).review_audit.c1_reassessment,null);q=resolve(b,q);assert.equal(reviewedEvidence(b,q).c1_deviations.length,0);assert.equal(q.scores.C1,160);
  // Legacy results require fresh qualitative C1 assessment, never reuse an old implicit confirmation.
- b=normalize(base());delete b.evidence_audit;q=body(b);assert.throws(()=>reviewedEvidence(b,q),/Reavalie/);q=resolve(b,q);assert.equal(reviewedEvidence(b,q).review_audit.c1_reassessment.score,160);
+ b=normalize(base());delete b.evidence_audit;q=body(b);assert.equal(reviewedEvidence(b,q).review_audit.c1_reassessment,null);q=resolve(b,q);assert.equal(reviewedEvidence(b,q).review_audit.c1_reassessment.score,160);
  assert(fs.readFileSync('.vercelignore','utf8').includes('!enem-review.e12.js'));
  // Repeat validation and approval are deterministic; interrupted review never yields an audit.
  raw=base();raw.c1_deviations[0].evidence='ausente';normalize(raw);const a=validateEvidence(raw),again=validateEvidence(raw);assert.deepEqual(a,again);assert(a.c1_reassessment_required);

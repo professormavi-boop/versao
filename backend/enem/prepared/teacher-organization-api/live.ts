@@ -142,7 +142,7 @@ export async function handleLive(req:Request,deps={createClient,fetch,env:(key:s
      scores[code]=value;competencies[code]={...job.result.competencies[code],score:value};
     }
     const evidence=reviewedEvidence(job.result,{...body,scores});
-    if(evidence.review_audit.c1_reassessment)competencies.C1.diagnostic=evidence.review_audit.c1_reassessment.diagnostic;
+    if(evidence.review_audit.c1_reassessment?.diagnostic)competencies.C1.diagnostic=evidence.review_audit.c1_reassessment.diagnostic;
     const review={...job.result,...evidence,needs_manual_review:false,review_requirements:[],competencies,total_score:Object.values(scores).reduce((sum:number,value:number)=>sum+value,0),preliminary:false,reviewed_by_teacher:true};
     return json({job:visible(checked(await admin.rpc('review_live_job',{p_actor:actor,p_job:job.id,p_review:review})))});
    }

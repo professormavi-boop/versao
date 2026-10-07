@@ -16,7 +16,7 @@ for(const width of [320,390,768,1200]){
  }
  w.enemReviewClear(job);delete base.evidence_audit;render();assert.equal(q('[data-enem-c1]').hidden,false);assert.match(q('[data-enem-reason]').textContent,/anterior/i);
  Object.assign(base,w.EnemReview.validateEvidence(base));base.c1_reassessment_required=true;render();assert.equal(q('[data-enem-c1]').hidden,false);
- assert.throws(()=>w.EnemReview.reviewedEvidence(base,{review_policy_version:w.EnemReview.REVIEW_POLICY_VERSION,review_confirmed:true,scores:Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,160])),deviation_reviews:[],requirement_resolutions:[]}),/Reavalie/);
+ assert.doesNotThrow(()=>w.EnemReview.reviewedEvidence(base,{review_policy_version:w.EnemReview.REVIEW_POLICY_VERSION,review_confirmed:true,scores:Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,160])),deviation_reviews:[],requirement_resolutions:[]}));
  base.reading_quality='partial';base.request_manifest={inputs:[{type:'input_file'}]};assert.match(w.enemAnalysisHeader(job),/não comprova/);assert.match(w.enemAnalysisHeader(job),/synthetic/);assert.match(w.enemAnalysisHeader(null),/Data não registrada/);render();q('[data-enem-resolution]').value='Conferi o original';event(q('[data-enem-resolution]'));render();assert.equal(q('[data-enem-resolution]').value,'Conferi o original');
  assert.equal(JSON.stringify(base).includes('Minha avaliação'),false);vm.runInContext("S.session.user.id='another'",dom.getInternalVMContext());render();assert.equal(q('[data-enem-diagnostic]').value,'');dom.window.close();
 }

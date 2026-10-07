@@ -242,7 +242,7 @@ Deno.serve(async(req)=>{
       const base=job.result,scores={},justifications={}
       for(const code of ['C1','C2','C3','C4','C5']){scores[code]=body.scores?.[code]??base.competencies?.[code]?.score;if(!VALID_SCORES.has(scores[code]))return json({error:'Pontuação inválida em '+code},400);justifications[code]=String(body.competency_justifications?.[code]||base.competencies?.[code]?.diagnostic||base.competencies?.[code]?.justification||'').trim();if(!justifications[code])return json({error:'A análise não trouxe diagnóstico suficiente em '+code+'. Refaça a correção ou use a correção manual.'},409)}
       const reviewed=reviewedEvidence(base,{...body,scores}),payload={scores,competency_justifications:justifications,feedback:String(body.overall_feedback??base.overall_feedback??'').trim(),improvement_priority:String(body.improvement_priority??base.improvement_priority??'').trim(),authorship_validation:String(body.authorship_validation??''),observations:String(body.observations??''),detailed_analysis:reviewed,correction_origin:'ai'}
-      if(reviewed.review_audit.c1_reassessment)payload.competency_justifications.C1=reviewed.review_audit.c1_reassessment.diagnostic;
+      if(reviewed.review_audit.c1_reassessment?.diagnostic)payload.competency_justifications.C1=reviewed.review_audit.c1_reassessment.diagnostic;
       const {data,error}=await admin.rpc('approve_essay_beta_atomic',{p_submission_id:submissionId,p_actor:user.id,p_payload:payload,p_ai_job_id:job.id});if(error)throw error;return json(data)
     }
     return json({error:'Ação inválida.'},400)

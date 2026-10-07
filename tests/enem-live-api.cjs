@@ -16,12 +16,13 @@ response=await call({action:'live_share'});assert.equal(response.status,200);ass
 fresh();job.review={total_score:920,competencies:{C1:{score:200,diagnostic:'Diagnóstico histórico aprovado.'}},review_audit:{confirmed:true,decisions:[{index:0,decision:'discarded'}]}};delete job.result.evidence_audit;
 const historical=JSON.stringify(job),historicalWrites=writes.length;
 response=await call({action:'live_share'});assert.equal(response.status,409);assert.equal(JSON.stringify(job),historical);assert.equal(writes.length,historicalWrites);
-response=await call(review());assert.notEqual(response.status,200);assert.equal(JSON.stringify(job),historical);assert.equal(writes.length,historicalWrites);
+response=await call(review());assert.equal(response.status,200);assert.equal(writes.length,historicalWrites+1);assert.equal(job.review.review_audit.c1_reassessment,null);
 fresh();role='student';response=await call({action:'live_share'});assert.equal(response.status,200);
 job.result.review_requirements=['Pendência histórica'];const pendingWrites=writes.length;response=await call({action:'live_share'});assert.equal(response.status,409);assert.equal(writes.length,pendingWrites);delete job.result.review_requirements;
 job.result.transcription+=' [?]';const before=writes.length;response=await call({action:'live_share'});assert.equal(response.status,409);assert.equal(writes.length,before);
 role='teacher';response=await call(review());assert.equal(response.status,200);assert.equal(writes.length,before+1);assert.equal(job.review.review_audit.requirement_resolutions.length,0);assert(job.review.review_audit.review_requirements.length>0);
 const pending=quality.validateEvidence(structuredClone(job.result)).review_requirements;
 response=await call({...review(),requirement_resolutions:pending.map((requirement,index)=>({requirement,index,resolution:'Leitura conferida no original.'}))});assert.equal(response.status,200);
+response=await call({...review(),c1_reassessment:{score:160,rationale:'Observação parcial.'}});assert.equal(response.status,200);assert.equal(job.review.competencies.C1.diagnostic,'Bom domínio.');
 console.log('PASS actual live handler: review/publication gates, final approval and optional individual notes, score total, teacher/student sharing, no provider calls');
 })().catch(e=>{console.error(e);process.exitCode=1});

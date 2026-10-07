@@ -91,10 +91,12 @@ export function reviewedEvidence(base,body){
   return entry?[{index,requirement,resolution:clean(entry.resolution)}]:[];
  });
  const reassess=base.evidence_audit?.version!==REVIEW_POLICY_VERSION||base.c1_reassessment_required===true||validation.c1_reassessment_required||decisions.some(d=>d.decision==='discarded')||body.scores.C1!==base.competencies.C1.score;
- const assessment=body.c1_reassessment;
- if(reassess&&(!assessment||assessment.score!==body.scores.C1||!clean(assessment.diagnostic)||!clean(assessment.rationale)||!clean(assessment.syntax_assessment)))throw Error('Reavalie a faixa, o diagnóstico e a sintaxe de C1 e justifique a manutenção ou mudança da nota.');
+ const suppliedAssessment=body.c1_reassessment;
+ const hasAssessment=suppliedAssessment&&['diagnostic','rationale','syntax_assessment'].some(key=>clean(suppliedAssessment[key]));
+ if(hasAssessment&&suppliedAssessment.score!==body.scores.C1)throw Error('A nota da observação de C1 deve corresponder à nota escolhida.');
+ const assessment=hasAssessment?{score:body.scores.C1,diagnostic:clean(suppliedAssessment.diagnostic),rationale:clean(suppliedAssessment.rationale),syntax_assessment:clean(suppliedAssessment.syntax_assessment)}:null;
  if(base.essay_status==='zero_candidate'&&codes.some(c=>body.scores[c]!==0))throw Error('Para alterar o enquadramento de anulação, utilize a correção manual e justifique a reavaliação.');
- return {...base.detailed_analysis,main_strength:String(body.main_strength??base.main_strength??''),next_step:String(body.overall_feedback??base.next_step??''),c1_deviations:confirmed,repertoire_checks:validation.repertoire_checks,competency_improvements:body.detailed_analysis?.competency_improvements||{},teacher_notes:String(body.detailed_analysis?.deviations_rules||''),review_audit:{quality_version:QUALITY_VERSION,policy_version:REVIEW_POLICY_VERSION,confirmed:true,note:clean(body.review_note),decisions,review_requirements:requirements,requirement_resolutions:resolutions,c1_reassessment:reassess?assessment:null},syntax_assessment:reassess?assessment.syntax_assessment:base.syntax_assessment};
+ return {...base.detailed_analysis,main_strength:String(body.main_strength??base.main_strength??''),next_step:String(body.overall_feedback??base.next_step??''),c1_deviations:confirmed,repertoire_checks:validation.repertoire_checks,competency_improvements:body.detailed_analysis?.competency_improvements||{},teacher_notes:String(body.detailed_analysis?.deviations_rules||''),review_audit:{quality_version:QUALITY_VERSION,policy_version:REVIEW_POLICY_VERSION,confirmed:true,note:clean(body.review_note),decisions,review_requirements:requirements,requirement_resolutions:resolutions,c1_reassessment:assessment,c1_reassessment_recommended:reassess},syntax_assessment:assessment?.syntax_assessment||base.syntax_assessment};
 }
 
 export async function inputManifest(payload){

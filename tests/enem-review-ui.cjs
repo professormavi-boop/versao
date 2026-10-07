@@ -13,10 +13,10 @@ const $=s=>w.document.querySelector(s),approve=()=> $('[data-approve-ai]').oncli
 assert.equal($('[data-deviation-confirm]'),null);
 confirm=false;await approve();assert.equal(approveCalls,0);
 confirm=true;await approve();assert.equal(approveCalls,1);assert.equal(last.deviation_reviews[0].decision,'confirmed');assert.equal(last.review_confirmed,true);assert.equal(last.requirement_resolutions[0].resolution,'');assert.match($('[data-enem-review]').textContent,/opcional/);approveCalls=0;
-$('[data-deviation-discard="0"]').checked=true;await approve();assert.equal(approveCalls,0);assert.match($('[data-approve-status]').textContent,/Reavalie/);
+$('[data-deviation-discard="0"]').checked=true;await approve();assert.equal(approveCalls,1);assert.equal(last.deviation_reviews[0].decision,'discarded');assert.equal(last.c1_reassessment.diagnostic,'');approveCalls=0;
 $('[data-enem-diagnostic]').value='Bom domínio, sustentado por estrutura e frequência.';$('[data-enem-syntax]').value='Períodos articulados.';$('[data-enem-rationale]').value='Manutenção da faixa após conferência qualitativa.';
 confirm=false;await approve();assert.equal(approveCalls,0);confirm=true;await approve();assert.equal(approveCalls,1);assert.match($('[data-approve-status]').textContent,/Rede interrompida/);assert.equal($('[data-deviation-discard="0"]').checked,true);
 fail=false;await approve();assert.equal(approveCalls,2);assert.equal(last.scores.C1,160);assert.equal(last.c1_reassessment.score,160);assert.equal($('[data-approve-ai]').disabled,true);await approve();assert.equal(approveCalls,2);
 assert(!last.detailed_analysis.c1_deviations.length);
-dom.window.close();console.log('PASS normal review DOM: default retention with final confirmation, discard requires C1 rationale, cancel, failed transport retained, retry, duplicate click, unchanged score');
+dom.window.close();console.log('PASS normal review DOM: default retention with final confirmation, discard with optional C1 rationale, cancel, failed transport retained, retry, duplicate click, unchanged score');
 })().catch(e=>{console.error(e);process.exitCode=1});
