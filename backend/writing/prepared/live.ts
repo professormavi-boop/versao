@@ -96,6 +96,11 @@ export async function handleLive(req:Request,deps={createClient,fetch,env:(key:s
    if(!Number.isInteger(body.version)||body.version<0||typeof body.theme!=='string'||body.theme.length>1000||!body.content||typeof body.content!=='object'||Array.isArray(body.content))return json({error:'Rascunho inválido.'},400);
    if(body.content.command!==undefined&&(typeof body.content.command!=='string'||body.content.command.length>4000))return json({error:'Confira o comando do tema.'},400);
    const content:any={mode:body.content.mode==='cause-effect'?'cause-effect':'free',command:body.content.command||'',stages:{}};
+   if(body.content.proposal_id!==undefined&&body.content.proposal_id!==null){
+    if(!uuid(body.content.proposal_id))return json({error:'Selecione novamente o tema da instituição.'},400);
+    content.proposal_id=body.content.proposal_id;
+   }
+   if(body.content.proposal_mode==='free'&&!content.proposal_id)content.proposal_mode='free';
    for(const stage of ['introduction','development1','development2','conclusion']){
     const data=body.content.stages?.[stage]||{};
     if(typeof data.text!=='string'||data.text.length>16000||typeof data.plan!=='string'||data.plan.length>4000)return json({error:'Confira o texto e o planejamento de cada etapa.'},400);
@@ -105,6 +110,7 @@ export async function handleLive(req:Request,deps={createClient,fetch,env:(key:s
   }
   if(body.action==='live_upload'){
    const correction_scope=partial.scope(body.correction_scope);
+   if(profile.role==='student'&&correction_scope!=='complete')return json({error:'Correção por partes disponível somente para professor.'},403);
    if(correction_scope!=='complete'&&(!partialEnabled||partialFlag?.config?.camera!==true))return json({error:'Câmera para correção parcial indisponível.'},409);
    if(!uuid(body.essay_id)||!upload)return json({error:'Arquivo inválido.'},400);
    if(upload.size>15728640)return json({error:'Use um arquivo de até 15 MB.'},413);
@@ -125,6 +131,7 @@ export async function handleLive(req:Request,deps={createClient,fetch,env:(key:s
   }
   if(body.action==='live_create'){
    const correction_scope=partial.scope(body.correction_scope);
+   if(profile.role==='student'&&correction_scope!=='complete')return json({error:'Correção por partes disponível somente para professor.'},403);
    const writing_context:any={};if(body.writing_context!==undefined){if(!body.writing_context||typeof body.writing_context!=='object'||Array.isArray(body.writing_context))return json({error:'Contexto inválido.'},400);for(const [k,v] of Object.entries(body.writing_context)){if(!['introduction','development1','development2','conclusion'].includes(k)||k===correction_scope||typeof v!=='string'||v.length>16000)return json({error:'Contexto inválido.'},400);writing_context[k]=v;}}
    if(correction_scope!=='complete'&&!partialEnabled)return json({error:'Correção parcial ainda não habilitada.'},409);
    if(correction_scope!=='complete'&&typeof body.input_text==='string'&&body.input_text.length>16000)return json({error:'Use até 16.000 caracteres no trecho.'},400);
@@ -167,6 +174,7 @@ export async function handleLive(req:Request,deps={createClient,fetch,env:(key:s
   }
   const essay=await ownEssay(body.essay_id);
   if(['live_transcribe','live_confirm_text'].includes(body.action)){
+   if(profile.role==='student'&&body.action==='live_transcribe'&&essay.correction_scope&&essay.correction_scope!=='complete')return json({error:'Correção por partes disponível somente para professor.'},403);
    if(!partialEnabled||!essay.correction_scope||essay.correction_scope==='complete')return json({error:'Leitura por etapa indisponível.'},409);
    if(body.action==='live_transcribe')return json(await transcribeLive({admin,actor,essay,key,fetcher:deps.fetch}));
    if(body.confirmed!==true||typeof body.input_text!=='string'||body.input_text.trim().length<80||body.input_text.length>16000)return json({error:'Confira o trecho, entre 80 e 16.000 caracteres.'},400);
@@ -224,6 +232,7 @@ export async function handleLive(req:Request,deps={createClient,fetch,env:(key:s
   if(body.action==='live_start'){
    const partialEssay=essay.correction_scope&&essay.correction_scope!=='complete';
    if(partialEssay){
+    if(profile.role==='student')return json({error:'Correção por partes disponível somente para professor.'},403);
     if(!partialEnabled)return json({error:'Correção parcial temporariamente indisponível.'},409);
     if(!essay.input_text)return json({error:'Cole o trecho em texto para corrigir uma etapa.'},400);
     if(body.purpose==='correction')partial.messages({stage:essay.correction_scope,theme:essay.theme,text:essay.input_text,context:essay.writing_context||{}});

@@ -1,0 +1,28 @@
+'use strict';
+const fs=require('fs'),assert=require('node:assert/strict'),vm=require('vm'),{stripTypeScriptTypes}=require('node:module'),{JSDOM}=require('jsdom');
+const tick=()=>new Promise(r=>setImmediate(r));
+(async()=>{
+ const id='00000000-0000-4000-8000-000000000001',other='00000000-0000-4000-8000-000000000002';
+ const source=stripTypeScriptTypes(fs.readFileSync('backend/writing/prepared/live.ts','utf8').replace(/^import .*;\s*$/gm,'').replace('export async function handleLive','async function handleLive'),{mode:'strip'});
+ let saved;const admin={auth:{getUser:async()=>({data:{user:{id}}})},from(table){const data={profiles:{id,role:'student',approval_status:'approved',organization_id:id},students:{auth_user_id:id,organization_id:id},system_feature_flags:{is_enabled:true,config:{writing_editor:true}}}[table];return {select(){return this},eq(){return this},maybeSingle:async()=>({data})}},rpc:async(name,p)=>{assert.equal(name,'save_live_writing_draft');saved=p.p_content;return {data:{id,version:1,content:saved}}}};
+ const ctx={Response,Request,console};vm.createContext(ctx);vm.runInContext(source,ctx);
+ const content={mode:'free',stages:Object.fromEntries(['introduction','development1','development2','conclusion'].map(k=>[k,{text:'Texto próprio. '.repeat(8),plan:'Planejamento'}]))};
+ const save=extra=>ctx.handleLive(new Request('https://test.invalid',{method:'POST',headers:{Authorization:'Bearer synthetic','Content-Type':'application/json'},body:JSON.stringify({action:'live_writing_save',id,version:0,theme:'Tema igual',content:{...content,...extra}})}),{createClient:()=>admin,fetch:()=>{throw Error('No provider calls')},env:()=>''});
+ assert.equal((await save({proposal_id:other})).status,200);assert.equal(saved.proposal_id,other);assert.equal(saved.stages.introduction.text,content.stages.introduction.text);
+ assert.equal((await save({proposal_id:'invalid'})).status,400);
+ assert.equal((await save({proposal_mode:'free'})).status,200);assert.equal(saved.proposal_mode,'free');assert.equal(saved.proposal_id,undefined);
+ const dom=new JSDOM('<main id="view"></main>',{runScripts:'outside-only',url:'https://test.invalid'}),w=dom.window;
+ w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=s=>'<h1>'+s+'</h1>';w.fmtDate=s=>s;w.navigationCurrent=()=>true;w.S={profile:{role:'student',organization_id:id}};
+ let rounds=[{id,theme:'Tema igual'},{id:other,theme:'Tema igual'}],submits=[],release,fail=false,aiHandoffs=0;let draft={id,version:1,theme:'Tema igual',content:{...structuredClone(content),proposal_id:other}};
+ w.studentProposals=async()=>({proposals:rounds});w.edge=async(_,b)=>{if(b.action==='live_status')return{};if(b.action==='live_writing_get')return{draft:structuredClone(draft)};if(b.action==='live_writing_save'){draft={...draft,version:draft.version+1,content:structuredClone(b.content),theme:b.theme};return{draft:structuredClone(draft)}};throw Error(b.action)};
+ w.studentSubmitJson=async b=>{submits.push(b);if(fail)throw Error('Envio falhou');if(release)await new Promise(r=>release=r);return {ok:true}};
+ w.navigate=async route=>{w.S.route=route};w.renderTeacherLive=async()=>{aiHandoffs++};
+ for(const f of ['writing-stages.e12.js','writing-support.e12.js','writing-editor.e12.js'])w.eval(fs.readFileSync(f,'utf8'));
+ const open=async()=>{await w.renderWritingEditor(1,{draftId:id});await tick()};const preview=()=>w.$('wePreview').click();
+ await open();assert.equal(w.$('weThemeSelect').value,other);preview();assert.equal(w.$('weCorrectAll').textContent,'Enviar ao professor');release=true;w.$('weCorrectAll').click();w.$('weCorrectAll').click();await tick();assert.equal(submits.length,1);assert.equal(submits[0].round_id,other);assert.equal(submits[0].text,Object.values(content.stages).map(x=>x.text).join('\n\n'));release();release=null;await tick();assert.equal(w.S.route,'student-essays');assert.equal(aiHandoffs,0);
+ fail=true;await open();preview();w.$('weCorrectAll').click();await tick();assert(w.$('weStatus').textContent.includes('Envio falhou'));assert(!w.$('weCorrectAll').disabled);w.$('weEdit').click();assert.equal(w.$('weText').value,content.stages.introduction.text);fail=false;
+ rounds[1].handwritten_only=true;await open();preview();const before=submits.length;w.$('weCorrectAll').click();await tick();assert.equal(submits.length,before);assert(w.$('weStatus').textContent.includes('manuscrita'));delete rounds[1].handwritten_only;
+ await open();w.$('weThemeSelect').value='';w.$('weThemeSelect').dispatchEvent(new w.Event('change'));w.document.querySelector('[data-writing-stage="development1"]').click();await tick();assert.equal(w.$('weThemeSelect').value,'');preview();assert(w.$('weCorrectAll').textContent.includes('1 crédito'));w.$('weCorrectAll').click();await tick();assert.equal(aiHandoffs,1);assert.equal(draft.content.proposal_mode,'free');assert.equal(draft.content.proposal_id,undefined);
+ draft.content={...structuredClone(content)};await open();preview();w.$('weCorrectAll').click();await tick();assert(w.$('weStatus').textContent.includes('mais de uma proposta'));assert.equal(aiHandoffs,1);
+ dom.window.close();console.log('PASS institutional: durable proposal ID, duplicate titles, explicit free theme, own text, teacher send once, failure recovery, handwritten guard, no provider calls.');
+})().catch(e=>{console.error(e);process.exitCode=1});

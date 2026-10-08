@@ -96,7 +96,7 @@
       target=e.target.closest('[data-spv-list]');if(target){renderList();return}
       target=e.target.closest('[data-spv-summary]');if(target){const round=roundById(target.dataset.spvSummary);if(round)renderSummary(round);return}
       target=e.target.closest('[data-spv-full]');if(target){const round=roundById(target.dataset.spvFull);if(round)renderFull(round);return}
-      target=e.target.closest('[data-spv-guide]');if(target){const round=roundById(target.dataset.spvGuide);if(!round)return;S.writingProposal={theme:String(round.theme||''),command:String(round.proposal_command||round.understand_prompt||'')};navigate('student-writing');return}
+      target=e.target.closest('[data-spv-guide]');if(target){const round=roundById(target.dataset.spvGuide);if(!round)return;S.writingProposal={id:String(round.id),theme:String(round.theme||''),command:String(round.proposal_command||round.understand_prompt||'')};navigate('student-writing');return}
       target=e.target.closest('[data-spv-send]');if(target){const round=roundById(target.dataset.spvSend);if(!round)return;const info=stateInfo(spvData?.stateMap.get(round.id));if(info.editable)renderSend(round);else navigate('student-essays')}
     };
   }

@@ -5,7 +5,7 @@ window.renderWritingEditor=async function(navigation,options={}){
  const W=window.WritingStages,keys=Object.keys(W.stages),host=$('view');
  const api=body=>edge('teacher-organization-api',body);
  let closed=false,token=0,timer=null,active='introduction',draft=null,saving=null,dirty=false,blocked=false,details={guidance:[],comments:[],revisions:[]},guideRequest=null,guideBusy=false,helpTab='objective',tutorAction='analyse';
- let themesPromise=null,historyRequest=0;const guidanceByStage=new Map();
+ let themesPromise=null,historyRequest=0,availableThemes=null,sendBusy=false;const guidanceByStage=new Map();
  let capabilities=null;try{capabilities=await edge('teacher-organization-api',{action:'live_status'});}catch{}
  const tutorEnabled=capabilities?.writing_guided?.is_enabled===true;
  const current=()=>!closed&&navigationCurrent(navigation);
@@ -88,10 +88,10 @@ window.renderWritingEditor=async function(navigation,options={}){
   try{
    if(!themesPromise)themesPromise=studentProposals(true);
    const result=await themesPromise;if(!current()||draft!==sourceDraft||$('weThemeSelect')!==select)return;
-   const proposals=Array.isArray(result.proposals)?result.proposals:[];
+   const proposals=Array.isArray(result.proposals)?result.proposals:[];availableThemes=proposals;
    select.innerHTML='<option value="">'+'Tema livre'+'</option>'+proposals.map(p=>`<option value="${esc(p.id)}">${esc(p.theme||'Tema não informado')}${p.thematic_axis?' · '+esc(p.thematic_axis):''}</option>`).join('');
-   select.disabled=!proposals.length;const selected=proposals.find(p=>p.theme===draft.theme);if(selected)select.value=String(selected.id);$('weThemeField').hidden=!!selected;
-   select.onchange=()=>{const proposal=proposals.find(p=>String(p.id)===select.value);if(!proposal){$('weThemeField').hidden=false;$('weTheme').focus();return;}$('weThemeField').hidden=true;$('weTheme').value=String(proposal.theme||'').slice(0,1000);$('weCommand').value=String(proposal.proposal_command||proposal.understand_prompt||'').slice(0,4000);changed();};
+   select.disabled=!proposals.length;const matches=proposals.filter(p=>p.theme===draft.theme);const selected=draft.content.proposal_id?proposals.find(p=>String(p.id)===draft.content.proposal_id):(draft.content.proposal_mode!=='free'&&matches.length===1?matches[0]:null);if(selected&&!draft.content.proposal_id){draft.content.proposal_id=String(selected.id);dirty=true;}if(selected)select.value=String(selected.id);$('weThemeField').hidden=!!selected;
+   select.onchange=()=>{const proposal=proposals.find(p=>String(p.id)===select.value);if(!proposal){delete draft.content.proposal_id;draft.content.proposal_mode='free';changed();$('weThemeField').hidden=false;$('weTheme').focus();return;}draft.content.proposal_id=String(proposal.id);delete draft.content.proposal_mode;$('weThemeField').hidden=true;$('weTheme').value=String(proposal.theme||'').slice(0,1000);$('weCommand').value=String(proposal.proposal_command||proposal.understand_prompt||'').slice(0,4000);changed();};
   }catch(error){themesPromise=null;if(current()&&draft===sourceDraft&&$('weThemeSelect')===select){select.innerHTML='<option value="">Tema livre</option>';$('weThemeField').hidden=false;$('weThemeSelectStatus').innerHTML='Não foi possível carregar os temas. <button class="btn" type="button" id="weThemeRetry">Tentar novamente</button>';$('weThemeRetry').onclick=()=>{$('weThemeSelectStatus').textContent='';loadThemes();};}}
  }
  async function guide(){
@@ -116,16 +116,33 @@ window.renderWritingEditor=async function(navigation,options={}){
    host.querySelectorAll('[data-we-version]').forEach(b=>b.onclick=async()=>{try{const revision=(await api({action:'writing_revision',id:draft.id,version:Number(b.dataset.weVersion)})).revision;if(current()&&draft===sourceDraft&&active===stage&&request===historyRequest&&$('weComparison'))$('weComparison').innerHTML=`<h4>Antes · versão ${Number(revision.version)}</h4><p class="tl-result">${esc(revision.content.stages[active].text)}</p><h4>Agora</h4><p class="tl-result">${esc(draft.content.stages[active].text)}</p>`;}catch(e){status(e.message);}});
   }catch(e){status(e.message);}
  }
+ function institutional(){return S.profile.role==='student'&&!!draft.content.proposal_id;}
  function preview(){
-  frame(`<h2>Prévia da redação</h2><h3>${esc(draft.theme||'Tema ainda não definido')}</h3>${keys.map(k=>`<p class="tl-result">${esc(draft.content.stages[k].text||'')}</p>`).join('')}<div class="tl-actions"><button class="btn" id="weEdit">Voltar à escrita</button><button class="btn primary" id="weCorrectAll">Levar redação para correção · 1 crédito</button></div><p>O crédito será confirmado na tela de correção.</p>`);
-  $('weEdit').onclick=render;$('weCorrectAll').onclick=()=>handoff('complete');
+  frame(`<h2>Prévia da redação</h2><h3>${esc(draft.theme||'Tema ainda não definido')}</h3>${keys.map(k=>`<p class="tl-result">${esc(draft.content.stages[k].text||'')}</p>`).join('')}<div class="tl-actions"><button class="btn" id="weEdit">Voltar à escrita</button><button class="btn primary" id="weCorrectAll">${institutional()?'Enviar ao professor':'Levar redação para correção · 1 crédito'}</button></div><p>${institutional()?'Sua redação será enviada para a correção do professor responsável pelo tema.':'O crédito será confirmado na tela de correção.'}</p>`);
+  $('weEdit').onclick=render;$('weCorrectAll').onclick=()=>handoff('complete').catch(e=>status(e.message));
  }
  async function handoff(stage){
   if(S.profile.role!=='teacher')stage='complete';
   collect();const text=stage==='complete'?keys.map(k=>draft.content.stages[k].text).filter(Boolean).join('\n\n'):draft.content.stages[stage].text;
   if(text.trim().length<80){status('Escreva pelo menos 80 caracteres antes de corrigir.');return;}
   if(text.length>(stage==='complete'?20000:16000)){status('Reduza o texto ao limite da correção antes de continuar.');return;}
+  if(S.profile.role==='student'&&draft.content.proposal_mode!=='free'&&!draft.content.proposal_id&&availableThemes?.filter(p=>p.theme===draft.theme).length>1){status('Há mais de uma proposta com este título. Volte à escrita e escolha o tema no seletor antes de enviar.');return;}
+  if(institutional()){
+   if(sendBusy)return;
+   sendBusy=true;const button=$('weCorrectAll');if(button)button.disabled=true;
+   try{
+    const proposals=availableThemes||(await studentProposals(true)).proposals||[];
+    const target=proposals.find(p=>String(p.id)===draft.content.proposal_id);
+    if(!target)throw Error('Este tema não está disponível para envio. Volte à escrita e selecione um tema válido.');
+    if(target.theme!==draft.theme)throw Error('O tema foi alterado. Volte à escrita e selecione novamente o tema da instituição.');
+    if(target.handwritten_only)throw Error('Este tema exige redação manuscrita. Use o envio de foto ou arquivo na tela Temas. Seu rascunho foi preservado.');
+    await persist();
+    await studentSubmitJson({action:'paste',round_id:String(target.id),text});
+    S.cache={};S.student=null;closed=true;clearTimeout(timer);await navigate('student-essays');
+   }finally{sendBusy=false;if(button?.isConnected)button.disabled=false;}
+   return;
+  }
   await leave(()=>renderTeacherLive(navigation,{stage,text,theme:draft.theme,context:stage==='complete'?{}:Object.fromEntries(keys.filter(k=>k!==stage&&draft.content.stages[k].text.trim()).map(k=>[k,draft.content.stages[k].text]))}));
  }
- if(options.draftId)await open(options.draftId);else if(proposal){await open(null);if(current()&&draft){draft.theme=String(proposal.theme||'').slice(0,1000);draft.content.command=String(proposal.command||'').slice(0,4000);dirty=true;render();status('Tema escolhido. Seu rascunho será salvo ao continuar.');}}else await list();
+ if(options.draftId)await open(options.draftId);else if(proposal){await open(null);if(current()&&draft){if(proposal.id)draft.content.proposal_id=String(proposal.id);draft.theme=String(proposal.theme||'').slice(0,1000);draft.content.command=String(proposal.command||'').slice(0,4000);dirty=true;render();status('Tema escolhido. Seu rascunho será salvo ao continuar.');}}else await list();
 };

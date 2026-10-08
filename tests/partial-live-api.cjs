@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),{st
 (async()=>{
  const context={Response,Request,crypto,TextEncoder,console,AbortSignal,Date};vm.createContext(context);
  context.partial=vm.runInContext('(function(){'+stripTypeScriptTypes(fs.readFileSync('backend/writing/prepared/partial.ts','utf8').replace('export const partial=','const partial='))+';return partial;})()',context);
- vm.runInContext(stripTypeScriptTypes(fs.readFileSync('backend/writing/prepared/live.ts','utf8').replace(/^import .*;\s*$/gm,'').replace('export async function handleLive','async function handleLive')),context);
+ vm.runInContext(stripTypeScriptTypes(fs.readFileSync(process.env.LIVE_HANDLER_PATH||'backend/writing/prepared/live.ts','utf8').replace(/^import .*;\s*$/gm,'').replace('export async function handleLive','async function handleLive')),context);
  assert.equal(vm.runInContext("contextKey({development2:'Segundo',introduction:'Primeiro'}) === contextKey({introduction:'Primeiro',development2:'Segundo'})",context),true,'JSONB key order must not break retry idempotency');
  const id='00000000-0000-4000-8000-000000000001';let enabled=true,role='teacher',providerCalls=0,writes=[],job,essay;
  const text='Texto sintético de introdução para testar análise e evidências. '.repeat(3);
@@ -24,7 +24,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),{st
  assert.equal((await call({action:'live_review',review_confirmed:true,partial_review:report})).status,200);
  assert.equal((await call({action:'live_share'})).status,200);
  role='student';assert.equal((await call({action:'live_review',review_confirmed:true,partial_review:report})).status,403);assert.equal((await call({action:'live_share'})).status,200);
- reset();report.criteria[0].evidence='trecho inventado';assert.equal((await call({action:'live_start',purpose:'correction',credit_confirmed:true})).status,200);assert.equal(job.status,'failed');assert.equal(job.credit_status,'refunded');
+ reset();assert.equal((await call({action:'live_start',purpose:'correction',credit_confirmed:true})).status,403,'Student partial generation must be forbidden before any cost');assert.equal(providerCalls,0);assert.equal(writes.length,0);assert.equal((await call({action:'live_create',correction_scope:'introduction',input_text:text})).status,403);assert.equal((await call({action:'live_upload',correction_scope:'introduction'})).status,403);assert.equal((await call({action:'live_transcribe'})).status,403);assert.equal(providerCalls,0);assert.equal(writes.length,0);role='teacher';reset();report.criteria[0].evidence='trecho inventado';assert.equal((await call({action:'live_start',purpose:'correction',credit_confirmed:true})).status,200);assert.equal(job.status,'failed');assert.equal(job.credit_status,'refunded');
  const previousProviderCalls=providerCalls;const content={mode:'free',stages:Object.fromEntries(['introduction','development1','development2','conclusion'].map(k=>[k,{text:'Meu texto',plan:'Meu plano'}]))};
  let draftResponse=await call({action:'live_writing_save',id,version:0,theme:'Tema',content,owner_id:'forged'});assert.equal(draftResponse.status,200,await draftResponse.clone().text());assert.equal((await draftResponse.json()).draft.owner_id,id);assert.equal(providerCalls,previousProviderCalls);
  draftResponse=await call({action:'live_writing_save',id,version:0,theme:'Tema',content:{stages:{}}});assert.equal(draftResponse.status,400);
