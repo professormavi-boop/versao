@@ -37,7 +37,7 @@ Uma redação mantém proprietário, contexto de acesso, tema, atividade opciona
 
 Salvar deve distinguir “salvando”, “salvo” e “falha ao salvar”. Qualquer recuperação local precisa ser isolada por usuário e redação, com tratamento de logout/dispositivo compartilhado. Professores acessam somente trabalhos de atividades sob sua responsabilidade; escola não dá acesso a redações independentes. O servidor resolve a identidade e os vínculos.
 
-Não foram criadas tabelas, migrations, RLS, RPCs, Edge Functions nem dados. O schema final depende da leitura do backend ativo. O Supabase de teste é compartilhado com produção: modificações exigem plano concreto e autorização específica ou ambiente isolado.
+Este documento preserva o histórico das entregas abaixo. O estado atual é a implementação completa preparada em 08/10, descrita ao final; a nova migration ainda não foi aplicada. O Supabase de teste é compartilhado com produção: modificações exigem plano concreto e autorização específica ou ambiente isolado.
 
 ## Primeira entrega
 
@@ -80,3 +80,9 @@ Handler parcial, migration aditiva, revisão editável e compartilhamento implem
 
 ## Câmera e primeira versão do editor — 07/10
 Implementados para Ao Vivo: câmera/arquivo parcial com transcrição fiel e confirmação editável antes do tema; cache de leitura e limite de tentativas; novos links20dias (anteriores mantidos). Editor com quatro parágrafos, planejamento separado da escrita, causa-consequência opcional, segunda intervenção opcional, prévia apenas dos parágrafos, autosave na conta e conflito entre abas. Pode levar etapa ou texto completo ao Ao Vivo, com cobrança somente na confirmação da correção. Fonte da orientação: Mascara_redacao_Enem_editavel.docx, materializada/lida em07/10. Escola/turma ainda não vinculadas ao editor; rascunhos privados do proprietário. Cadastro independente e tutoria contextual com IA continuam pendentes.
+
+## Implementação completa preparada — 08/10
+
+Entregas 1–5 implementadas no código: tutor contextual com saída verificada, limite de uso e telemetria; atividades escolares com etapas liberadas; acompanhamento, versões e comentários docentes; acesso independente respeitando confirmação de e-mail e aprovação administrativa; correção parcial com contexto opcional dos parágrafos escritos. Interface mantém os componentes e CSS aprovados. Migration e funções estão preparadas e testadas localmente, sem aplicação remota desta nova entrega.
+
+`npm test` completo passou, incluindo SQL/PGlite, tutor simulado e UI/JSDOM. A entrega 6 permanece pendente de ativação e teste real conjunto; preço do pacote não foi definido. O modelo ainda precisa de avaliação real, inclusive pedidos de resposta pronta. Plano concreto, arquivos, riscos do backend compartilhado, implantação e rollback: [ativacao-construcao-completa.md](ativacao-construcao-completa.md). O domínio oficial de teste permanece na versão anterior até essa ativação.

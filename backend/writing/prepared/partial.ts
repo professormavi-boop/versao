@@ -114,4 +114,4 @@ function normalize(value,input){
 // integration must be atomic and idempotent before this module can become an API.
 function creditUnits(stage){W.scope(stage);return CREDIT_UNITS;}
 
-export const partial={scope:W.scope,schema,messages,normalize,version:PARTIAL_VERSION};
+export const partial={tutorMessages:W.tutorMessages,scope:W.scope,schema,messages,normalize,version:PARTIAL_VERSION};

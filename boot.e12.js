@@ -152,7 +152,7 @@
 
   function wireAccount(){
     if(!element('registerLink'))return;
-    element('registerLink').onclick=()=>location.assign('/cadastro-professor.html');
+    element('registerLink').onclick=()=>location.assign(element('loginAccessType').value==='independent'?'/cadastro-aluno.html':'/cadastro-professor.html');
     element('forgotLink').onclick=()=>{accountView('forgot');element('accountEmail').value=element('email').value;};
     element('backToLogin').onclick=()=>accountView('login');
     element('accountForm').onsubmit=async event=>{
@@ -214,7 +214,7 @@
     return true;
   }
 
-  function chooseLogin(student){
+  function chooseLogin(student,independent=false){
     pinMode=student;accountView('login');
     element('loginCaptcha')?.classList.toggle('hidden',student);
     if(!student)window.VersaoCaptcha?.mount('loginCaptcha');
@@ -223,7 +223,8 @@
     element('email').required=!student;element('password').required=!student;
     element('classCode').required=student;element('studentPin').required=student;
     element('authLinks').classList.toggle('hidden',student);
-    element('loginAccessType').value=student?'student':'teacher';
+    element('loginAccessType').value=student?'student':independent?'independent':'teacher';
+    element('registerLink').textContent=independent?'Criar conta de aluno':'Criar conta de professor';
     element('password').value='';element('studentPin').value='';element('loginStatus').textContent='';
   }
 
@@ -234,7 +235,7 @@
     }
 
     wireAccount();wireGoogle();
-    element('loginAccessType').onchange=()=>chooseLogin(element('loginAccessType').value==='student');
+    element('loginAccessType').onchange=()=>chooseLogin(element('loginAccessType').value==='student',element('loginAccessType').value==='independent');
     const query=new URLSearchParams(location.search);
     if(query.get('acesso')==='aluno')chooseLogin(true);
     const wantsRegister=query.get('cadastro')==='1';

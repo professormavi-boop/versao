@@ -1,0 +1,26 @@
+'use strict';
+const fs=require('fs'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom');
+const tick=()=>new Promise(r=>setImmediate(r));
+(async()=>{
+ const dom=new JSDOM('<main id="view"></main>',{runScripts:'outside-only',url:'https://test.invalid'}),w=dom.window;
+ w.$=id=>w.document.getElementById(id);w.esc=x=>String(x??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=t=>'<h1>'+t+'</h1>';w.fmtDate=x=>x;w.navigationCurrent=()=>true;w.S={profile:{role:'student'}};
+ w.eval(fs.readFileSync('writing-stages.e12.js','utf8'));
+ const content={mode:'free',stages:Object.fromEntries(Object.keys(w.WritingStages.stages).map(k=>[k,{text:k==='introduction'?'Texto autoral para o teste. '.repeat(5):'',plan:''}]))};
+ let draft={id:'draft',version:1,theme:'Desafios da leitura',content},calls=[],guideRelease;
+ let details={draft,activity:{id:'activity',is_active:true,stages:['introduction']},guidance:[],comments:[],revisions:[{version:1}]};
+ w.edge=async(_,b)=>{calls.push(b);switch(b.action){case'live_status':return{writing_guided:{is_enabled:true}};case'live_writing_get':return details;case'live_writing_save':draft={...draft,theme:b.theme,content:b.content,version:b.version+1};details.draft=draft;return{draft};case'writing_guidance':return new Promise(r=>{guideRelease=()=>r({guidance:{status:'completed',draft_version:draft.version,result:{objective:'<script>não executar</script>',evidence:'Texto autoral',questions:['Que problema você discute?'],task:'Delimite seu recorte.',context_note:''}}})});case'writing_detail':return details;case'writing_revision':return{revision:{version:1,content}};default:throw Error(b.action);}};
+ w.renderTeacherLive=()=>{};w.eval(fs.readFileSync('writing-editor.e12.js','utf8'));
+ await w.renderWritingEditor(1,{draftId:'draft'});assert(w.$('weTheme').readOnly);assert(w.$('weGuide'));
+ w.$('weGuide').click();w.$('weGuide').click();await tick();assert.equal(calls.filter(x=>x.action==='writing_guidance').length,1);assert(w.$('weGuide').disabled);assert(w.document.querySelector('.tl-loading-ring'));
+ guideRelease();await tick();assert.equal(w.document.querySelector('#weGuidance script'),null);assert(w.$('weGuidance').textContent.includes('Delimite'));
+ w.document.querySelector('[data-writing-stage="development1"]').click();assert(w.$('weText').disabled);assert(w.$('weCorrectStage').disabled);assert.equal(w.$('weGuide'),null);
+ w.document.querySelector('[data-writing-stage="introduction"]').click();w.$('weHistory').click();await tick();w.document.querySelector('[data-we-version]').click();await tick();assert(w.$('weComparison').textContent.includes('Antes'));
+ dom.window.close();
+ const school=new JSDOM('<main id="view"></main>',{runScripts:'outside-only'}),s=school.window;
+ s.$=id=>s.document.getElementById(id);s.esc=w.esc;s.header=t=>'<h1>'+t+'</h1>';s.fmtDate=x=>x;s.navigationCurrent=()=>true;s.S={profile:{role:'teacher'}};s.eval(fs.readFileSync('writing-stages.e12.js','utf8'));
+ const a={id:'activity',name:'Aula',theme:'Desafios da leitura',class_id:'class',stages:['introduction'],version:1,is_active:true};let saves=[];
+ s.edge=async(_,b)=>{switch(b.action){case'writing_activities':return{activities:[a]};case'writing_catalog':return{classes:[{id:'class',name:'2B',organization:'Escola'}]};case'writing_activity_get':return{activity:a,students:[{name:'Aluno',stage:null}]};case'writing_activity_save':saves.push(b);return{activity:a};default:throw Error(b.action);}};
+ s.eval(fs.readFileSync('writing-classroom.e12.js','utf8'));await s.renderWritingClassroom(1);s.document.querySelector('[data-wc-open]').click();await tick();assert(s.$('view').textContent.includes('Ainda não iniciou'));
+ s.$('wcBack').click();await tick();s.$('wcNew').click();await tick();s.$('wcName').value='Aula nova';s.$('wcTheme').value='Desafios da leitura no Brasil';s.$('wcSave').click();s.$('wcSave').click();await tick();assert.equal(saves.length,1);assert.equal(saves[0].class_id,'class');school.window.close();
+ console.log('PASS guided UI: author-only writing, locked stages, duplicate guidance/save prevention, loader, XSS escaping, version comparison and teacher classroom workflow.');
+})().catch(e=>{console.error(e);process.exitCode=1});
