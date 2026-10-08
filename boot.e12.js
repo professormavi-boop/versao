@@ -1,7 +1,7 @@
 'use strict';
 (function(){
   const element=id=>document.getElementById(id);
-  let attempt=0,timer=null,ready=false,pinMode=false;
+  let attempt=0,timer=null,ready=false,pinMode=false,studentCompletion=false;
 
   function coreAvailable(){
     return typeof S!=='undefined'
@@ -56,14 +56,17 @@
   async function loadProfile(token){
     try{await profile();return token===attempt;}
     catch(error){
+      if(token===attempt&&error.code==='STUDENT_SIGNUP_REQUIRED'){showGoogleSignup(true);return false;}
       if(token===attempt&&error.code==='GOOGLE_SIGNUP_REQUIRED'&&window.VersaoGoogle){showGoogleSignup();return false;}
       throw error;
     }
   }
 
-  function showGoogleSignup(){
+  function showGoogleSignup(student=false){
+    studentCompletion=student;
     clearTimeout(timer);loginScreen('',true);accountView('google');
-    element('authTitle').textContent='Comece no VERSÃO';
+    element('authTitle').textContent=student?'Conclua seu cadastro':'Comece no VERSÃO';
+    element('completionIntro').textContent=student?'Confirme seu nome e aceite os termos para começar como estudante.':'Falta só confirmar seu nome e aceitar os termos para começar como professor.';
     element('accountForm').classList.add('hidden');
     element('googleSignupForm').classList.remove('hidden');
     element('googleName').value=S.session?.user?.user_metadata?.full_name||S.session?.user?.user_metadata?.name||'';
@@ -80,8 +83,9 @@
       if(name.length<2||name.length>160||!element('googleTerms').checked){element('googleStatus').textContent='Confira seu nome e aceite os termos para continuar.';return;}
       const token=begin();button.disabled=true;element('googleStatus').textContent='Preparando sua conta…';
       try{
-        const result=await edge('teacher-organization-api',{action:'google_complete',full_name:name,accept_terms:true,legal_version:'2026-09-28'});
+        const result=await edge('teacher-organization-api',{action:studentCompletion?'student_complete':'google_complete',full_name:name,accept_terms:true,legal_version:'2026-09-28'});
         if(token!==attempt)return;
+        if(studentCompletion&&(result?.ok!==true||result.pending!==false))throw Error('Não foi possível concluir seu cadastro. Tente novamente.');
         await profile();if(token!==attempt)return;
         if(result.created)window.VersaoFunnel?.track('signup_complete',{page:'google'});
         start(token);

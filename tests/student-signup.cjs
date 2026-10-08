@@ -1,7 +1,7 @@
 const fs=require('fs'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom'),vm=require('node:vm');
 const HTML=fs.readFileSync('cadastro-aluno.html','utf8'),SCRIPT=fs.readFileSync('student-signup.e12.js','utf8');
 const SESSION={access_token:'access',refresh_token:'refresh',expires_in:3600,user:{id:'student-id',user_metadata:{full_name:'Aluno Google'}}};
-const signup=body=>({path:'/auth/v1/signup',body}),login=body=>({path:'/auth/v1/token?grant_type=password',body}),complete=body=>({path:'/functions/v1/teacher-organization-api',body});
+const signup=body=>({path:'/auth/v1/signup',body}),complete=body=>({path:'/functions/v1/teacher-organization-api',body});
 const success=()=>[signup(SESSION),complete({ok:true,pending:false})];
 
 async function run({responses=success(),google=false}={}){
@@ -26,23 +26,22 @@ async function run({responses=success(),google=false}={}){
 }
 function noAccess(x){assert.equal(x.w.localStorage.getItem('versao-e12-session-v1'),null);assert.deepEqual(x.routes,[]);assert.equal(x.q('submitBtn').disabled,false);}
 function failure(x){noAccess(x);assert.match(x.q('status').className,/\berror\b/);assert.doesNotMatch(x.q('status').textContent,/aguarde a aprovação/i);}
-function loginMode(x){assert.equal(x.q('submitBtn').textContent,'Entrar e continuar');assert.equal(x.q('existingAccount').textContent,'Quero criar uma conta');assert.equal(x.q('existingAccount').hidden,false);assert.equal(x.q('email').closest('label').hidden,false);assert.equal(x.q('password').closest('label').hidden,false);assert.equal(x.q('passwordConfirm').closest('label').hidden,true);assert.equal(x.q('passwordConfirm').required,false);}
+function nativeLogin(x){const anchor=x.q('existingAccount');assert.equal(anchor.tagName,'A');assert.equal(anchor.getAttribute('href'),'/?acesso=email');for(const name of ['btn','ghost','full'])assert(anchor.classList.contains(name),'Login anchor must use the standard '+name+' class');assert.match(anchor.textContent,/já tenho.*conta/i);assert.equal(anchor.onclick,null,'Login must use native anchor navigation');assert.equal(anchor.hidden,false);assert.equal(anchor.hasAttribute('disabled'),false);}
+function signupFields(x){assert.equal(x.q('submitBtn').textContent,'Criar minha conta');for(const id of ['email','password','passwordConfirm']){assert.equal(x.q(id).closest('label').hidden,false);assert.equal(x.q(id).required,true);}}
 function preservedFields(x){assert.equal(x.q('fullName').value,'Aluno Teste');assert.equal(x.q('email').value,'aluno@example.test');assert.equal(x.q('password').value,'abcdefgh1');assert.equal(x.q('passwordConfirm').value,'abcdefgh1');assert.equal(x.q('terms').checked,true);}
 function structuredError(x,{code,status,path}){assert(x.errors.some(error=>error.code===code&&error.status===status&&error.path===path),'Error must retain code, status and request path');}
 
 (async()=>{
- const blocked=new JSDOM(HTML,{url:'https://example.test/',runScripts:'outside-only'});blocked.window.document.getElementById('studentSignup').dataset.registrationEnabled='false';let attempted=false;blocked.window.fetch=async()=>{attempted=true;throw Error('unexpected');};blocked.window.eval(SCRIPT);assert(blocked.window.document.getElementById('submitBtn').disabled);assert.equal(blocked.window.document.getElementById('studentSignup').onsubmit,null);assert.equal(attempted,false);blocked.window.close();
+ const blocked=new JSDOM(HTML,{url:'https://example.test/',runScripts:'outside-only'});blocked.window.document.getElementById('studentSignup').dataset.registrationEnabled='false';let attempted=false;blocked.window.fetch=async()=>{attempted=true;throw Error('unexpected');};blocked.window.eval(SCRIPT);assert(blocked.window.document.getElementById('submitBtn').disabled);assert.equal(blocked.window.document.getElementById('studentSignup').onsubmit,null);assert.equal(attempted,false);nativeLogin({q:id=>blocked.window.document.getElementById(id)});blocked.window.close();
 
  for(const code of ['user_already_exists','email_exists']){
-  const x=await run({responses:[{...signup({code:422,error_code:code,msg:'User already registered'}),status:422},login(SESSION),complete({ok:true,pending:false})]});
-  await x.submit();failure(x);loginMode(x);preservedFields(x);assert.match(x.q('status').textContent,/conta|entrar/i);assert.equal(x.calls.length,1,'Duplicate signup must await an explicit login submission');assert.equal(x.captcha.tokens.length,1);assert.deepEqual(x.captcha.resets,['signupCaptcha']);
+  const x=await run({responses:[{...signup({code:422,error_code:code,msg:'User already registered'}),status:422}]});
+  await x.submit();failure(x);nativeLogin(x);signupFields(x);preservedFields(x);assert.match(x.q('status').textContent,/entrar/i);assert.equal(x.calls.length,1,'Duplicate signup must direct the user to the main login without another request');assert.equal(x.captcha.tokens.length,1);assert.deepEqual(x.captcha.resets,['signupCaptcha']);
   structuredError(x,{code,status:422,path:'/auth/v1/signup'});
-  await x.submit();assert.deepEqual(x.calls.map(c=>c.path),['/auth/v1/signup','/auth/v1/token?grant_type=password','/functions/v1/teacher-organization-api']);assert.equal(x.calls.filter(c=>c.path==='/auth/v1/signup').length,1);assert.equal(x.calls[0].body.gotrue_meta_security.captcha_token,'captcha-1');assert.equal(x.calls[1].body.gotrue_meta_security.captcha_token,'captcha-2');assert.equal(x.calls[1].body.email,'aluno@example.test');assert.equal(x.calls[1].body.password,'abcdefgh1');assert.equal(x.calls[1].body.data,undefined);assert.equal(x.calls[2].headers.Authorization,'Bearer access');assert.equal(x.calls[2].body.action,'student_complete');assert.deepEqual(x.routes,['/?student_onboarding=1']);assert.equal(JSON.parse(x.w.localStorage.getItem('versao-e12-session-v1')).user.id,'student-id');assert.deepEqual(x.captcha.resets,['signupCaptcha','signupCaptcha']);x.close();
+  assert.equal(x.calls[0].body.gotrue_meta_security.captcha_token,'captcha-1');x.close();
  }
 
- let x=await run({responses:[{...login({code:400,error_code:'invalid_credentials',msg:'Invalid login credentials'}),status:400}]});x.q('existingAccount').onclick();loginMode(x);await x.submit();failure(x);loginMode(x);preservedFields(x);assert.match(x.q('status').textContent,/e-mail ou senha incorretos/i);structuredError(x,{code:'invalid_credentials',status:400,path:'/auth/v1/token?grant_type=password'});assert.equal(x.calls.length,1);assert.deepEqual(x.captcha.resets,['signupCaptcha']);x.close();
-
- x=await run({responses:[]});x.q('existingAccount').onclick();loginMode(x);x.q('existingAccount').onclick();assert.equal(x.q('submitBtn').textContent,'Criar minha conta');assert.equal(x.q('passwordConfirm').closest('label').hidden,false);assert.equal(x.q('passwordConfirm').required,true);preservedFields(x);assert.equal(x.calls.length,0);x.close();
+ let x=await run({responses:[]});nativeLogin(x);signupFields(x);preservedFields(x);assert.equal(x.calls.length,0);x.close();
 
  for(const response of [
   {...signup({code:400,error_code:'captcha_failed',msg:'Captcha verification failed'}),status:400},
@@ -54,16 +53,16 @@ function structuredError(x,{code,status,path}){assert(x.errors.some(error=>error
  }
 
  for(const body of [{},{user:{id:'new'}},{...SESSION,access_token:123},{...SESSION,refresh_token:''},{...SESSION,user:{}}]){
-  x=await run({responses:[signup(body)]});await x.submit();failure(x);loginMode(x);preservedFields(x);assert.match(x.q('status').textContent,/sessão/i);assert.equal(x.calls.length,1);assert.deepEqual(x.captcha.resets,['signupCaptcha']);x.close();
+  x=await run({responses:[signup(body)]});await x.submit();failure(x);nativeLogin(x);signupFields(x);preservedFields(x);assert.match(x.q('status').textContent,/sessão/i);assert.match(x.q('status').textContent,/entrar/i);assert.equal(x.calls.length,1);assert.deepEqual(x.captcha.resets,['signupCaptcha']);x.close();
  }
 
  for(const response of [complete({}),{...complete(null),invalidJson:true},complete({ok:false,error:'Conta indisponível'}),complete({ok:true,pending:true}),complete({ok:true}),complete({ok:true,pending:'false'})]){
   x=await run({responses:[signup(SESSION),response]});await x.submit();failure(x);assert.equal(x.calls.length,2);assert.equal(x.q('submitBtn').textContent,'Concluir cadastro');assert.equal(x.q('email').closest('label').hidden,true);x.close();
  }
 
- x=await run({responses:[signup(SESSION),{...complete({error:'Sessão inválida.'}),status:401},login(SESSION),complete({ok:true,pending:false})]});await x.submit();failure(x);loginMode(x);preservedFields(x);assert.equal(x.calls.length,2);await x.submit();assert.deepEqual(x.calls.map(c=>c.path),['/auth/v1/signup','/functions/v1/teacher-organization-api','/auth/v1/token?grant_type=password','/functions/v1/teacher-organization-api']);assert.deepEqual(x.routes,['/?student_onboarding=1']);assert.equal(x.calls[2].body.gotrue_meta_security.captcha_token,'captcha-2');x.close();
+ x=await run({responses:[signup(SESSION),{...complete({error:'Sessão inválida.'}),status:401}]});await x.submit();failure(x);nativeLogin(x);signupFields(x);preservedFields(x);assert.match(x.q('status').textContent,/entrar/i);assert.deepEqual(x.calls.map(c=>c.path),['/auth/v1/signup','/functions/v1/teacher-organization-api']);assert.equal(x.captcha.tokens.length,1);x.close();
 
- x=await run({responses:[signup(SESSION),{...complete({error:'Conta indisponível'}),status:400},complete({ok:true,pending:false})]});await x.submit();failure(x);assert.match(x.q('status').textContent,/indisponível/i);assert.equal(x.q('submitBtn').textContent,'Concluir cadastro');assert.equal(x.q('existingAccount').hidden,true);await x.submit();assert.deepEqual(x.calls.map(c=>c.path),['/auth/v1/signup','/functions/v1/teacher-organization-api','/functions/v1/teacher-organization-api']);assert.equal(x.captcha.tokens.length,1,'Completion retry must reuse the session, not authenticate again');assert.deepEqual(x.routes,['/?student_onboarding=1']);x.close();
+ x=await run({responses:[signup(SESSION),{...complete({error:'Conta indisponível'}),status:400},complete({ok:true,pending:false})]});await x.submit();failure(x);assert.match(x.q('status').textContent,/indisponível/i);assert.equal(x.q('submitBtn').textContent,'Concluir cadastro');await x.submit();assert.deepEqual(x.calls.map(c=>c.path),['/auth/v1/signup','/functions/v1/teacher-organization-api','/functions/v1/teacher-organization-api']);assert.equal(x.captcha.tokens.length,1,'Completion retry must reuse the session, not authenticate again');assert.deepEqual(x.routes,['/?student_onboarding=1']);x.close();
 
  x=await run({google:true,responses:[{...complete({error:'Conta indisponível'}),status:400},complete({ok:true,pending:false})]});await x.submit();failure(x);assert.equal(x.calls.length,1);assert.equal(x.googleMounts[0][2],'student');assert.equal(x.q('submitBtn').textContent,'Concluir cadastro');await x.submit();assert.equal(x.calls.length,2);assert(x.calls.every(c=>c.path==='/functions/v1/teacher-organization-api'));assert.equal(x.captcha.tokens.length,0);assert.deepEqual(x.routes,['/?student_onboarding=1']);x.close();
 
@@ -71,5 +70,5 @@ function structuredError(x,{code,status,path}){assert(x.errors.some(error=>error
 
  x=await run({responses:[]});x.q('terms').checked=false;await x.submit();failure(x);assert.equal(x.calls.length,0);assert.equal(x.captcha.resets.length,0);x.close();
  x=await run({responses:[]});x.q('passwordConfirm').value='different';await x.submit();failure(x);assert.equal(x.calls.length,0);x.close();
- console.log('PASS student signup: structured Auth errors, duplicate recovery with fresh CAPTCHA, strict completion, invalid-session recovery, retry without duplicate signup, Google audience, consent and double-submit guard');
+ console.log('PASS student signup: native main-login anchor, signup-only duplicate/no-session guidance, structured Auth errors, strict completion, expired-session guidance, completion-only retry, Google audience, consent and double-submit guard');
 })().catch(e=>{console.error(e);process.exitCode=1});
