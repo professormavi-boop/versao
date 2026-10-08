@@ -29,3 +29,4 @@
 .we-page .we-plan-fields textarea{min-height:82px;resize:vertical}.we-page .we-plan-fields .field:last-child:nth-child(odd){grid-column:1/-1}
 
 .we-page .we-ai-panel{scroll-margin-top:100px;margin:16px 0}.we-page #weAiHeading:focus{outline:2px solid #8b1c1c;outline-offset:4px}.we-page .we-theme-select{margin:16px 0}.we-page #weThemeSelect{width:100%;min-height:48px}
+.we-page #weThemeField[hidden]{display:none!important}
