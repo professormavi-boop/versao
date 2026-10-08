@@ -30,3 +30,15 @@
 
 .we-page .we-ai-panel{scroll-margin-top:100px;margin:16px 0}.we-page #weAiHeading:focus{outline:2px solid #8b1c1c;outline-offset:4px}.we-page .we-theme-select{margin:16px 0}.we-page #weThemeSelect{width:100%;min-height:48px}
 .we-page #weThemeField[hidden]{display:none!important}
+
+/* Tutor único: apoio, pedido e orientação no mesmo cartão. */
+.we-page .we-tutor{margin:16px 0 24px}.we-page .we-tutor p,.we-page .we-tutor li{line-height:1.6;overflow-wrap:anywhere}
+.we-page .we-tutor-request{border-top:1px solid #e8d9d6;margin-top:18px;padding-top:4px}
+.we-page .we-tutor .we-ai-panel{padding:18px;border-radius:16px;margin:18px 0;scroll-margin-top:100px}
+.we-page .we-tutor .we-ai-panel h3{margin-top:0;color:#8b1c1c}
+.we-page .we-tutor .we-help-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}
+.we-page .we-columns{grid-template-columns:minmax(0,1fr)}
+.we-page .we-history{border-top:1px solid #e8d9d6;padding-top:18px}.we-page .we-history>summary{cursor:pointer;font-size:20px;font-weight:800}
+.we-page .we-history-options{display:grid;gap:8px;margin:16px 0}.we-page .we-history-option{display:flex;flex-direction:column;align-items:flex-start;text-align:left;white-space:normal;padding:14px;gap:6px;width:100%}
+.we-page .we-history-option span{font-size:14px;color:var(--muted);font-weight:400;line-height:1.5}.we-page .we-history-option[aria-expanded=true]{background:#fff1ee;border-color:#8b1c1c}
+@media(max-width:450px){.we-page .we-tutor .we-help-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.we-page .we-tutor .we-ai-panel{padding:14px}}
