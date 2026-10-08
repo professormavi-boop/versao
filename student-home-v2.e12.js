@@ -6,6 +6,7 @@
     style.id='studentHomeV2Style';
     style.textContent=`
     .student-home-v2{max-width:1040px;margin:0 auto}
+    .student-home-v2 .sh-guided{background:var(--soft);border-left:4px solid var(--crimson)}.student-home-v2 .sh-guided h2{font-size:clamp(28px,4vw,38px)}.student-home-v2 .sh-correct h2{font-size:24px}
     .student-home-v2 .sh-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
     .student-home-v2 .sh-metric{min-height:126px;border:1px solid var(--line);border-radius:22px;background:#fff;padding:18px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 7px 24px rgba(57,31,28,.04)}
     .student-home-v2 .sh-metric-top{display:flex;align-items:center;gap:10px;color:var(--muted);font-weight:700}
@@ -50,9 +51,12 @@
 
   function scoreLabel(value){return value==null?'—':String(value)}
 
+  function guidedOffer(){
+    return `<section class="tl-home student-live-offer sh-guided" aria-labelledby="studentGuidedOffer"><h2 id="studentGuidedOffer">Escrita guiada</h2><p>Planeje e escreva por etapas com apoio do tutor.</p><button class="btn primary" data-sh-route="student-writing">Começar</button></section>`;
+  }
   function liveOffer(info){
     const balance=info&&Number.isFinite(Number(info.balance))?Number(info.balance):null;
-    return `<section class="tl-home student-live-offer" aria-labelledby="studentLiveOffer"><span class="student-live-eyebrow">Correção de redação</span><h2 id="studentLiveOffer">Descubra o que melhorar na sua próxima redação.</h2><p>Envie uma foto, um arquivo ou seu texto e transforme a correção em um próximo passo para estudar.</p><ul class="student-live-benefits"><li>Nota estimada nas 5 competências do ENEM</li><li>Pontos fortes e orientações para revisar seu texto</li><li>Devolutivas salvas para consultar e compartilhar</li></ul><div class="student-live-offer-actions"><button class="btn primary" data-sh-route="student-live">Corrigir</button><button class="btn ghost" data-sh-route="student-credits">Créditos</button></div><p class="student-live-offer-meta">${balance===null?'Consulte seu saldo em Créditos.':`${balance} crédito${balance===1?'':'s'} disponível${balance===1?'':'s'}.`} Cada correção usa 1 crédito.</p><small>Análise por IA, sem revisão de professor. A nota é uma estimativa.</small></section>`;
+    return `<section class="tl-home student-live-offer sh-correct" aria-labelledby="studentLiveOffer"><h2 id="studentLiveOffer">Corrigir</h2><p>Envie sua redação completa por foto, arquivo ou texto. Receba nota estimada e orientações.</p><div class="student-live-offer-actions"><button class="btn primary" data-sh-route="student-live">Enviar redação</button><button class="btn ghost" data-sh-route="student-credits">Créditos</button></div><p class="student-live-offer-meta">1 crédito por correção.${balance===null?'':` Saldo: ${balance}.`}</p><small>Análise por IA, sem revisão de professor.</small></section>`;
   }
 
   async function studentHomeV2(navigation){
@@ -60,7 +64,7 @@
     const liveInfo=await edge('teacher-organization-api',{action:'live_status'}).catch(()=>null);
     if(!navigationCurrent(navigation))return;
     if(liveInfo?.independent){
-      $('view').innerHTML=header('Início','Sua prática de redação, no seu ritmo.')+`<section class="student-home-v2">${liveOffer(liveInfo)}</section>`;
+      $('view').innerHTML=header('Início','Sua prática de redação, no seu ritmo.')+`<section class="student-home-v2">${guidedOffer()}${liveOffer(liveInfo)}</section>`;
       $('view').onclick=e=>{const button=e.target.closest('[data-sh-route]');if(button)navigate(button.dataset.shRoute);};return;
     }
     const d=await studentDashboard(true);
@@ -99,7 +103,7 @@
     }).join('');
 
     $('view').innerHTML=header('Início','Seu painel de redações e evolução.')+`<section class="student-home-v2">
-      ${liveOffer(liveInfo)}<div class="sh-metrics">${metrics}</div>
+      ${guidedOffer()}${liveOffer(liveInfo)}<div class="sh-metrics">${metrics}</div>
       <section class="sh-profile" aria-label="Dados do aluno"><div class="sh-avatar">${icon('user')}</div><div><small>Aluno</small><h2>${esc(student.preferred_name||student.full_name||'Aluno')}</h2>${identity?`<span class="sh-chip">${esc(identity)}</span>`:''}</div></section>
       <section class="sh-actions" aria-label="Ações rápidas">
         <button type="button" class="sh-action primary" data-sh-route="student-proposals"><span class="sh-icon">${icon('send')}</span><div><b>Enviar redação</b><span>Escolha uma proposta e envie seu texto.</span></div></button>

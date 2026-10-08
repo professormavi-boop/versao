@@ -863,3 +863,9 @@ Preview painel publicado remoto f72ac19648f267af51738e8648302e65ff17aaa0, árvor
 Marcus pediu painel IA mais próximo do trecho. Plano [ ] mover cartão independente imediatamente após cartão de escrita na mesma coluna/ordem mobile; [ ] validar preservação e sequência; [ ] preview oficial. Arquivos writing-editor.e12.js,index.html,tests/writing-complete-ui.cjs,CONTINUIDADE.md. Database: nenhum impacto. Sem CSS/function/IA/env/auth/dados/créditos. Rollback frontendf72ac196.
 
 Implementado cartão independente imediatamente depois da escrita, antes de apoio/tutor na ordem celular; resposta não altera textarea. Regressões UI/editor/check51assets/HTTP51assets/diffcheck PASS. Sem backend. Publicação preview em andamento.
+
+
+## 08/10 — Inicial: destaque guiada/correção objetiva
+Marcus adicionou pedido inicial com guiada destacada/correção mais objetiva durante publicação proximidade. Plano [ ] guiada primeiro/callComeçar; [ ] correção curta com preço/saldo/atribuição preservados; [ ] testar rotas e dois estadoshome; [ ] previewoficial. Arquivos student-home-v2.e12.js,index.html,tests/student-offer.cjs,CONTINUIDADE.md. Database: nenhum impacto; sem backend/auth/env/dados/créditos. Métricas/menu/logo preservados. Rollback versãofrontend0d8441ee.
+
+Home implementada: guiada primeira em destaque comComeçar, correção curta/Enviarredação e1crédito/saldo/atribuiçãoIA; dados/métricas/navpreservados. Testeshomeambosestados/rotas/guiada/correção/saldo50,check51assets,HTTP51assets,diffcheck PASS. Proximidade publicada remotamente0d8441ee5bbcf3fc32daaf4b8a23efa10393cb2a, árvore3190d323e65c0248f5b591f095ef1dc4d81c1111; nova home em publicação no mesmo preview.
