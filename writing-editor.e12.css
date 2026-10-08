@@ -21,3 +21,7 @@
 .we-page [role=tabpanel]:focus{outline:2px solid #8b1c1c;outline-offset:4px}
 @media(max-width:850px){.we-page .we-columns{grid-template-columns:minmax(0,1fr)}.we-page .we-top{grid-template-columns:minmax(0,1fr)}.we-page .we-stage-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.we-page .we-stage-tabs .btn{min-width:0}.we-page #weText{min-height:250px}}
 @media(max-width:450px){.we-page .we-plan-fields{grid-template-columns:minmax(0,1fr)}.we-page .tl-card{padding:16px}.we-page .we-tutor-actions .btn{flex:1 1 140px}}
+
+.we-page .we-ai-panel{border-left:4px solid #8b1c1c;background:#fffafa}
+.we-page .we-ai-panel h2{color:#8b1c1c}.we-page .we-evidence-label{font-size:13px;font-weight:700;margin-bottom:6px}
+.we-page .we-evidence{margin:0 0 16px;padding:12px;border-left:2px solid #d8c0bc;background:#fff;white-space:pre-wrap;overflow-wrap:anywhere}

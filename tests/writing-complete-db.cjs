@@ -53,5 +53,13 @@ const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('
  await assert.rejects(db.query("select complete_independent_student($1,'Aluno independente',true,'2026-09-28')",[id(20)]));await db.exec("update system_feature_flags set is_enabled=true where feature_key='student_independent'");
  const completed=(await db.query("select complete_independent_student($1,'Aluno independente',true,'2026-09-28') as v",[id(20)])).rows[0].v;assert.equal(completed.pending,true);assert.equal((await db.query('select approval_status from profiles where id=$1',[id(20)])).rows[0].approval_status,'pending');
  await db.query("insert into live_essays(id,owner_id,correction_scope,writing_context) values($1,$2,'development1',$3)",[id(25),student,{introduction:'Minha tese'}]);await db.query('insert into live_jobs(id,owner_id,essay_id) values($1,$2,$3)',[id(26),student,id(25)]);assert.equal((await db.query('select context_snapshot from live_jobs where id=$1',[id(26)])).rows[0].context_snapshot.introduction,'Minha tese');await assert.rejects(db.query('update live_jobs set context_snapshot=$1 where id=$2',[{},id(26)]));
+ // Match the production invoker role; running only as postgres missed this error.
+ await db.exec('grant usage on schema public to service_role;grant select on profiles,live_writing_drafts,classes,academic_years,teacher_organizations,enrollments,students to service_role;alter role service_role bypassrls;set role service_role');
+ await assert.rejects(db.query('select writing_access($1,$2)',[student,id(17)]),/permission denied for schema private/);
+ await db.exec('reset role');await db.exec(fs.readFileSync('backend/writing/private-schema-access.sql','utf8'));
+ assert.equal((await db.query("select has_schema_privilege('service_role','private','usage') as allowed,has_schema_privilege('anon','private','usage') as anon,has_schema_privilege('authenticated','private','usage') as client")).rows[0].allowed,true);
+ await db.exec('set role service_role');assert.equal((await db.query('select writing_access($1,$2) as v',[student,id(17)])).rows[0].v.draft.owner_id,student);
+ await assert.rejects(db.query('select writing_access($1,$2)',[outsider,id(17)]),/Produção não encontrada/);await db.exec('reset role');
+ const after=(await db.query("select has_schema_privilege('anon','private','usage') as anon,has_schema_privilege('authenticated','private','usage') as client")).rows[0];assert.equal(after.anon,false);assert.equal(after.client,false);
  await db.close();console.log('PASS guided SQL: class membership, teacher ownership, locked stages, versions, private drafts, tutor idempotency, comments, revoked enrollment and independent approval.');
 })().catch(e=>{console.error(e);process.exitCode=1});
