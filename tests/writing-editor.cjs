@@ -15,7 +15,7 @@ const fs=require('fs'),assert=require('node:assert/strict'),{JSDOM}=require('jsd
  assert.equal(sent.length,5,'Unlisted actions must never reach fetch');
  transport.window.close();
  const dom=new JSDOM('<main id="view"></main>',{runScripts:'outside-only',url:'https://test.invalid'}),w=dom.window;let calls=[],saved=null,handoff=null,fail=false;
- w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=t=>'<h1>'+t+'</h1>';w.fmtDate=s=>s;w.navigationCurrent=()=>true;
+ w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=t=>'<h1>'+t+'</h1>';w.S={profile:{role:'student'}};w.fmtDate=s=>s;w.navigationCurrent=()=>true;
  w.edge=async(_,b)=>{calls.push(b);if(b.action==='live_writing_list')return{drafts:saved?[saved]:[]};if(b.action==='live_writing_get')return{draft:structuredClone(saved)};
   if(b.action==='live_writing_save'){if(fail)throw Error('Rascunho alterado em outra aba.');saved={id:b.id,theme:b.theme,content:structuredClone(b.content),version:b.version+1};return{draft:structuredClone(saved)}}throw Error(b.action);};
  w.renderTeacherLive=async(nav,preset)=>{handoff=preset};w.eval(fs.readFileSync('writing-stages.e12.js','utf8'));w.eval(fs.readFileSync('writing-editor.e12.js','utf8'));
