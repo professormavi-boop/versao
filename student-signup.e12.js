@@ -3,6 +3,13 @@
  const BASE='https://huccxcpwoydwuisrmboc.supabase.co',KEY='sb_publishable_KzojVBVP3GvVbSgO_w0mUA_-s8r7VdR';
  const $=id=>document.getElementById(id),form=$('studentSignup'),button=$('submitBtn');
  let session=null,existing=false;
+ const registrationEnabled=form.dataset.registrationEnabled==='true';
+ if(!registrationEnabled){
+  for(const input of form.querySelectorAll('input,button'))input.disabled=true;
+  $('existingAccount').hidden=true;
+  return;
+ }
+ $('signupAvailability')?.setAttribute('hidden','');
  const show=(text,type='')=>{$('status').textContent=text;$('status').className='status '+type;};
  async function request(path,body,token){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
@@ -43,7 +50,7 @@
     sessionFields();
    }
    const completed=await request('/functions/v1/teacher-organization-api',{action:'student_complete',full_name:name,legal_version:'2026-09-28',accept_terms:true},session.access_token);
-   if(completed.pending){show('Cadastro recebido. Aguarde a aprovação do responsável pela Versão. Depois, entre como Aluno independente.','ok');return;}
+   if(completed.pending){show('Cadastro recebido. Aguarde a aprovação do responsável pela Versão. Depois, entre em Estudante · E-mail.','ok');return;}
    try{localStorage.setItem('versao-e12-session-v1',JSON.stringify(session));}
    catch{show('Conta pronta. Entre pela página inicial com seu e-mail e senha.','ok');return;}
    location.replace('/?student_onboarding=1');

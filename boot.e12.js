@@ -224,7 +224,7 @@
     element('classCode').required=student;element('studentPin').required=student;
     element('authLinks').classList.toggle('hidden',student);
     element('loginAccessType').value=student?'student':independent?'independent':'teacher';
-    element('registerLink').textContent=independent?'Criar conta de aluno':'Criar conta de professor';
+    element('registerLink').textContent=independent?'Quero criar minha conta':'Criar conta de professor';
     element('password').value='';element('studentPin').value='';element('loginStatus').textContent='';
   }
 
@@ -238,6 +238,7 @@
     element('loginAccessType').onchange=()=>chooseLogin(element('loginAccessType').value==='student',element('loginAccessType').value==='independent');
     const query=new URLSearchParams(location.search);
     if(query.get('acesso')==='aluno')chooseLogin(true);
+    else if(query.get('acesso')==='email')chooseLogin(false,true);
     const wantsRegister=query.get('cadastro')==='1';
     element('loginForm').onsubmit=enter;
     element('logoutBtn').onclick=()=>{ready=false;resetAppState();loginScreen('',true);element('password').value='';element('studentPin').value='';};
