@@ -95,9 +95,9 @@ window.renderWritingEditor=async function(navigation,options={}){
  }
  async function guide(){
   focusGuidance();if(guideBusy||!draft)return;guideBusy=true;const stage=active,sourceDraft=draft;
-  const button=$('weGuide');if(button)button.disabled=true;const intent=tutorAction;
+  const button=$('weGuide');if(button)button.disabled=true;const studentQuestion=$('weQuestion')?.value.trim()||'',intent=H.intent(studentQuestion,tutorAction);
   try{collect();await persist();if(draft!==sourceDraft||!current())return;if(!draft.theme.trim())throw Error('Informe o tema antes de pedir orientação.');
-   const question=[$('weQuestion')?.value.trim(),H.question(intent,stage)].filter(Boolean).join('\n');
+   const question=H.question(intent,stage,studentQuestion).slice(0,1900);
    const signature=JSON.stringify([draft.id,draft.version,stage,intent,question]);
    if(!guideRequest||guideRequest.signature!==signature)guideRequest={signature,request_id:crypto.randomUUID()};
    status('Preparando uma orientação para o seu texto…');$('weGuidance').innerHTML='<div class="tl-loading-ring" aria-hidden="true"></div><p role="status">Lendo seu texto e preparando uma orientação…</p>';
