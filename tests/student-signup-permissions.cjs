@@ -2,16 +2,20 @@
 const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('node:assert/strict');
 (async()=>{
  const db=new PGlite();
- await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE SCHEMA auth;
- CREATE TABLE auth.users(id uuid PRIMARY KEY,email text,email_confirmed_at timestamptz,deleted_at timestamptz,banned_until timestamptz,encrypted_password text);
+ await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE SCHEMA auth; CREATE SCHEMA private;
+ CREATE TABLE auth.users(id uuid PRIMARY KEY,email text,email_confirmed_at timestamptz,deleted_at timestamptz,banned_until timestamptz,encrypted_password text,raw_app_meta_data jsonb DEFAULT '{}'::jsonb);
  CREATE TABLE public.profiles(id uuid PRIMARY KEY,role text,approval_status text,admin_hidden boolean DEFAULT false,organization_id uuid,requested_role text,full_name text,email text,updated_at timestamptz);
  CREATE TABLE public.system_feature_flags(feature_key text PRIMARY KEY,is_enabled boolean);
  CREATE TABLE public.student_independent_accounts(profile_id uuid PRIMARY KEY REFERENCES public.profiles(id),legal_version text);
+ CREATE TABLE public.students(id uuid PRIMARY KEY,organization_id uuid,auth_user_id uuid,full_name text,email text,is_active boolean DEFAULT true,updated_at timestamptz);
+ CREATE TABLE public.student_pin_identity(student_id uuid,email text);
  GRANT USAGE ON SCHEMA public,auth TO service_role;
  GRANT SELECT,UPDATE ON public.profiles TO service_role;
  GRANT SELECT ON public.system_feature_flags TO service_role;
  GRANT SELECT,INSERT ON public.student_independent_accounts TO service_role;
  INSERT INTO public.system_feature_flags VALUES('student_independent',true);`);
+ await db.exec(fs.readFileSync('backend/writing/rollback/independent-student-link.sql','utf8'));
+ await db.exec('CREATE TRIGGER enforce_student_link BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION private.enforce_student_profile_link()');
  const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
  for(let n=1;n<=14;n++){
   await db.query('INSERT INTO auth.users(id,email,email_confirmed_at) VALUES($1,$2,null)',[id(n),`student${n}@example.test`]);
@@ -56,11 +60,35 @@ const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('
  await db.exec('RESET ROLE');
  await db.exec(fs.readFileSync('backend/writing/enable-student-direct-access.sql','utf8'));
  await db.exec('SET ROLE service_role');
+ await assert.rejects(invoke(6),/Aluno aprovado precisa estar vinculado/);
+ await db.exec('RESET ROLE');
+ await db.exec(fs.readFileSync('backend/writing/fix-independent-student-link.sql','utf8'));
+ await db.exec('SET ROLE service_role');
  assert.deepEqual((await invoke(6)).rows[0].result,{ok:true,pending:false});
  assert.deepEqual((await invoke(6)).rows[0].result,{ok:true,pending:false});
  assert.deepEqual((await db.query('SELECT role,requested_role,approval_status FROM profiles WHERE id=$1',[id(6)])).rows[0],{role:'student',requested_role:'student',approval_status:'approved'});
  for(const n of [2,3,4,7,8,9,10,11,12,13,14])await assert.rejects(invoke(n));
  await db.exec('RESET ROLE');
+ // The live trigger must still enforce institution and PIN ownership.
+ await db.query("INSERT INTO auth.users(id,email) VALUES($1,'school@example.test'),($2,'pin@example.test'),($3,'unlinked@example.test')",[id(21),id(22),id(23)]);
+ await db.query("INSERT INTO profiles(id,role,approval_status,requested_role,organization_id,email) VALUES($1,'pending','pending','student',$4,'school@example.test'),($2,'pending','pending','student',$4,'pin@example.test'),($3,'pending','pending','student',null,'unlinked@example.test')",[id(21),id(22),id(23),id(99)]);
+ await assert.rejects(db.query("UPDATE profiles SET role='student',approval_status='approved' WHERE id=$1",[id(23)]),/Aluno aprovado precisa estar vinculado/);
+ await assert.rejects(db.query("UPDATE profiles SET role='student',approval_status='approved' WHERE id=$1",[id(21)]),/Não há aluno cadastrado/);
+ await db.query("INSERT INTO students(id,organization_id,full_name,email) VALUES($1,$2,'Nome escolar','school@example.test'),($3,$2,'Nome PIN',null)",[id(51),id(99),id(52)]);
+ await db.query("UPDATE profiles SET role='student',approval_status='approved' WHERE id=$1",[id(21)]);
+ assert.equal((await db.query('SELECT full_name FROM profiles WHERE id=$1',[id(21)])).rows[0].full_name,'Nome escolar');
+ await db.query("UPDATE auth.users SET raw_app_meta_data=jsonb_build_object('managed_student_id',$1::text) WHERE id=$2",[id(52),id(22)]);
+ await db.query("INSERT INTO student_pin_identity VALUES($1,'pin@example.test')",[id(52)]);
+ await db.query("UPDATE profiles SET role='student',approval_status='approved' WHERE id=$1",[id(22)]);
+ assert.equal((await db.query('SELECT auth_user_id FROM students WHERE id=$1',[id(52)])).rows[0].auth_user_id,id(22));
+ await assert.rejects(db.query('UPDATE profiles SET organization_id=null WHERE id=$1',[id(21)]));
+ await db.query("UPDATE profiles SET role='pending',approval_status='pending',email='student6@example.test' WHERE id=$1",[id(6)]);
+ await assert.rejects(db.query("UPDATE profiles SET role='student',approval_status='approved',email='mismatch@example.test' WHERE id=$1",[id(6)]),/Aluno aprovado precisa estar vinculado/);
+ await db.exec("UPDATE system_feature_flags SET is_enabled=false WHERE feature_key='student_independent'");
+ await assert.rejects(db.query("UPDATE profiles SET role='student',approval_status='approved' WHERE id=$1",[id(6)]),/Aluno aprovado precisa estar vinculado/);
+ await db.exec("UPDATE system_feature_flags SET is_enabled=true WHERE feature_key='student_independent'");
+ await db.exec(fs.readFileSync('backend/writing/rollback/independent-student-link.sql','utf8'));
+ await assert.rejects(db.query("UPDATE profiles SET role='student',approval_status='approved' WHERE id=$1",[id(6)]),/Aluno aprovado precisa estar vinculado/);
  await db.exec(fs.readFileSync('backend/writing/rollback/student-direct-access.sql','utf8'));
  await db.exec('SET ROLE service_role');
  await assert.rejects(db.query('SELECT encrypted_password FROM auth.users'),/permission denied/);
