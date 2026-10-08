@@ -14,3 +14,6 @@ Ação principal em vermelho; secundárias claras com borda suave. Edição expl
 
 ## Reutilização
 Consultar este arquivo e os seletores aprovados antes de alterar CSS. Corrigir o componente existente, sem sobreposições sucessivas ou handlers duplicados. Validar seleção das abas, foco, nomes longos e larguras320/390/768/1200px quando o layout mudar. Novas propostas de design dependem de solicitação do usuário.
+
+## Escrita guiada — aprovação08/10
+Manter logo oficial no cabeçalho existente. Planejamento específico por etapa, área de escrita principal e painel Apoio à escrita/Tutor ao lado; no celular, abaixo do texto em bloco expansível. Abas Objetivo/Perguntas/Repertório/Revisão, botões Estou sem ideias/Analisar trecho/Rever planejamento. Apoios e planejamento ficam fora da redação. Sem checklist obrigatório, sem texto pronto pela IA. CSS de layout isolado writing-editor.e12.css reutiliza cores/bordas/controles aprovados; não alterar outros módulos.

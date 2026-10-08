@@ -4,6 +4,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),{st
  const context={Response,Request,crypto,TextEncoder,console,AbortSignal,Date};vm.createContext(context);
  context.partial=vm.runInContext('(function(){'+stripTypeScriptTypes(fs.readFileSync('backend/writing/prepared/partial.ts','utf8').replace('export const partial=','const partial='))+';return partial;})()',context);
  vm.runInContext(stripTypeScriptTypes(fs.readFileSync('backend/writing/prepared/live.ts','utf8').replace(/^import .*;\s*$/gm,'').replace('export async function handleLive','async function handleLive')),context);
+ assert.equal(vm.runInContext("contextKey({development2:'Segundo',introduction:'Primeiro'}) === contextKey({introduction:'Primeiro',development2:'Segundo'})",context),true,'JSONB key order must not break retry idempotency');
  const id='00000000-0000-4000-8000-000000000001';let enabled=true,role='teacher',providerCalls=0,writes=[],job,essay;
  const text='Texto sintético de introdução para testar análise e evidências. '.repeat(3);
  const contract=require('../backend/writing/partial-correction.cjs');

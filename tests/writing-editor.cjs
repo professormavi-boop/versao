@@ -16,9 +16,9 @@ const fs=require('fs'),assert=require('node:assert/strict'),{JSDOM}=require('jsd
  transport.window.close();
  const dom=new JSDOM('<main id="view"></main>',{runScripts:'outside-only',url:'https://test.invalid'}),w=dom.window;let calls=[],saved=null,handoff=null,fail=false;
  w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=t=>'<h1>'+t+'</h1>';w.S={profile:{role:'student'}};w.fmtDate=s=>s;w.navigationCurrent=()=>true;
- w.edge=async(_,b)=>{calls.push(b);if(b.action==='live_writing_list')return{drafts:saved?[saved]:[]};if(b.action==='live_writing_get')return{draft:structuredClone(saved)};
+ w.edge=async(_,b)=>{if(b.action==='live_status')return {};calls.push(b);if(b.action==='live_writing_list')return{drafts:saved?[saved]:[]};if(b.action==='live_writing_get')return{draft:structuredClone(saved)};
   if(b.action==='live_writing_save'){if(fail)throw Error('Rascunho alterado em outra aba.');saved={id:b.id,theme:b.theme,content:structuredClone(b.content),version:b.version+1};return{draft:structuredClone(saved)}}throw Error(b.action);};
- w.renderTeacherLive=async(nav,preset)=>{handoff=preset};w.eval(fs.readFileSync('writing-stages.e12.js','utf8'));w.eval(fs.readFileSync('writing-editor.e12.js','utf8'));
+ w.renderTeacherLive=async(nav,preset)=>{handoff=preset};w.eval(fs.readFileSync('writing-stages.e12.js','utf8'));w.eval(fs.readFileSync('writing-support.e12.js','utf8'));w.eval(fs.readFileSync('writing-editor.e12.js','utf8'));
  await w.renderWritingEditor(1);w.$('weNew').click();await new Promise(r=>setImmediate(r));
  w.$('weTheme').value='Tema sintético';w.$('weTheme').dispatchEvent(new w.Event('input'));w.$('weText').value='Parágrafo autoral. '.repeat(10);w.$('weText').dispatchEvent(new w.Event('input'));
  w.$('weSave').click();await new Promise(r=>setImmediate(r));assert(saved);assert.equal(saved.content.stages.introduction.text,'Parágrafo autoral. '.repeat(10));assert.match(w.$('weStatus').textContent,/Salvo/);

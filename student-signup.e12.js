@@ -42,7 +42,8 @@
     session={access_token:data.access_token,refresh_token:data.refresh_token,user:data.user,expires_at:Math.floor(Date.now()/1000)+(Number(data.expires_in)||3600)};
     sessionFields();
    }
-   await request('/functions/v1/teacher-organization-api',{action:'student_complete',full_name:name,legal_version:'2026-09-28',accept_terms:true},session.access_token);
+   const completed=await request('/functions/v1/teacher-organization-api',{action:'student_complete',full_name:name,legal_version:'2026-09-28',accept_terms:true},session.access_token);
+   if(completed.pending){show('Cadastro recebido. Aguarde a aprovação do responsável pela Versão. Depois, entre como Aluno independente.','ok');return;}
    try{localStorage.setItem('versao-e12-session-v1',JSON.stringify(session));}
    catch{show('Conta pronta. Entre pela página inicial com seu e-mail e senha.','ok');return;}
    location.replace('/?student_onboarding=1');

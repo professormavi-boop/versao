@@ -53,7 +53,7 @@
 !modelos/
 !modelos/modelo-alunos.xlsx
 
-# Cadastro avulso em standby: arquivos preservados, fora do deploy.
+# Cadastro independente condicionado à autorização do servidor.
 
 !teacher-live.e12.js
 !teacher-live.e12.css
@@ -71,3 +71,11 @@ backend/
 !writing-stages-ui.e12.js
 
 !writing-editor.e12.js
+
+!writing-classroom.e12.js
+!writing-independent.e12.js
+!cadastro-aluno.html
+!student-signup.e12.js
+
+!writing-support.e12.js
+!writing-editor.e12.css
