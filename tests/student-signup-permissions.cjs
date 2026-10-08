@@ -1,0 +1,76 @@
+'use strict';
+const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('node:assert/strict');
+(async()=>{
+ const db=new PGlite();
+ await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE SCHEMA auth;
+ CREATE TABLE auth.users(id uuid PRIMARY KEY,email text,email_confirmed_at timestamptz,deleted_at timestamptz,banned_until timestamptz,encrypted_password text);
+ CREATE TABLE public.profiles(id uuid PRIMARY KEY,role text,approval_status text,admin_hidden boolean DEFAULT false,organization_id uuid,requested_role text,full_name text,email text,updated_at timestamptz);
+ CREATE TABLE public.system_feature_flags(feature_key text PRIMARY KEY,is_enabled boolean);
+ CREATE TABLE public.student_independent_accounts(profile_id uuid PRIMARY KEY REFERENCES public.profiles(id),legal_version text);
+ GRANT USAGE ON SCHEMA public,auth TO service_role;
+ GRANT SELECT,UPDATE ON public.profiles TO service_role;
+ GRANT SELECT ON public.system_feature_flags TO service_role;
+ GRANT SELECT,INSERT ON public.student_independent_accounts TO service_role;
+ INSERT INTO public.system_feature_flags VALUES('student_independent',true);`);
+ const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+ for(let n=1;n<=12;n++){
+  await db.query('INSERT INTO auth.users(id,email,email_confirmed_at) VALUES($1,$2,null)',[id(n),`student${n}@example.test`]);
+  await db.query("INSERT INTO profiles(id,role,approval_status,requested_role) VALUES($1,'pending','pending','student')",[id(n)]);
+ }
+ await db.query('UPDATE auth.users SET banned_until=now()+interval \'1 day\' WHERE id=$1',[id(2)]);
+ await db.query('UPDATE auth.users SET deleted_at=now() WHERE id=$1',[id(3)]);
+ await db.query("UPDATE profiles SET role='teacher',requested_role='teacher' WHERE id=$1",[id(4)]);
+ await db.query('UPDATE profiles SET requested_role=null WHERE id=$1',[id(6)]);
+ await db.query("UPDATE profiles SET requested_role=null,organization_id=$1 WHERE id=$2",[id(99),id(7)]);
+ await db.query("UPDATE profiles SET requested_role=null,approval_status='approved' WHERE id=$1",[id(8)]);
+ await db.query("UPDATE profiles SET requested_role=null,admin_hidden=true WHERE id=$1",[id(9)]);
+ await db.query("UPDATE profiles SET requested_role='teacher' WHERE id=$1",[id(10)]);
+ await db.query('UPDATE profiles SET requested_role=null,approval_status=null WHERE id=$1',[id(11)]);
+ await db.query('UPDATE profiles SET requested_role=null,role=null WHERE id=$1',[id(12)]);
+ const rollback=fs.readFileSync('backend/writing/rollback/student-signup-permissions.sql','utf8');
+ await db.exec(rollback);
+ const invoke=n=>db.query("SELECT public.complete_independent_student($1,'Estudante',true,'2026-09-28') AS result",[id(n)]);
+ await db.exec('SET ROLE service_role');
+ await assert.rejects(invoke(1),/permission denied for table users/);
+ await db.exec('RESET ROLE');
+ await db.exec(fs.readFileSync('backend/writing/fix-student-signup-permissions.sql','utf8'));
+ await db.exec('SET ROLE service_role');
+ await assert.rejects(invoke(6),/não pode ser convertida/);
+ await db.exec('RESET ROLE');
+ await db.exec(fs.readFileSync('backend/writing/fix-student-signup-profile.sql','utf8'));
+ await db.exec('SET ROLE service_role');
+ const completed=(await invoke(1)).rows[0].result;
+ assert.deepEqual(completed,{ok:true,pending:true}); // Unconfirmed email succeeds without changing approval.
+ assert.deepEqual((await invoke(1)).rows[0].result,completed);
+ assert.equal((await db.query('SELECT count(*)::integer AS n FROM student_independent_accounts')).rows[0].n,1);
+ assert.equal((await db.query('SELECT approval_status,email FROM profiles WHERE id=$1',[id(1)])).rows[0].approval_status,'pending');
+ assert.deepEqual((await invoke(6)).rows[0].result,{ok:true,pending:true});
+ assert.deepEqual((await invoke(6)).rows[0].result,{ok:true,pending:true});
+ assert.deepEqual((await db.query('SELECT role,requested_role,approval_status FROM profiles WHERE id=$1',[id(6)])).rows[0],{role:'pending',requested_role:'student',approval_status:'pending'});
+ for(const n of [7,8,9,10,11,12])await assert.rejects(invoke(n),/não pode ser convertida/);
+ await assert.rejects(invoke(2),/Confirme seu acesso/);
+ await assert.rejects(invoke(3),/Confirme seu acesso/);
+ await assert.rejects(invoke(4),/não pode ser convertida/);
+ await assert.rejects(db.query('SELECT encrypted_password FROM auth.users'),/permission denied/);
+ await assert.rejects(db.query('SELECT email_confirmed_at FROM auth.users'),/permission denied/);
+ await assert.rejects(db.query('UPDATE auth.users SET email=$1 WHERE id=$2',['changed@example.test',id(1)]),/permission denied/);
+ await db.exec('RESET ROLE');
+ for(const role of ['anon','authenticated']){
+  await db.exec(`SET ROLE ${role}`);
+  await assert.rejects(invoke(1),/permission denied/);
+  await db.exec('RESET ROLE');
+ }
+ await db.exec("UPDATE system_feature_flags SET is_enabled=false WHERE feature_key='student_independent'; SET ROLE service_role");
+ await assert.rejects(invoke(5),/ainda não está liberado/);
+ await db.exec('RESET ROLE');
+ await db.exec("UPDATE system_feature_flags SET is_enabled=true WHERE feature_key='student_independent'");
+ await db.exec(fs.readFileSync('backend/writing/rollback/student-signup-profile.sql','utf8'));
+ await db.query('UPDATE profiles SET requested_role=null WHERE id=$1',[id(6)]);
+ await db.exec('SET ROLE service_role');
+ await assert.rejects(invoke(6),/não pode ser convertida/);
+ await db.exec('RESET ROLE');
+ await db.exec(rollback);
+ assert.equal((await db.query("SELECT has_column_privilege('service_role','auth.users','email','SELECT') AS allowed")).rows[0].allowed,false);
+ await db.close();
+ console.log('PASS signup actual service role: reproduces users denial, limited read, unconfirmed email, pending approval, idempotency, blocked accounts, no Auth writes/secrets, RPC isolation, rollback');
+})().catch(e=>{console.error(e);process.exitCode=1});

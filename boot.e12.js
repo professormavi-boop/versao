@@ -128,6 +128,7 @@
     element('googleSignupForm')?.classList.add('hidden');
     element('googleAccess')?.classList.toggle('hidden',mode!=='login'||pinMode);
     element('loginChoice')?.classList.toggle('hidden',mode!=='login');
+    element('studentSignupAccess')?.classList.toggle('hidden',mode!=='login');
     element('accountCaptcha')?.classList.toggle('hidden',mode!=='forgot');
     if(mode==='forgot')window.VersaoCaptcha?.mount('accountCaptcha');
     if(mode!=='reset')recoveryToken=null;
@@ -225,6 +226,7 @@
     element('authLinks').classList.toggle('hidden',student);
     element('loginAccessType').value=student?'student':independent?'independent':'teacher';
     element('registerLink').textContent=independent?'Quero criar minha conta':'Criar conta de professor';
+    element('registerLink').classList.toggle('hidden',independent);
     element('password').value='';element('studentPin').value='';element('loginStatus').textContent='';
   }
 
