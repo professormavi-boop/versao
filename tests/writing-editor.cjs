@@ -1,6 +1,19 @@
 'use strict';
 const fs=require('fs'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom');
 (async()=>{
+ // Exercise the real request guard: editor stubs alone missed this integration.
+ const transport=new JSDOM('',{runScripts:'outside-only',url:'https://test.invalid'});
+ const tw=transport.window;let sent=[];
+ tw.fetch=async(url,options)=>{sent.push(JSON.parse(options.body).action);return {ok:true};};
+ tw.AbortController=AbortController;
+ tw.eval(fs.readFileSync('core.e12.js','utf8')+'\nwindow.testGuard=(action)=>request(BASE+\"/functions/v1/teacher-organization-api\",{method:\"POST\",body:JSON.stringify({action})});');
+ for(const action of ['live_writing_list','live_writing_get','live_writing_save','live_transcribe','live_confirm_text']){
+  await tw.testGuard(action);
+ }
+ assert.equal(sent.length,5);
+ await assert.rejects(tw.testGuard('unknown_admin_write'),/não está disponível/);
+ assert.equal(sent.length,5,'Unlisted actions must never reach fetch');
+ transport.window.close();
  const dom=new JSDOM('<main id="view"></main>',{runScripts:'outside-only',url:'https://test.invalid'}),w=dom.window;let calls=[],saved=null,handoff=null,fail=false;
  w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=t=>'<h1>'+t+'</h1>';w.fmtDate=s=>s;w.navigationCurrent=()=>true;
  w.edge=async(_,b)=>{calls.push(b);if(b.action==='live_writing_list')return{drafts:saved?[saved]:[]};if(b.action==='live_writing_get')return{draft:structuredClone(saved)};
