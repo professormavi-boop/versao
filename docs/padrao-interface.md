@@ -3,7 +3,7 @@
 Referência aprovada em01/10/2026: tela Propostas após os ajustes. Fonte visual: proposal-approved-v3.css. Aplicar em novas telas e revisões; preservar comportamentos já homologados.
 
 ## Menus
-Menu lateral: agrupar funcionalidades relacionadas com summary/details e filhos claros. Ao Vivo: Nova redação, Atividades e Histórico; aluno tem Nova redação e Histórico, sem atividades coletivas.
+Menu lateral: agrupar funcionalidades relacionadas com summary/details e filhos claros. Ao Vivo: Nova redação, Atividades e Histórico; aluno possui entradas separadas Corrigir e Escrita guiada, com ícones de traço; Temas, Redações e Evolução mantêm nomes curtos. Dentro de Corrigir: Enviar, Histórico e Créditos. Aprovação Marcus08/10.
 Menu interno: abas em um único contêiner claro #fffafa, borda #e8d9d6, raio16px, padding4px e gap4px. Botões com raio12px, altura mínima54px e peso800. Selecionado vermelho #8b1c1c, texto branco e sombra discreta; inativo fundo transparente/texto vermelho. Usar aria-current e foco visível. Nomes curtos: Atividades e Histórico, sem Minhas ou Ao vivo repetidos. Implementação em teacher-live.e12.css/.js e core.e12.js.
 
 ## Exibição
