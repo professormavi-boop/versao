@@ -13,20 +13,22 @@ const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('
  GRANT SELECT,INSERT ON public.student_independent_accounts TO service_role;
  INSERT INTO public.system_feature_flags VALUES('student_independent',true);`);
  const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
- for(let n=1;n<=12;n++){
+ for(let n=1;n<=14;n++){
   await db.query('INSERT INTO auth.users(id,email,email_confirmed_at) VALUES($1,$2,null)',[id(n),`student${n}@example.test`]);
   await db.query("INSERT INTO profiles(id,role,approval_status,requested_role) VALUES($1,'pending','pending','student')",[id(n)]);
  }
  await db.query('UPDATE auth.users SET banned_until=now()+interval \'1 day\' WHERE id=$1',[id(2)]);
  await db.query('UPDATE auth.users SET deleted_at=now() WHERE id=$1',[id(3)]);
  await db.query("UPDATE profiles SET role='teacher',requested_role='teacher' WHERE id=$1",[id(4)]);
- await db.query('UPDATE profiles SET requested_role=null WHERE id=$1',[id(6)]);
+ await db.query("UPDATE profiles SET role='pending',approval_status='pending',requested_role=null WHERE id=$1",[id(6)]);
  await db.query("UPDATE profiles SET requested_role=null,organization_id=$1 WHERE id=$2",[id(99),id(7)]);
  await db.query("UPDATE profiles SET requested_role=null,approval_status='approved' WHERE id=$1",[id(8)]);
  await db.query("UPDATE profiles SET requested_role=null,admin_hidden=true WHERE id=$1",[id(9)]);
  await db.query("UPDATE profiles SET requested_role='teacher' WHERE id=$1",[id(10)]);
  await db.query('UPDATE profiles SET requested_role=null,approval_status=null WHERE id=$1',[id(11)]);
  await db.query('UPDATE profiles SET requested_role=null,role=null WHERE id=$1',[id(12)]);
+ await db.query("UPDATE profiles SET role='student',approval_status='rejected' WHERE id=$1",[id(13)]);
+ await db.query("UPDATE profiles SET approval_status='rejected' WHERE id=$1",[id(14)]);
  const rollback=fs.readFileSync('backend/writing/rollback/student-signup-permissions.sql','utf8');
  await db.exec(rollback);
  const invoke=n=>db.query("SELECT public.complete_independent_student($1,'Estudante',true,'2026-09-28') AS result",[id(n)]);
@@ -51,6 +53,16 @@ const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('
  await assert.rejects(invoke(2),/Confirme seu acesso/);
  await assert.rejects(invoke(3),/Confirme seu acesso/);
  await assert.rejects(invoke(4),/não pode ser convertida/);
+ await db.exec('RESET ROLE');
+ await db.exec(fs.readFileSync('backend/writing/enable-student-direct-access.sql','utf8'));
+ await db.exec('SET ROLE service_role');
+ assert.deepEqual((await invoke(6)).rows[0].result,{ok:true,pending:false});
+ assert.deepEqual((await invoke(6)).rows[0].result,{ok:true,pending:false});
+ assert.deepEqual((await db.query('SELECT role,requested_role,approval_status FROM profiles WHERE id=$1',[id(6)])).rows[0],{role:'student',requested_role:'student',approval_status:'approved'});
+ for(const n of [2,3,4,7,8,9,10,11,12,13,14])await assert.rejects(invoke(n));
+ await db.exec('RESET ROLE');
+ await db.exec(fs.readFileSync('backend/writing/rollback/student-direct-access.sql','utf8'));
+ await db.exec('SET ROLE service_role');
  await assert.rejects(db.query('SELECT encrypted_password FROM auth.users'),/permission denied/);
  await assert.rejects(db.query('SELECT email_confirmed_at FROM auth.users'),/permission denied/);
  await assert.rejects(db.query('UPDATE auth.users SET email=$1 WHERE id=$2',['changed@example.test',id(1)]),/permission denied/);
@@ -65,12 +77,12 @@ const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('
  await db.exec('RESET ROLE');
  await db.exec("UPDATE system_feature_flags SET is_enabled=true WHERE feature_key='student_independent'");
  await db.exec(fs.readFileSync('backend/writing/rollback/student-signup-profile.sql','utf8'));
- await db.query('UPDATE profiles SET requested_role=null WHERE id=$1',[id(6)]);
+ await db.query("UPDATE profiles SET role='pending',approval_status='pending',requested_role=null WHERE id=$1",[id(6)]);
  await db.exec('SET ROLE service_role');
  await assert.rejects(invoke(6),/não pode ser convertida/);
  await db.exec('RESET ROLE');
  await db.exec(rollback);
  assert.equal((await db.query("SELECT has_column_privilege('service_role','auth.users','email','SELECT') AS allowed")).rows[0].allowed,false);
  await db.close();
- console.log('PASS signup actual service role: reproduces users denial, limited read, unconfirmed email, pending approval, idempotency, blocked accounts, no Auth writes/secrets, RPC isolation, rollback');
+ console.log('PASS signup actual service role: reproduces users denial, limited read, unconfirmed email, pending and direct access, idempotency, rejected/blocked accounts, no Auth writes/secrets, RPC isolation, rollback');
 })().catch(e=>{console.error(e);process.exitCode=1});
