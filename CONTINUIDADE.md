@@ -998,3 +998,9 @@ Candidato validado em SETROLEservice_role: baseline rejeita perfilpending/reques
 
 ## 08/10 17h27 — Link estudante visível no login
 Marcus reportou ausência do link. Atual registerLink só aluno após selecionar independent. Plano [ ] âncora Criar conta de estudante sempre visível no login professor/PIN/email; [ ] ocultar registroduplicado no email, ocultar novaâncora recovery/google; [ ] testar todosmodos/HTTP/cache; [ ] preview oficial. Arquivos index.html,boot.e12.js,tests/google-boot.cjs,CONTINUIDADE.md. Database: nenhum impacto. CandidatoSQLrequestednull continua não aplicado/pende autorização. Frontend somente teste, rollback272b950.
+
+Link login publicado: testesboot/Google/check52assets/HTTP/diffPASS; remoto2129ae9b1df6dda7b2877dd93a6d31f6ff2c7ed0/árvoref16fae05b359b083e42d648389bb8cd4ef0c53f3 igual local0015312. Deploymentdpl_3Hs6aCsQKsHLiCjuAizrkMLfGzY2 READY/Preview/projetoisolado/aliasoficial https://teste.versaoprofessor.com/. Index/boot HTTP200/studentSignupAccess/cache20261008-student-signup-link relidos. Criar conta de estudante visível professor/PIN/email, duplicadoemail oculto; recovery/googleocultamnovoCTA. SQL candidato requestednull versionado remotamente mas NÃO aplicado, permanece autorização pendente; nenhum banco/produçãofrontend/Auth/env alterados. Homologação autenticada não efetuada agente.
+
+
+## 08/10 17h35 — Alinhamento cadastro no login
+Imagem mostra âncora inline com texto no topo/borda e largura desigual. Plano [ ] CSS restrito authLinks/studentSignupAccess, centralizar link, largura integral, mobileações1col; [ ] cacheCSS; [ ] boot/check/HTTP/preview. Arquivos responsive.e12.css,index.html,CONTINUIDADE.md. Database: nenhum impacto. SQLperfilrequestednull permanecependente autorização. Rollback2129ae9.
