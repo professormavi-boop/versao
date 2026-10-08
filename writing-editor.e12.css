@@ -27,3 +27,5 @@
 .we-page .we-evidence{margin:0 0 16px;padding:12px;border-left:2px solid #d8c0bc;background:#fff;white-space:pre-wrap;overflow-wrap:anywhere}
 
 .we-page .we-plan-fields textarea{min-height:82px;resize:vertical}.we-page .we-plan-fields .field:last-child:nth-child(odd){grid-column:1/-1}
+
+.we-theme-picker{padding:16px;margin:12px 0;border:1px solid var(--line);border-radius:16px;background:#fffafa}.we-theme-choices{display:grid;gap:8px;max-height:360px;overflow:auto}.we-theme-choices .btn{display:grid;text-align:left;gap:5px;white-space:normal;height:auto;padding:12px;overflow-wrap:anywhere}.we-theme-choices small{color:var(--muted);font-weight:400}
