@@ -76,3 +76,6 @@ backend/
 !writing-independent.e12.js
 !cadastro-aluno.html
 !student-signup.e12.js
+
+!writing-support.e12.js
+!writing-editor.e12.css

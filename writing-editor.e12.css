@@ -1,0 +1,23 @@
+/* Escrita guiada: layout aprovado; controles e identidade do VERSÃO. */
+.teacher-live.we-page{max-width:1280px}
+.we-page .we-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center}
+.we-page .we-top .field{margin:0}.we-page #weTheme{min-height:70px}
+.we-page .we-columns{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(280px,1fr);gap:20px;align-items:start}
+.we-page .we-columns>*{min-width:0}.we-page .we-columns .tl-card{margin:0 0 18px}
+.we-page .we-plan-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}
+.we-page .we-plan-fields .field{margin:12px 0}.we-page .we-stage-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:4px;background:#fffafa;border:1px solid #e8d9d6;border-radius:16px;margin:20px 0}
+.we-page .we-stage-tabs .btn{border:0;min-height:54px;padding:10px 8px;background:transparent}
+.we-page .we-stage-tabs [aria-current=step]{background:#8b1c1c;color:#fff}
+.we-page #weText{min-height:300px}.we-page #wePlan{min-height:90px}
+.we-page .we-support summary{cursor:pointer;font-weight:750;font-size:20px;color:#302925}
+.we-page .we-help-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:4px;background:#fffafa;border:1px solid #e8d9d6;border-radius:12px;margin:18px 0}
+.we-page .we-help-tabs .btn{background:transparent;border:0;padding:9px 6px}
+.we-page .we-help-tabs [aria-selected=true]{background:#8b1c1c;color:#fff}
+.we-page .we-assistance p,.we-page .we-assistance li{line-height:1.6;overflow-wrap:anywhere}
+.we-page .we-tutor-actions{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.we-page .we-tutor-actions .btn{font-size:13px;padding:8px 10px}
+.we-page .we-tutor-actions [aria-pressed=true]{background:#fff1ee;border-color:#8b1c1c}
+.we-page .we-source a{color:#8b1c1c;text-decoration:underline;overflow-wrap:anywhere}
+.we-page .we-inline-actions{display:flex;flex-wrap:wrap;gap:8px}.we-page .we-full-button{width:100%}
+.we-page [role=tabpanel]:focus{outline:2px solid #8b1c1c;outline-offset:4px}
+@media(max-width:850px){.we-page .we-columns{grid-template-columns:minmax(0,1fr)}.we-page .we-top{grid-template-columns:minmax(0,1fr)}.we-page .we-stage-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.we-page .we-stage-tabs .btn{min-width:0}.we-page #weText{min-height:250px}}
+@media(max-width:450px){.we-page .we-plan-fields{grid-template-columns:minmax(0,1fr)}.we-page .tl-card{padding:16px}.we-page .we-tutor-actions .btn{flex:1 1 140px}}

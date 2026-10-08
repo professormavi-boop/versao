@@ -125,7 +125,7 @@ begin
  raise exception 'Ação de construção desconhecida.';
 end $$;
 create function public.claim_writing_guidance(p_actor uuid,p_draft uuid,p_version integer,p_stage text,p_request uuid,p_question text) returns jsonb language plpgsql security invoker set search_path='' as $$
-declare d public.live_writing_drafts%rowtype;g public.writing_guidance%rowtype;a public.writing_activities%rowtype;lim integer;
+declare d public.live_writing_drafts%rowtype;g public.writing_guidance%rowtype;a public.writing_activities%rowtype;lim integer;cfg jsonb;
 begin
  perform public.writing_access(p_actor,p_draft);
  perform pg_advisory_xact_lock(hashtextextended(p_actor::text||':writing-guide',0));
@@ -137,11 +137,14 @@ begin
   if g.status='processing' and g.created_at<now()-interval '3 minutes' then update public.writing_guidance set status='failed',error_message='A orientação foi interrompida. Seu texto está salvo.',completed_at=now() where id=g.id returning * into g;end if;
   return jsonb_build_object('claimed',false,'guidance',to_jsonb(g));
  end if;
- select least(100,greatest(1,coalesce((config->>'tutor_limit')::integer,12))) into lim from public.system_feature_flags where feature_key='writing_guided' and is_enabled;
- if lim is null then raise exception 'A tutoria ainda não está liberada.';end if;
+ select config into cfg from public.system_feature_flags where feature_key='writing_guided' and is_enabled;
+ if not found then raise exception 'A tutoria ainda não está liberada.';end if;
+ if coalesce(cfg->>'billing_mode','')<>'test_free' then lim:=least(100,greatest(1,coalesce((cfg->>'tutor_limit')::integer,12)));end if;
+ update public.writing_guidance set status='failed',error_message='A orientação foi interrompida. Seu texto está salvo.',completed_at=now() where owner_id=p_actor and status='processing' and created_at<now()-interval '3 minutes';
+ if exists(select 1 from public.writing_guidance where owner_id=p_actor and status='processing') then raise exception 'Aguarde a orientação em andamento antes de pedir outra.';end if;
  if d.version<>p_version then raise exception 'Salve e reabra a versão atual antes de pedir orientação.';end if;
  if d.activity_id is not null then select * into a from public.writing_activities where id=d.activity_id;if not a.is_active or not(p_stage=any(a.stages)) then raise exception 'Etapa ainda não liberada.';end if;end if;
- if (select count(*) from public.writing_guidance where owner_id=p_actor and created_at>now()-interval '24 hours')>=lim then raise exception 'Limite de orientações atingido. Continue escrevendo e retome a IA amanhã.';end if;
+ if lim is not null and (select count(*) from public.writing_guidance where owner_id=p_actor and created_at>now()-interval '24 hours')>=lim then raise exception 'Limite de orientações atingido. Continue escrevendo e retome a IA amanhã.';end if;
  insert into public.writing_guidance(id,owner_id,draft_id,draft_version,stage,question,status) values(p_request,p_actor,p_draft,p_version,p_stage,p_question,'processing') returning * into g;
  return jsonb_build_object('claimed',true,'guidance',to_jsonb(g),'draft',to_jsonb(d));
 end $$;
@@ -158,7 +161,7 @@ revoke all on function public.writing_access(uuid,uuid),public.writing_dispatch(
 grant execute on function public.writing_access(uuid,uuid),public.writing_dispatch(uuid,jsonb),public.claim_writing_guidance(uuid,uuid,integer,text,uuid,text),public.finish_writing_guidance(uuid,uuid,jsonb,text) to service_role;
 revoke all on function private.writing_member(uuid,uuid),private.writing_teacher(uuid,uuid),private.writing_snapshot(),private.writing_revision() from public,anon,authenticated;
 grant execute on function private.writing_member(uuid,uuid),private.writing_teacher(uuid,uuid),private.writing_snapshot(),private.writing_revision() to service_role;
-insert into public.system_feature_flags(feature_key,is_enabled,config) values('writing_guided',false,'{"tutor_limit":12,"billing_mode":"test_quota","package_price":null}'::jsonb),('student_independent',false,'{}'::jsonb) on conflict(feature_key) do nothing;
+insert into public.system_feature_flags(feature_key,is_enabled,config) values('writing_guided',false,'{"tutor_limit":null,"billing_mode":"test_free","package_price":null}'::jsonb),('student_independent',false,'{}'::jsonb) on conflict(feature_key) do nothing;
 create function public.complete_independent_student(p_actor uuid,p_name text,p_accept boolean,p_legal_version text) returns jsonb language plpgsql security invoker set search_path='' as $$
 declare p public.profiles%rowtype;u auth.users%rowtype;
 begin

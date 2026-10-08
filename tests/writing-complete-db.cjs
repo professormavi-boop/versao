@@ -37,8 +37,11 @@ const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('
  a=(await dispatch(teacher,{action:'writing_activity_save',id:activity,class_id:klass,name:a.name,theme:a.theme,stages:['introduction','development1'],is_active:true,version:a.version})).activity;
  await db.exec("update system_feature_flags set is_enabled=true where feature_key='writing_guided'");
  const claim=async(actor,request=id(12),stage='introduction',version=2)=>(await db.query('select claim_writing_guidance($1,$2,$3,$4,$5,$6) as v',[actor,draft.id,version,stage,request,'Como começo?'])).rows[0].v;
- const g=await claim(student);assert(g.claimed);assert.equal((await claim(student)).claimed,false);await assert.rejects(claim(teacher));await assert.rejects(claim(student,id(13),'conclusion'));
+ const g=await claim(student);assert(g.claimed);assert.equal((await claim(student)).claimed,false);await assert.rejects(claim(student,id(30)),/Aguarde/);await assert.rejects(claim(teacher));await assert.rejects(claim(student,id(13),'conclusion'));
  await db.query('select finish_writing_guidance($1,$2,$3,null)',[student,id(12),{objective:'Planeje',questions:['Qual problema?'],task:'Escolha um recorte.',context_note:'',evidence:''}]);assert.equal((await claim(student)).guidance.status,'completed');
+ // Free testing has no daily commercial quota; every call remains a receipt.
+ for(let i=31;i<47;i++){assert((await claim(student,id(i))).claimed);await db.query('select finish_writing_guidance($1,$2,$3,null)',[student,id(i),{objective:'Planeje',questions:['Qual problema?'],task:'Revise.',context_note:'',evidence:''}]);}
+ assert.equal((await db.query('select count(*)::int as n from writing_guidance where owner_id=$1',[student])).rows[0].n,17);
  await dispatch(teacher,{action:'writing_comment',id:draft.id,version:2,stage:'introduction',comment:'Delimite o problema.',request_id:id(15)});assert.equal((await dispatch(student,{action:'writing_detail',id:draft.id})).comments.length,1);
  await assert.rejects(dispatch(student,{action:'writing_comment',id:draft.id,version:2,stage:'introduction',comment:'Forjado',request_id:id(16)}));
  // Private drafts are never visible to a teacher, even from the same school.

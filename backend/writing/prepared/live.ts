@@ -94,7 +94,8 @@ export async function handleLive(req:Request,deps={createClient,fetch,env:(key:s
    }
    if(partialFlag?.config?.writing_editor!==true)return json({error:'O editor está temporariamente indisponível para salvar.'},409);
    if(!Number.isInteger(body.version)||body.version<0||typeof body.theme!=='string'||body.theme.length>1000||!body.content||typeof body.content!=='object'||Array.isArray(body.content))return json({error:'Rascunho inválido.'},400);
-   const content:any={mode:body.content.mode==='cause-effect'?'cause-effect':'free',stages:{}};
+   if(body.content.command!==undefined&&(typeof body.content.command!=='string'||body.content.command.length>4000))return json({error:'Confira o comando do tema.'},400);
+   const content:any={mode:body.content.mode==='cause-effect'?'cause-effect':'free',command:body.content.command||'',stages:{}};
    for(const stage of ['introduction','development1','development2','conclusion']){
     const data=body.content.stages?.[stage]||{};
     if(typeof data.text!=='string'||data.text.length>16000||typeof data.plan!=='string'||data.plan.length>4000)return json({error:'Confira o texto e o planejamento de cada etapa.'},400);

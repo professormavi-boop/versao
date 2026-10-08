@@ -1,6 +1,6 @@
 # Proposta: mais apoio na Escrita guiada
 
-Pedido Marcus08/10: o aluno precisa de mais informações para escrever; manter nomes curtos e apresentar sugestão/imagem antes de ampliar a implementação. Esta é uma proposta, não funcionalidade publicada.
+Pedido Marcus08/10: o aluno precisa de mais informações para escrever; manter nomes curtos e apresentar sugestão/imagem antes de ampliar a implementação. Proposta aprovada e implementação concluída no código em08/10; ativação da IA pendente no backend compartilhado.
 
 ## Tela
 
@@ -19,8 +19,8 @@ Planejamento recebe campos pequenos adaptados à etapa, sem preenchimento obriga
 
 Tutor com ações Estou sem ideias, Analisar trecho e Rever planejamento. Cada pedido usa tema, comando, etapa, planejamento, texto e versão atuais; devolve explicação, até duas perguntas e uma tarefa prática, nunca um parágrafo/tese/intervenção prontos. Se o aluno editar, a orientação anterior é histórica e pode solicitar nova análise. Sugestão não bloqueia avanço nem exige checklist.
 
-Separar orientação formativa de correção: tutor não atribui nota, não aprova nem publica; Corrigir mantém sua confirmação e crédito existentes. Não gerar chamadas IA a cada tecla. Material fixo é consultável sem IA; chamada ocorre por botão, com loader, limite visível, recibo e custo instrumentado. Limite/preço comercial ainda precisam de definição antes de lançamento; não inventar cobrança no protótipo.
+Separar orientação formativa de correção: tutor não atribui nota, não aprova nem publica; Corrigir mantém sua confirmação e crédito existentes. Não gerar chamadas IA a cada tecla. Material fixo é consultável sem IA; chamada ocorre por botão, com loader, limite visível, recibo e custo instrumentado. Testes aprovados sem cobrança nem cota diária comercial; uma solicitação ativa por aluno evita duplicidade. Plano mensal futuro ainda indefinido.
 
 ## Implementação futura
 
-Reutilizar versão/ACL/telemetria/contrato de autoria do pacote completo preparado. Ampliar planejamento e ações no editor; adicionar repertório com busca e fontes verificadas. Validar retenção dos campos anteriores, fonte ausente, prompt injection, devolutiva desatualizada, duas abas, duplicidade, dados de outro aluno e celular. Mudanças novas em backend compartilhado exigem plano/autorizações próprias. Nada disso foi ativado nesta entrega de menu.
+Reutilizar versão/ACL/telemetria/contrato de autoria do pacote completo preparado. Ampliar planejamento e ações no editor; adicionar repertório com busca e fontes verificadas. Validar retenção dos campos anteriores, fonte ausente, prompt injection, devolutiva desatualizada, duas abas, duplicidade, dados de outro aluno e celular. Mudanças novas em backend compartilhado exigem plano/autorizações próprias. A implementação posterior desta proposta está preparada, com testes automáticos; ativação do backend compartilhado é uma etapa distinta.
