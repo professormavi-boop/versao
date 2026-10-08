@@ -44,3 +44,5 @@ Cadastro independente constitui autorização separada para flag e formulário. 
 
 ## Atualização após autorização — 08/10 16h06BRT
 Marcus autorizou especificamente as três correções compartilhadas e o frontend de testes. teacher-organization-api22 ACTIVE/JWTtrue publicada;18arquivos relidos iguais ao candidato, somentelive.ts/writing-tutor.ts modificados sobre21. Ponto de restauração embackend/writing/rollback/teacher-organization-api-v21.json. Sem alteraçãocadastroflag/tabelas/RLS/Auth/dados/env/créditos. Frontendintegrado empublicação. A conclusão anterior descreve o estado da auditoria antes da autorização; trêscorreções agoraativas, mas homologaçãoautenticada/IAreal/envio ainda pendentes antesfrontendprodução.
+
+Frontend integrado conferido no domínio oficial: f0fdda737fc9769f6abdae6a1c34e4be97538daf, deploymentdpl_26NNsnYTwsWsejgpDgrYaZPPNa89 READY/Preview, alias https://teste.versaoprofessor.com/. Assets HTTP200 e marcadores novos relidos. Correções ativas; testes simulados pertinentes aprovados; sessão/IA/envio reais ainda não executados pelo agente. Cadastro permanece bloqueado e frontend produção preservado.
