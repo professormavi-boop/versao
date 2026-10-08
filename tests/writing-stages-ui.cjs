@@ -17,7 +17,17 @@ function select(w,value){
 }
 function sample(w){return {mode:'partial',report_format:'partial-v1',stage:'introduction',criteria:w.WritingStages.stages.introduction.criteria.map(name=>({name,status:'partial',feedback:'Explique a relação com o tema.',evidence:'<img src=x onerror=alert(1)>'})),strength:'Tema apresentado',improvement:'Explicitar a tese',next_step:'Qual posição você defenderá?',context_limitations:'Somente a introdução foi analisada.',deviations:[],total_score:1000,competencies:{C1:{score:200}}};}
 (async()=>{
- for(const role of ['teacher','student']){
+ for(const enabled of [false,true]){
+  const {dom,w,calls}=env('student',enabled);w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1,{stage:'introduction',text:'Redação autoral completa. '.repeat(12),theme:'Tema',context:{development1:'Contexto'}});
+  assert.equal(w.document.querySelector('[id^="writing-scope-"]'),null);assert.equal(w.$('tlTextLabel').textContent,'Redação completa');await w.$('tlNext').onclick({target:w.$('tlNext')});assert.equal(calls.find(c=>c.action==='live_create').correction_scope,'complete');dom.window.close();
+ }
+ for(const completed of [false,true]){
+  const {dom,w,calls}=env('student',true);const original=w.edge;
+  w.edge=async(name,b)=>{if(b.action==='live_history')return{essays:[{id:'old',correction_scope:'introduction',student_label:'Aluno',theme:'Tema'}]};if(b.action==='live_get')return{essay:{id:'old',correction_scope:'introduction',input_text:'Trecho anterior',student_label:'Aluno',theme:'Tema'},jobs:completed?[{id:'job',purpose:'correction',status:'completed',result:sample(w)}]:[]};return original(name,b)};
+  w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive({route:'student-live-history'});await w.document.querySelector('[data-essay]').onclick({target:w.document.querySelector('[data-essay]')});
+  assert.equal(w.$('tlPartialRedo'),null);assert.equal(calls.filter(c=>['live_start','live_transcribe'].includes(c.action)).length,0);if(completed){assert.match(w.$('view').textContent,/Somente a introdução/);assert(w.$('tlShare'));}else{assert(w.$('tlCompleteNew'));assert.match(w.$('view').textContent,/apenas para o professor/);}dom.window.close();
+ }
+ for(const role of ['teacher']){
   const {dom,w,calls}=env(role);w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1);
   assert.equal(w.document.querySelector('[id^="writing-scope-"]').value,'complete');
   assert.equal(w.$('tlTextLabel').textContent,'Redação completa');
@@ -29,7 +39,7 @@ function sample(w){return {mode:'partial',report_format:'partial-v1',stage:'intr
   select(w,'complete');assert.equal(w.$('tlTextLabel').textContent,'Redação completa');assert.match(w.$('tlInputHint').textContent,/redação completa/);await w.$('tlNext').onclick({target:w.$('tlNext')});assert.equal(calls.filter(c=>c.action==='live_create').length,1);assert(w.$('tlTheme'));
   dom.window.close();
  }
- for(const role of ['teacher','student']){
+ for(const role of ['teacher']){
   const {dom,w,calls}=env(role,true);w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1);
   select(w,'introduction');w.$('tlText').value='Texto para análise parcial. '.repeat(5);
   assert(!w.$('tlCamera').disabled);await w.$('tlNext').onclick({target:w.$('tlNext')});

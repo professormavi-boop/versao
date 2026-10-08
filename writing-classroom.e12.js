@@ -1,6 +1,7 @@
 'use strict';
 window.renderWritingClassroom=async function(navigation){
  const host=$('view'),teacher=S.profile.role==='teacher',W=window.WritingStages;
+ if(!teacher)throw Error('Atividades de construção estão disponíveis apenas para o professor.');
  const current=()=>navigationCurrent(navigation),api=body=>edge('teacher-organization-api',body);
  let busy=false,activity=null,catalog=[];
  const frame=html=>{if(current())host.innerHTML=header(teacher?'Construção em aula':'Atividades de construção','Planejamento, escrita e reescrita por etapas.')+`<section class="teacher-live"><section class="tl-card">${html}<p id="wcStatus" role="status"></p></section></section>`;};
