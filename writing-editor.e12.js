@@ -38,8 +38,8 @@ window.renderWritingEditor=async function(navigation,options={}){
  async function list(){
   const stamp=++token;frame('<h2>Rascunhos</h2><p>Carregando rascunhos…</p>');
   try{const data=await api({action:'live_writing_list'});if(!current()||stamp!==token)return;
-   frame(`<h2>Rascunhos</h2><p>Planejar e salvar não consome créditos.</p><div class="tl-actions"><button class="btn primary" id="weNew">Começar</button>${S.profile.role==='teacher'&&capabilities?.writing_guided?.is_enabled?'<button class="btn" id="weClassroom">'+(S.profile.role==='teacher'?'Construção em aula':'Atividades da turma')+'</button>':''}<button class="btn" id="weBackLive">${S.profile.role==='student'?'Corrigir':'Voltar ao Ao Vivo'}</button></div>${data.drafts.length?data.drafts.map(d=>`<article class="tl-evidence-card"><h3>${esc(d.theme||'Tema ainda não definido')}</h3><p>${esc(fmtDate(d.updated_at))}</p><button class="btn" data-writing-draft="${esc(d.id)}">Continuar</button></article>`).join(''):'<p>Seus rascunhos aparecerão aqui.</p>'}`);
-   $('weNew').onclick=()=>open(null);if($('weClassroom'))$('weClassroom').onclick=()=>window.renderWritingClassroom(navigation);$('weBackLive').onclick=()=>leave(()=>navigate(S.profile.role==='student'?'student-live':'teacher-live'));
+   frame(`<h2>Rascunhos</h2><p>Planejar e salvar não consome créditos.</p><div class="tl-actions"><button class="btn primary" id="weNew">Começar</button><button class="btn" id="weBackLive">${S.profile.role==='student'?'Corrigir':'Voltar ao Ao Vivo'}</button></div>${data.drafts.length?data.drafts.map(d=>`<article class="tl-evidence-card"><h3>${esc(d.theme||'Tema ainda não definido')}</h3><p>${esc(fmtDate(d.updated_at))}</p><button class="btn" data-writing-draft="${esc(d.id)}">Continuar</button></article>`).join(''):'<p>Seus rascunhos aparecerão aqui.</p>'}`);
+   $('weNew').onclick=()=>open(null);$('weBackLive').onclick=()=>leave(()=>navigate(S.profile.role==='student'?'student-live':'teacher-live'));
    host.querySelectorAll('[data-writing-draft]').forEach(b=>b.onclick=()=>open(b.dataset.writingDraft));
   }catch(e){status(e.message);}
  }
