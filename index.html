@@ -29,7 +29,7 @@
   <script src="/student-home-v2.e12.js?v=20261009-student-standard" defer></script>
   <script src="/captcha.e12.js?v=20261001-direct1" defer></script>
   <script src="/core.e12.js?v=20261009-student-standard" defer></script>
-  <script src="/boot.e12.js?v=20261008-student-login-flow" defer></script>
+  <script src="/boot.e12.js?v=20261009-login-link-order" defer></script>
   <script src="/action-alerts.e12.js?v=20261007-optional-notes" defer></script>
   <script src="/custom-selects.e12.js?v=20260927-selects-v2" defer></script>
   <script src="/teacher-main.e12.js?v=20261001-live1" defer></script>
@@ -88,10 +88,10 @@
         <div id="loginStatus" class="form-status" role="status" aria-live="polite">Preparando acesso. Se esta mensagem permanecer, atualize a página.</div>
       </form>
       <div id="authLinks" class="item-actions">
-        <button id="registerLink" class="btn ghost" type="button">Criar conta de professor</button>
         <button id="forgotLink" class="btn ghost" type="button">Esqueci minha senha</button>
+        <button id="registerLink" class="btn ghost" type="button">Criar conta de <strong>professor</strong></button>
       </div>
-      <div id="studentSignupAccess" class="item-actions"><a id="studentRegisterLink" class="btn ghost" href="/cadastro-aluno.html">Criar conta de estudante</a></div>
+      <div id="studentSignupAccess" class="item-actions"><a id="studentRegisterLink" class="btn ghost" href="/cadastro-aluno.html">Criar conta de <strong>aluno</strong></a></div>
       <form id="googleSignupForm" class="google-consent hidden">
         <p id="completionIntro" class="muted">Falta só confirmar seu nome e aceitar os termos para começar como professor.</p>
         <label>Nome completo<input id="googleName" autocomplete="name" minlength="2" maxlength="160" required></label>

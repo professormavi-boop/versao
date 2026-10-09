@@ -229,7 +229,7 @@
     element('classCode').required=student;element('studentPin').required=student;
     element('authLinks').classList.toggle('hidden',student);
     element('loginAccessType').value=student?'student':independent?'independent':'teacher';
-    element('registerLink').textContent=independent?'Quero criar minha conta':'Criar conta de professor';
+    element('registerLink').innerHTML=independent?'Quero criar minha conta':'Criar conta de <strong>professor</strong>';
     element('registerLink').classList.toggle('hidden',independent);
     element('password').value='';element('studentPin').value='';element('loginStatus').textContent='';
   }
