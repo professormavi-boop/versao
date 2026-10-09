@@ -1060,3 +1060,14 @@ Publicado em https://teste.versaoprofessor.com/: remoto09143e92/local6d30995, á
 Plano [ ] remover botões Gerenciar links e handlers professor/aluno; [ ] preservar Compartilhar devolutiva, edição, refazer e links existentes; [ ] testes existentes/check/HTTP; [ ] preview oficial. Arquivos teacher-live.e12.js,index.html,CONTINUIDADE.md. Database: nenhum impacto. Sem Auth/env/config/domínios/integrações alterados. Rollback deployment dpl_6N5T72KrWxDdKJ26YZ2TxRGDoiJ9.
 
 [x] Botões e handlers removidos dos dois resultados; Compartilhar devolutiva e painel de compartilhamento preservados. PASS teacher-live/student-live/live-management/check52assets/HTTP52assets/diffcheck. Testes existentes incluem backend revogação, mantido; não representam novo teste autenticado. [ ] publicação.
+
+Publicação concluída: local4f93e0e/remoto085a25f3, árvore9ae6b43d1830fbdedee804e1037c2240020e488e. dpl_6MhkFhbfnDwREMgM46vyDV9yrsgM READY/Preview/projeto teste, aliasoficial atribuído. Index e teacher-live HTTP200 conteúdo exato comparado ao local. [x] publicação. Sem login/IA/banco/produção.
+
+## 09/10 — Tutor com perguntas prontas e modal de salvamento
+Plano [ ] remover caixa livre e oferecer cinco intenções existentes; [ ] modal actionAlert no salvar explícito, autosave discreto; [ ] atualizar testes UI/editor; [ ] publicar preview. Arquivos writing-editor.e12.js,index.html,tests/writing-editor.cjs,tests/writing-complete-ui.cjs,CONTINUIDADE.md. Database: nenhum impacto. Backend/IAguardas/Auth/env intactos. Rollback dpl_6MhkFhbfnDwREMgM46vyDV9yrsgM.
+
+Pedido adicional: Ajude-me a planejar dentro de Planejamento, usa intenção plan e foca resposta do tutor. Mesmos arquivos e escopo.
+
+Arquivo adicional writing-support.e12.js: intenção plan contempla planejamento vazio e existente com próximo passo específico.
+
+[x] Implementação [x] testes UI/editor, check52assets e HTTP52assets. Perguntas fixas, sem caixa livre; ajuda no planejamento dispara plan e foca tutor; modal sucesso/erro salvo explícito. IA real não acionada e qualidade de resposta depende homologação. [ ] preview.
