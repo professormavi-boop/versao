@@ -105,7 +105,7 @@ window.renderTeacherLive=async function(navigation,preset=null){
   }else essay=(await api({action:'live_create',essay_id:id,input_text:text,correction_scope:correctionScope,writing_context:useWritingContext?Object.fromEntries(Object.entries(writingContext).filter(([k])=>k!==correctionScope)):{},student_label:name,school_label:school})).essay;
  }
  async function continueAfterInput(){
-  if(activity){const linked=await api({action:'live_activity',essay_id:essay.id,activity_id:activity.id,confirmed:true});essay=linked.essay;theme=activity.theme;origin=activity.theme_origin;confirmed=true;}
+  if(activity){const linked=await api({action:'live_activity',essay_id:essay.id,activity_id:activity.id,theme:activity.theme,theme_origin:activity.theme_origin,confirmed:true});essay=linked.essay;theme=activity.theme;origin=activity.theme_origin;confirmed=true;}
   step=2;render();
  }
  async function readTranscription(){
