@@ -64,7 +64,7 @@
     ensureStudentHomeV2Style();
     const liveInfo=await edge('teacher-organization-api',{action:'live_status'}).catch(()=>null);
     if(!navigationCurrent(navigation))return;
-    if(liveInfo?.independent){
+    if(S.profile?.role==='student'&&S.profile.organization_id===null||liveInfo?.independent){
       $('view').innerHTML=header('Início','Sua prática de redação, no seu ritmo.')+`<section class="student-home-v2">${guidedOffer()}${liveOffer(liveInfo)}</section>`;
       $('view').onclick=e=>{const button=e.target.closest('[data-sh-route]');if(button)navigate(button.dataset.shRoute);};return;
     }
