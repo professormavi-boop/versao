@@ -3,11 +3,11 @@ const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
  const folder='backend/enem/prepared/',source=fs.readFileSync(folder+'ai-correction-beta-api/correction-quality.ts','utf8');
  assert.equal(source,fs.readFileSync(folder+'teacher-organization-api/correction-quality.ts','utf8'));
  assert(fs.readFileSync('enem-review.e12.js','utf8').includes(source.replaceAll('export ','')),'browser/server parity');
- const {validateEvidence,reviewedEvidence,QUALITY_VERSION,QUALITY_INSTRUCTIONS,inputManifest}=await import('../'+folder+'ai-correction-beta-api/correction-quality.ts');
+ const {assertC1Evidence,validateEvidence,reviewedEvidence,QUALITY_VERSION,QUALITY_INSTRUCTIONS,inputManifest}=await import('../'+folder+'ai-correction-beta-api/correction-quality.ts');
  const live=await import('../'+folder+'teacher-organization-api/live-ai.ts');
  const code=fs.readFileSync(folder+'ai-correction-beta-api/index.ts','utf8');
  const normal=code.slice(code.indexOf('    function normalizeResult('),code.indexOf('    function extractOutputText(')).replace('(Object.values(comps) as any[])','Object.values(comps)');
- const context={validateEvidence,QUALITY_VERSION,SCORING_CALIBRATION:'test',VALID_SCORES:new Set([0,40,80,120,160,200])};vm.createContext(context);vm.runInContext(normal,context);
+ const context={assertC1Evidence,validateEvidence,QUALITY_VERSION,SCORING_CALIBRATION:'test',VALID_SCORES:new Set([0,40,80,120,160,200])};vm.createContext(context);vm.runInContext(normal,context);
  const deviation={original:'os problema',correction:'os problemas',rule:'Concordância nominal no contexto.',category:'concordância',location:'P1',evidence:'os problema persistem'};
  const base=()=>({transcription:'Hoje os problema persistem.',c1_deviations:[{...deviation}],syntax_assessment:'Período articulado com concordância localizada.',essay_status:'regular',proposal_complete:true,reading_quality:'good',repertoire_checks:[],competencies:Object.fromEntries(['C1','C2','C3','C4','C5'].map(c=>[c,{score:160,diagnostic:'Bom domínio.'}]))});
  const normalize=raw=>{const evidence=validateEvidence(raw);return {...raw,...evidence};};
@@ -23,6 +23,13 @@ const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
  assert.equal(reviewedEvidence(b,q).review_audit.c1_reassessment,null);assert.equal(q.scores.C1,120);
  q.c1_reassessment={score:120,rationale:'Comentário opcional.'};const result=reviewedEvidence(b,q);assert.equal(result.syntax_assessment,b.syntax_assessment);assert.equal(result.review_audit.c1_reassessment.diagnostic,'');
  q.c1_reassessment.score=160;assert.throws(()=>reviewedEvidence(b,q),/corresponder/);}
+ // Reproduce C1=120, partial reading, no deviations: generation must fail, not invent a score.
+ {const raw=base();raw.competencies.C1.score=120;raw.reading_quality='partial';raw.c1_deviations=[];
+ for(const normalize of [live.normalizeResult,context.normalizeResult])assert.throws(()=>normalize(structuredClone(raw)),/nota de C1 sem apresentar/);
+ assert.equal(raw.competencies.C1.score,120);raw.reading_quality='good';raw.competencies.C1.score=200;
+ assert.equal(live.normalizeResult(structuredClone(raw)).competencies.C1.score,200);
+ raw.essay_status='zero_candidate';raw.zero_reason='Fuga total';for(const c of Object.values(raw.competencies))c.score=0;
+ assert.equal(live.normalizeResult(structuredClone(raw)).total_score,0);}
  // All five reported regressions, preserving score instead of inventing a replacement.
  let raw=base();raw.c1_deviations[0].evidence='frase inexistente';let b=normalize(raw);assert.equal(b.c1_deviations.length,0);assert.equal(b.competencies.C1.score,160);assert(b.c1_reassessment_required);assert.equal(reviewedEvidence(b,body(b)).review_audit.c1_reassessment,null);let q=resolve(b,body(b));delete q.c1_reassessment;assert.equal(reviewedEvidence(b,q).review_audit.c1_reassessment,null);q=resolve(b,q);assert.equal(reviewedEvidence(b,q).review_audit.c1_reassessment.score,160);
  raw=base();raw.transcription='Hoje [?] persistem.';raw.c1_deviations[0]={...deviation,original:'[?]',evidence:'Hoje [?] persistem.'};b=normalize(raw);assert.equal(b.c1_deviations.length,0);assert(b.needs_manual_review);assert.equal(b.evidence_audit.removed[0].reason,'uncertain_reading');
