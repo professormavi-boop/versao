@@ -6,7 +6,7 @@ const {JSDOM}=require('jsdom'),fs=require('fs'),assert=require('node:assert/stri
  w.edge=async(_,b)=>{calls.push(b);switch(b.action){
  case'live_status':return{enabled:true};case'organizations':return{organizations:[]};case'live_history':return{essays:[...essays.values()].filter(e=>!b.activity_id||e.activity_id===b.activity_id)};
  case'live_create':{const e={id:b.essay_id,...b};essays.set(e.id,e);return{essay:e};}
- case'live_activity':{let a=activities.get(b.activity_id);if(!a){a={id:b.activity_id,name:b.name,theme:b.theme,theme_origin:b.theme_origin};activities.set(a.id,a);}const e={...essays.get(b.essay_id),activity_id:a.id,theme:a.theme,theme_origin:a.theme_origin,theme_confirmed_at:'now'};essays.set(e.id,e);return{essay:e,activity:a};}
+ case'live_activity':{if(typeof b.theme!=='string'||typeof b.theme_origin!=='string')throw Error('RPC exige p_theme e p_origin');let a=activities.get(b.activity_id);if(!a){a={id:b.activity_id,name:b.name,theme:b.theme,theme_origin:b.theme_origin};activities.set(a.id,a);}const e={...essays.get(b.essay_id),activity_id:a.id,theme:a.theme,theme_origin:a.theme_origin,theme_confirmed_at:'now'};essays.set(e.id,e);return{essay:e,activity:a};}
  case'live_activities':return{activities:[...activities.values()]};case'live_start':job={id:b.request_id,purpose:'correction',status:'completed',result,theme:'Tema de teste'};return{job};case'live_review':job={...job,review:result};return{job};default:throw Error(b.action);}};
  const click=async id=>w.$(id).onclick({target:w.$(id)});
  w.eval(fs.readFileSync('enem-review.e12.js','utf8'));w.eval(fs.readFileSync('teacher-live.e12.js','utf8'));await w.renderTeacherLive(1);

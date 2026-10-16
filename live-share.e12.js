@@ -8,6 +8,7 @@
   if(!response.ok)throw Error();const data=await response.json();
   if(!data){host.textContent='Este link expirou ou foi revogado. Peça um novo link a quem compartilhou.';return;}
   host.replaceChildren();if(data.student_label)text('h2',data.student_label);if(data.school_label)text('p',data.school_label);text('h2',data.theme);
+  if(window.WritingStagesUI?.isPartial(data.review)){const section=document.createElement('section');section.innerHTML=window.WritingStagesUI.feedbackHtml(data.review);host.append(section);text('p',data.reviewed_by_teacher?'Devolutiva revisada pelo professor.':'Análise por IA · sem revisão de professor.');return;}
   text('p',data.reviewed_by_teacher?'Devolutiva revisada pelo professor.':'Estimativa por IA · sem revisão de professor. Não é uma nota oficial do ENEM.');if(data.theme_origin==='inferred')text('p','C2 avaliada pelo recorte inferido e confirmado, sem aferição da proposta original.');
   const review=data.review;text('h2','Nota: '+review.total_score);
   for(const code of ['C1','C2','C3','C4','C5']){text('h3',code+' · '+review.competencies[code].score);text('p',review.competencies[code].diagnostic);}

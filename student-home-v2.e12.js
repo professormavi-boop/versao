@@ -6,6 +6,8 @@
     style.id='studentHomeV2Style';
     style.textContent=`
     .student-home-v2{max-width:1040px;margin:0 auto}
+    .student-home-v2 .sh-guided{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,1fr);gap:28px;align-items:center;background:linear-gradient(120deg,#fffafa,#f0d8d5);padding:32px}.student-home-v2 .sh-guided h2{font-size:clamp(30px,4vw,48px);line-height:1.12}.student-home-v2 .sh-guided p{margin:16px 0}.student-home-v2 .sh-method{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px}.student-home-v2 .sh-method h3{margin:0 0 14px;font-size:18px}.student-home-v2 .sh-method ol{list-style:none;padding:0;margin:0;display:grid;gap:8px;counter-reset:movement}.student-home-v2 .sh-method li{counter-increment:movement;display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--line);border-radius:12px}.student-home-v2 .sh-method li:before{content:counter(movement);color:var(--crimson);font-weight:800;background:var(--soft);border-radius:50%;width:28px;height:28px;display:grid;place-items:center}.student-home-v2 .sh-method p{font-size:13px;color:var(--muted);margin-bottom:0}.student-home-v2 .sh-correct{display:flex;align-items:center;justify-content:space-between;gap:20px;background:#fff}.student-home-v2 .sh-correct h2{font-size:24px;margin-bottom:8px}.student-home-v2 .sh-correct p{margin:0}.student-home-v2 .sh-correct .student-live-offer-actions{margin:0 0 8px}.student-home-v2 .sh-correct .student-live-offer-meta{font-size:13px}.student-home-v2 .sh-correct small{margin-top:6px}
+    @media(max-width:780px){.student-home-v2 .sh-guided{grid-template-columns:minmax(0,1fr);padding:22px;gap:20px}.student-home-v2 .sh-correct{align-items:stretch;flex-direction:column}.student-home-v2 .sh-guided .btn{width:100%}}
     .student-home-v2 .sh-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
     .student-home-v2 .sh-metric{min-height:126px;border:1px solid var(--line);border-radius:22px;background:#fff;padding:18px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 7px 24px rgba(57,31,28,.04)}
     .student-home-v2 .sh-metric-top{display:flex;align-items:center;gap:10px;color:var(--muted);font-weight:700}
@@ -50,17 +52,20 @@
 
   function scoreLabel(value){return value==null?'—':String(value)}
 
+  function guidedOffer(){
+    return `<section class="tl-home student-live-offer sh-guided" aria-labelledby="studentGuidedOffer"><div><span class="student-live-eyebrow">ESCRITA GUIADA</span><h2 id="studentGuidedOffer">Transforme suas ideias em argumentos.</h2><p>Planeje, escreva e melhore com apoio do tutor.</p><button class="btn primary" data-sh-route="student-writing">Começar a escrever</button><small style="margin-top:12px">Sem cobrança durante os testes</small></div><div class="sh-method"><h3>Seu argumento, em 5 movimentos</h3><ol><li>Ideia</li><li>Explicação</li><li>Repertório</li><li>Consequência</li><li>Fechamento</li></ol><p>O repertório precisa ajudar a provar sua ideia.</p></div></section>`;
+  }
   function liveOffer(info){
     const balance=info&&Number.isFinite(Number(info.balance))?Number(info.balance):null;
-    return `<section class="tl-home student-live-offer" aria-labelledby="studentLiveOffer"><span class="student-live-eyebrow">Ao Vivo · Sua prática de redação</span><h2 id="studentLiveOffer">Descubra o que melhorar na sua próxima redação.</h2><p>Envie uma foto, um arquivo ou seu texto e transforme a correção em um próximo passo para estudar.</p><ul class="student-live-benefits"><li>Nota estimada nas 5 competências do ENEM</li><li>Pontos fortes e orientações para revisar seu texto</li><li>Devolutivas salvas para consultar e compartilhar</li></ul><div class="student-live-offer-actions"><button class="btn primary" data-sh-route="student-live">Quero corrigir minha redação</button><button class="btn ghost" data-sh-route="student-credits">Ver créditos e continuar praticando</button></div><p class="student-live-offer-meta">${balance===null?'Consulte seu saldo em Meus créditos.':`${balance} crédito${balance===1?'':'s'} disponível${balance===1?'':'s'}.`} Cada correção usa 1 crédito.</p><small>Análise por IA, sem revisão de professor. A nota é uma estimativa.</small></section>`;
+    return `<section class="tl-home student-live-offer sh-correct" aria-labelledby="studentLiveOffer"><div><h2 id="studentLiveOffer">Corrigir</h2><p>Envie sua redação e receba uma devolutiva.</p></div><div><div class="student-live-offer-actions"><button class="btn primary" data-sh-route="student-live">Enviar redação</button><button class="btn ghost" data-sh-route="student-credits">Créditos</button></div><p class="student-live-offer-meta">1 crédito por correção · Análise por IA</p><small>${balance===null?'':'Saldo: '+balance+'. '}Nota estimada, sem revisão de professor.</small></div></section>`;
   }
 
   async function studentHomeV2(navigation){
     ensureStudentHomeV2Style();
     const liveInfo=await edge('teacher-organization-api',{action:'live_status'}).catch(()=>null);
     if(!navigationCurrent(navigation))return;
-    if(liveInfo?.independent){
-      $('view').innerHTML=header('Início','Sua prática de redação, no seu ritmo.')+`<section class="student-home-v2">${liveOffer(liveInfo)}</section>`;
+    if(S.profile?.role==='student'&&S.profile.organization_id===null||liveInfo?.independent){
+      $('view').innerHTML=header('Início','Sua prática de redação, no seu ritmo.')+`<section class="student-home-v2">${guidedOffer()}${liveOffer(liveInfo)}</section>`;
       $('view').onclick=e=>{const button=e.target.closest('[data-sh-route]');if(button)navigate(button.dataset.shRoute);};return;
     }
     const d=await studentDashboard(true);
@@ -99,15 +104,15 @@
     }).join('');
 
     $('view').innerHTML=header('Início','Seu painel de redações e evolução.')+`<section class="student-home-v2">
-      ${liveOffer(liveInfo)}<div class="sh-metrics">${metrics}</div>
+      ${guidedOffer()}${liveOffer(liveInfo)}<div class="sh-metrics">${metrics}</div>
       <section class="sh-profile" aria-label="Dados do aluno"><div class="sh-avatar">${icon('user')}</div><div><small>Aluno</small><h2>${esc(student.preferred_name||student.full_name||'Aluno')}</h2>${identity?`<span class="sh-chip">${esc(identity)}</span>`:''}</div></section>
       <section class="sh-actions" aria-label="Ações rápidas">
         <button type="button" class="sh-action primary" data-sh-route="student-proposals"><span class="sh-icon">${icon('send')}</span><div><b>Enviar redação</b><span>Escolha uma proposta e envie seu texto.</span></div></button>
-        <button type="button" class="sh-action" data-sh-route="student-essays"><span class="sh-icon">${icon('essays')}</span><div><b>Minhas correções</b><span>Veja suas redações e devolutivas.</span></div></button>
+        <button type="button" class="sh-action" data-sh-route="student-essays"><span class="sh-icon">${icon('essays')}</span><div><b>Redações</b><span>Veja suas redações e devolutivas.</span></div></button>
         <button type="button" class="sh-action" data-sh-route="student-evolution"><span class="sh-icon">${icon('evolution')}</span><div><b>Evolução</b><span>Acompanhe seu progresso ao longo do tempo.</span></div></button>
         <button type="button" class="sh-action" data-sh-route="student-evolution"><span class="sh-icon">${icon('performance')}</span><div><b>Meu desempenho</b><span>Veja seus resultados por competência.</span></div></button>
       </section>
-      <section class="sh-section" aria-labelledby="shCorrections"><div class="sh-section-head"><h2 id="shCorrections">Minhas correções</h2><button type="button" class="sh-link" data-sh-route="student-essays">Ver todas →</button></div><div class="sh-corrections">${corrections}</div></section>
+      <section class="sh-section" aria-labelledby="shCorrections"><div class="sh-section-head"><h2 id="shCorrections">Redações</h2><button type="button" class="sh-link" data-sh-route="student-essays">Ver todas →</button></div><div class="sh-corrections">${corrections}</div></section>
       <section class="sh-section" aria-labelledby="shCompetencies"><div class="sh-section-head"><h2 id="shCompetencies">Competências</h2>${hasCompetencies?'<button type="button" class="sh-link" data-sh-route="student-evolution">Ver detalhes →</button>':''}</div><div class="sh-comps">${competencies}</div>${hasCompetencies?'':'<p class="sh-comp-note">As competências aparecerão após sua primeira correção aprovada.</p>'}</section>
       <section class="sh-message"><span class="sh-icon">${icon('message')}</span><div><b>Cada texto pode ir mais longe.</b><span>Escreva, receba seu feedback e acompanhe sua evolução.</span></div></section>
     </section>`;
