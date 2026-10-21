@@ -1,3 +1,4 @@
+import { attributeAccess } from './access-tracking.ts'
 import { platformReport, accountLogins } from './platform-report.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4'
 
@@ -24,11 +25,12 @@ Deno.serve(async(req:Request)=>{
     const userClient=createClient(url,anon,{global:{headers:{Authorization:auth}}}),admin=createClient(url,service)
     const {data:{user},error:uErr}=await userClient.auth.getUser(token)
     if(uErr||!user)return json({error:'Sessão inválida.'},401)
+    const body=await req.json().catch(()=>({}))
+    const action=String(body.action||'organizations')
+    if(action==='attribute_access')return json(await attributeAccess(admin,user.id,token,req.headers.get('Origin')))
     const {data:profile,error:pErr}=await admin.from('profiles').select('id,role,approval_status').eq('id',user.id).maybeSingle()
     if(pErr||!profile||profile.role!=='super_admin'||profile.approval_status!=='approved')return json({error:'Acesso exclusivo do Super Admin.'},403)
 
-    const body=await req.json().catch(()=>({}))
-    const action=String(body.action||'organizations')
     if(action==='platform_report'){
       const days=Number(body.days||30);if(![7,30,90].includes(days))return json({error:'Período inválido.'},400)
       return json(await platformReport(admin,days))

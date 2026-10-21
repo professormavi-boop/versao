@@ -14,11 +14,25 @@ function validSession(s){return !!s&&typeof s==='object'&&typeof s.access_token=
 function saveSession(s){
   if(!validSession(s))throw Error('Sessão inválida. Entre novamente.');
   sessionMemory=s;
+  observePlatformAccess(s);
   try{localStorage.setItem(SK,JSON.stringify(s))}catch{/* A sessão permanece somente nesta aba. */}
+}
+// Best-effort telemetry: never blocks login or changes the authenticated session.
+const observedAccessSessions=new Set();
+function observePlatformAccess(s){
+ try{
+  if(!['https://app.versaoprofessor.com','https://suaversao.vercel.app','https://teste.versaoprofessor.com'].includes(location.origin))return;
+  const claims=JSON.parse(atob(s.access_token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))),id=claims.session_id;
+  if(!id||observedAccessSessions.has(id))return;
+  observedAccessSessions.add(id);
+  // The server derives the session from the verified token and the browser Origin.
+  void request(BASE+'/functions/v1/'+API.admin,{method:'POST',headers:authHeaders(s.access_token),body:JSON.stringify({action:'attribute_access'})})
+   .then(r=>{if(!r.ok)observedAccessSessions.delete(id)}).catch(()=>observedAccessSessions.delete(id));
+ }catch{/* Missing/legacy token metadata leaves the event unclassified. */}
 }
 function readSession(){
   if(sessionMemory!==undefined)return sessionMemory;
-  try{const s=JSON.parse(localStorage.getItem(SK)||'null');if(validSession(s)){sessionMemory=s;return s}}catch{}
+  try{const s=JSON.parse(localStorage.getItem(SK)||'null');if(validSession(s)){sessionMemory=s;observePlatformAccess(s);return s}}catch{}
   clearSession();return null;
 }
 function clearSession(){sessionVersion++;sessionMemory=null;try{localStorage.removeItem(SK)}catch{}}
@@ -43,7 +57,7 @@ function betaRequestAllowed(url,options={}){
    'proposal-beta-api':['bootstrap','get','save','save_all','generate','credits','update_status','delete'],'live-correction-api':['queue','list'], 'proposal-api':['bootstrap','get'],
    'official-correction-beta-api':['get','approve'],'ai-correction-beta-api':['get','status','correct','approve'],
    'student-dashboard-cycle-api':['get','dashboard',undefined],'student-proposals-cycle-api':['list','get',undefined],'student-proposals-api':['list','get',undefined],
-   'student-submission-cycle-api':['state','states','finalize','delete_file','view_file'],'admin-base-api':['platform_report','account_access','reset_student_pin','organizations','create_organization','approve_account','hide_account','delete_account','change_password','bootstrap','create_class','update_class','toggle_class','delete_class','create_student','update_student','toggle_student','delete_student'],'credit-checkout-api':['packages','checkout']
+   'student-submission-cycle-api':['state','states','finalize','delete_file','view_file'],'admin-base-api':['attribute_access','platform_report','account_access','reset_student_pin','organizations','create_organization','approve_account','hide_account','delete_account','change_password','bootstrap','create_class','update_class','toggle_class','delete_class','create_student','update_student','toggle_student','delete_student'],'credit-checkout-api':['packages','checkout']
   };
   return (readActions[url.split('/').pop()]||[]).includes(body.action);
  }
