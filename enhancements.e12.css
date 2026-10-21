@@ -178,6 +178,8 @@
 .admin-dashboard .admin-billing-link{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:12px 20px;text-decoration:none;color:#fff;font-size:14px;line-height:1.4;white-space:normal;text-align:center}
 .admin-dashboard .admin-billing-link:hover,.admin-dashboard .admin-billing-link:focus{text-decoration:none}
 .admin-dashboard .admin-kpi small,.admin-dashboard .admin-dashboard-note,.admin-dashboard .admin-recent-row small,.admin-dashboard .muted{color:#62545d}
-@media(max-width:480px){.admin-access-environments{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-access-environments .btn:last-child{grid-column:1/-1}.admin-access-filters .btn{font-size:13px}.admin-access-panel{gap:16px}}
+@media(max-width:480px){.admin-access-filters .btn{font-size:13px}.admin-access-panel{gap:16px}}
 
 .platform-table td small{display:block;color:#6d5757;font-size:12px;margin-top:5px}
+
+.admin-access-field select{width:100%;min-width:0;min-height:48px;color:#393038;background-color:#fff;font-size:15px}
