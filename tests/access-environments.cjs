@@ -1,0 +1,34 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),{stripTypeScriptTypes}=require('node:module'),{JSDOM}=require('jsdom');
+const ts=p=>stripTypeScriptTypes(fs.readFileSync(p,'utf8').replace(/^import .*\n/gm,'').replace(/export /g,''),{mode:'strip'});
+const dir='backend/admin/prepared/admin-base-api/',uid='00000000-0000-4000-8000-000000000001',sid='00000000-0000-4000-8000-000000000002';
+const token=(sub=uid,session_id=sid)=>'header.'+Buffer.from(JSON.stringify({sub,session_id})).toString('base64url')+'.signature';
+(async()=>{
+ let calls=[],verified=false,invalid=false,role='student',handler;
+ const admin={rpc:async(name,args)=>{assert(verified);calls.push({name,args});return {data:true}},from(){return {select(){return this},eq(){return this},maybeSingle:async()=>({data:{id:uid,role,approval_status:'approved'}})}}};
+ const c={atob,Response,console,fetch,URLSearchParams,AbortSignal,costExchangeRate:()=>{},Deno:{env:{get:k=>k},serve:fn=>handler=fn},createClient:(url,key)=>key==='SUPABASE_SERVICE_ROLE_KEY'?admin:{auth:{getUser:async()=>{verified=true;return {data:{user:invalid?null:{id:uid}},error:invalid?{}:null}}}}};vm.createContext(c);
+ vm.runInContext(ts(dir+'access-tracking.ts')+ts(dir+'platform-report.ts')+ts(dir+'index.ts'),c);
+ const req=(body,origin='https://teste.versaoprofessor.com',bearer=token())=>new Request('https://example.test',{method:'POST',headers:{Authorization:'Bearer '+bearer,...(origin?{Origin:origin}:{}),'Content-Type':'application/json'},body:JSON.stringify(body)});
+ assert.equal((await handler(req({action:'attribute_access',environment:'production',session_id:'forged',profile_id:'forged'}))).status,200);
+ assert.equal(calls.length,1);assert.equal(calls[0].args.p_session,sid);assert.equal(calls[0].args.p_actor,uid);assert.equal(calls[0].args.p_origin,'https://teste.versaoprofessor.com');
+ for(const [origin,bearer] of [[null,token()],['https://evil.test',token()],['https://teste.versaoprofessor.com',token('other')],['https://teste.versaoprofessor.com','invalid']])await handler(req({action:'attribute_access'},origin,bearer));
+ assert.equal(calls.length,1);
+ invalid=true;assert.equal((await handler(req({action:'attribute_access'}))).status,401);assert.equal(calls.length,1);invalid=false;
+ assert.equal((await handler(req({action:'platform_report'}))).status,403,'student cannot read admin report');
+ assert.equal((await handler(req({action:'hide_account'}))).status,403,'tracking cannot bypass admin guards');
+ // Actual client session functions: refresh/reload share the same session id, no identity payload.
+ const dom=new JSDOM('<body/>',{url:'https://teste.versaoprofessor.com',runScripts:'outside-only'}),w=dom.window;let requests=[];
+ w.fetch=async(url,options)=>{requests.push({url,body:JSON.parse(options.body)});return {ok:true}};
+ w.eval(fs.readFileSync('core.e12.js','utf8')+';window.observe=observePlatformAccess;window.save=saveSession;window.read=readSession;');
+ const session={access_token:token(),refresh_token:'test',user:{id:uid}};w.save(session);w.save({...session,access_token:token()});w.observe(session);await new Promise(r=>setTimeout(r,5));assert.equal(requests.length,1);assert.deepEqual(requests[0].body,{action:'attribute_access'});assert.equal(w.read().user.id,uid);
+ w.fetch=async()=>{throw Error('offline')};w.save({...session,access_token:token(uid,'another-session')});await new Promise(r=>setTimeout(r,5));assert.equal(w.read().user.id,uid,'telemetry failure preserves login');
+ w.eval("function esc(s){return String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]))};"+fs.readFileSync('ranking-management.e12.js','utf8')+';window.panel=platformAccessPanel;window.bind=bindPlatformAccess;window.dash=platformDashboardHtml;');
+ const row=(name,role,n)=>({name,role,access_count:n});const group=(rows,excluded={hidden:1,not_approved:2,other_role:3,missing_profile:4})=>({last_logins:rows,access_count:rows.reduce((n,x)=>n+x.access_count,0),event_count:15,excluded});
+ const data={access_schema_version:2,access_groups:{production:group([row('Prod student','student',2),row('Prod teacher','teacher',3)]),homologation:group([row('Test student','student',7)]),unknown:group([row('<script>legacy</script>','student',8)])}};
+ w.document.body.innerHTML=w.panel(data);w.bind(w.document.body,data);
+ assert.match(w.document.querySelector('[data-access-total]').textContent,/5 login/);
+ w.document.querySelector('[data-access-role="student"]').click();assert.match(w.document.querySelector('[data-access-total]').textContent,/2 login/);
+ w.document.querySelector('[data-access-environment="homologation"]').click();assert.match(w.document.querySelector('[data-access-total]').textContent,/7 login/);assert.doesNotMatch(w.document.querySelector('[data-access-list]').textContent,/Prod/);
+ w.document.querySelector('[data-access-environment="unknown"]').click();assert.match(w.document.querySelector('[data-access-total]').textContent,/8 login/);assert.equal(w.document.querySelector('script'),null);assert.match(w.document.querySelector('[data-access-excluded]').textContent,/4 sem perfil/);
+ const legacy={access_count:99,last_logins:[row('Legacy','student',99)]};w.document.body.innerHTML=w.panel(legacy);w.bind(w.document.body,legacy);assert.equal(w.document.querySelector('[data-access-environment="production"]'),null);assert.match(w.dash(legacy),/Não identificado/);
+ dom.window.close();console.log('PASS access integration: verified JWT, actor/session spoofing, admin guard, client dedup/failure, environment/role filters, XSS, legacy backend');
+})().catch(e=>{console.error(e);process.exitCode=1});
