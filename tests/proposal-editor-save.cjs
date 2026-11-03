@@ -1,0 +1,24 @@
+const fs=require('fs'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom');
+const tick=()=>new Promise(r=>setImmediate(r));
+(async()=>{
+ const d=new JSDOM('<main id="view"></main>',{runScripts:'outside-only',url:'https://example.test'}),w=d.window;
+ w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
+ const core=fs.readFileSync('core.e12.js','utf8');w.eval(core.slice(core.indexOf('function proposalHtml('),core.indexOf('\n',core.indexOf('function proposalHtml('))));
+ Object.defineProperty(w.HTMLElement.prototype,'innerText',{get(){return this.textContent},set(v){this.textContent=v}});w.HTMLElement.prototype.scrollIntoView=()=>{};w.CSS={escape:s=>s};
+ w.header=()=>'';w.navigationCurrent=()=>true;w.API={proposal:'proposal'};w.S={session:{user:{id:'teacher'}}};
+ let resolveSave,rejectSave,saves=[],messages=[],failReload=false,confirmCalls=0,resolveConfirm;
+ w.actionAlert=(m,t)=>messages.push([m,t]);w.appConfirm=()=>{confirmCalls++;return new Promise(r=>resolveConfirm=r)};
+ w.edge=async(_,p)=>{if(p.action==='bootstrap'){if(failReload)throw Error('reload');return{organizations:[{id:'o',name:'Escola'}],classes_by_org:{o:[{id:'c',name:'Turma'}]},recent:[]}}if(p.action==='credits')return{balance:10};if(p.action==='save'){saves.push(p);return new Promise((r,j)=>{resolveSave=r;rejectSave=j})}throw Error(p.action)};
+ w.eval(fs.readFileSync('teacher-proposals-v3.e12.js','utf8'));await w.renderDemoProposals(1);
+ const fill=()=>{w.$('pvTabCreate').click();w.$('pvAxis').value='Educação';w.$('pvTheme').value='Tema';w.$('pvCommand').innerHTML='<b>Trecho</b> e <i>outro</i>';w.document.querySelector('[data-mot="body"]').value='Motivador';w.document.querySelector('[data-mot="source_label"]').value='Fonte';const c=w.document.querySelector('[data-class]');c.checked=true;c.dispatchEvent(new w.Event('change',{bubbles:true}))};fill();
+ const editor=w.$('pvCommand'),sel=w.getSelection(),range=w.document.createRange();range.selectNodeContents(editor.querySelector('b'));sel.removeAllRanges();sel.addRange(range);let commands=[];
+ w.document.execCommand=(cmd,ui,value)=>{commands.push(cmd);if(cmd==='styleWithCSS')assert.equal(value,false);else assert.equal(sel.toString(),'Trecho');return true};
+ const bold=w.document.querySelector('[data-format="bold"]');bold.dispatchEvent(new w.MouseEvent('pointerdown',{bubbles:true,cancelable:true}));sel.removeAllRanges();bold.click();assert.deepEqual(commands,['styleWithCSS','bold']);
+ w.document.querySelector('[data-continue]').click();assert(w.document.querySelector('#pvPreview .demo-text-preview b'));assert(w.document.querySelector('#pvPreview .demo-text-preview i'));
+ w.$('pvPreviewDraft').click();assert.equal(saves.length,1);assert(w.$('pvSaveStatus').textContent.includes('Salvando'));assert(w.$('pvPreviewDraft').disabled);assert.equal(editor.contentEditable,'false');w.$('pvDraft').onclick();w.$('pvTabCreate').onclick();assert.equal(saves.length,1);assert.equal(w.$('pvCommand'),editor);
+ assert.equal(saves[0].proposal_html,'<b>Trecho</b> e <i>outro</i>');rejectSave(Error('offline'));await tick();assert(!w.$('pvPreviewDraft').disabled);assert(w.$('pvSaveStatus').textContent.includes('mantido'));assert.equal(editor.innerHTML,'<b>Trecho</b> e <i>outro</i>');
+ w.$('pvPreviewDraft').click();assert.equal(saves[1].request_id,saves[0].request_id);resolveSave({ok:true,proposal:{id:'saved'}});await tick();await tick();assert(messages.some(x=>x[1]==='Proposta salva'));assert(!w.$('pvCommand'));
+ fill();w.document.querySelector('[data-continue]').click();w.$('pvPreviewPublish').click();w.$('pvPreviewPublish').onclick();assert.equal(confirmCalls,1);resolveConfirm(false);await tick();assert(!w.$('pvPreviewPublish').disabled);assert.equal(saves.length,2);
+ w.$('pvPreviewPublish').click();resolveConfirm(true);await tick();assert(w.$('pvSaveStatus').textContent.includes('Publicando'));assert.equal(saves.length,3);failReload=true;resolveSave({ok:true,proposal:{id:'saved'}});await tick();await tick();assert(w.$('pvSaveStatus').textContent.includes('Proposta salva'));assert(w.$('pvPreviewPublish').disabled);assert(!messages.some(x=>x[0]==='reload'));
+ d.window.close();console.log('PASS proposal editor: selection restoration, semantic format, rich preview/payload, immediate busy state, duplicate guard, failure recovery, idempotent retry, confirmation cancellation and saved-but-refresh-failed. Browser formatting command simulated.');
+})().catch(e=>{console.error(e);process.exitCode=1});

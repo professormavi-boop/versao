@@ -44,7 +44,12 @@ window.renderTeacherLive=async function(navigation,preset=null){
  if(!navigationCurrent(navigation))return;
  const current=()=>navigationCurrent(navigation);
  const status=message=>{if(current()){if($('tlStatus'))$('tlStatus').textContent=message;if($('tlManageStatus'))$('tlManageStatus').textContent=message;}};
- async function act(button,fn){if(busy)return;busy=true;if(button)button.disabled=true;status('Aguarde…');try{await fn();}catch(error){status(error.message||'Não foi possível continuar.');}finally{busy=false;if(button?.isConnected)button.disabled=false;}}
+ async function act(button,fn){if(busy)return;busy=true;
+  const label=button?.textContent,saveAction=/^Salvar/.test(label||''),root=$('view');
+  const locked=saveAction?[...root.querySelectorAll('button,input,textarea,select')].map(el=>[el,el.disabled]):[];
+  locked.forEach(([el])=>el.disabled=true);if(button){button.disabled=true;button.textContent=saveAction?'Salvando…':'Aguarde…';button.setAttribute('aria-busy','true');}
+  status(saveAction?'Salvando alterações…':'Aguarde…');try{await fn();}catch(error){status(error.message||'Não foi possível continuar.');}finally{busy=false;locked.forEach(([el,disabled])=>{if(el.isConnected)el.disabled=disabled});if(button?.isConnected){button.disabled=false;button.textContent=label;button.removeAttribute('aria-busy');}}}
+
  function shell(content){const menuRoute=activeMenu==='tlActivities'?'teacher-live-activities':activeMenu==='tlHistory'?(studentMode?'student-live-history':'teacher-live-history'):(studentMode?'student-live':'teacher-live');if(typeof setActive==='function'){setActive(menuRoute);document.querySelector('#nav [data-route="'+menuRoute+'"]')?.closest('details')?.setAttribute('open','');}clearTimeout(pollTimer);clearInterval(elapsedTimer);elapsedTimer=null;if(!current())return;$('view').innerHTML=header(studentMode?'Corrigir':'Ao Vivo','Da redação à devolutiva, no seu ritmo.')+`<section class="teacher-live"><div class="tl-actions tl-nav"><button class="btn ghost" id="tlNew">${studentMode?'Enviar':'Nova redação'}</button><button class="btn ghost" id="tlHistory">Histórico</button>${studentMode?'<button class="btn ghost" id="tlCredits">Créditos</button>':'<button class="btn ghost" id="tlActivities">Atividades</button>'}</div>${detailBack?'<div class="tl-actions"><button class="btn ghost" id="tlListBack">Voltar à lista</button>'+(detailVersions?'<button class="btn ghost" id="tlVersions">Versões anteriores</button>':'')+'</div>':''}${content}<p id="tlStatus" class="tl-status" role="status" aria-live="polite"></p></section>`;document.querySelectorAll('.tl-nav button').forEach(b=>{if(b.id===activeMenu)b.setAttribute('aria-current','page');});if($('tlListBack'))$('tlListBack').onclick=e=>act(e.target,detailBack);if($('tlVersions'))$('tlVersions').onclick=e=>act(e.target,detailVersions);$('tlNew').onclick=()=>{if(busy)return;navigate(studentMode?'student-live':'teacher-live');};$('tlHistory').onclick=e=>act(e.target,()=>{historySearch='';return history();});if($('tlCredits'))$('tlCredits').onclick=()=>navigate('student-credits');if($('tlActivities'))$('tlActivities').onclick=e=>act(e.target,()=>activities());}
  const steps=()=>`<div class="tl-steps">${['Redação','Tema','Correção'].map((label,i)=>`<span ${step===i+1?'aria-current="step"':''}>${i+1}. ${label}</span>`).join('')}</div>`;
  function saveFields(){activityName=$('tlActivityName')?.value??activityName;name=$('tlName')?.value??name;school=$('tlSchool')?.value??school;if(window.SchoolNames)school=SchoolNames.match(school,schoolCatalog).label;text=$('tlText')?.value??text;theme=$('tlTheme')?.value??theme;}
@@ -192,7 +197,7 @@ window.renderTeacherLive=async function(navigation,preset=null){
   if($('tlPartialSave'))$('tlPartialSave').onclick=e=>act(e.target,async()=>{
    if(!$('tlPartialConfirmed').checked)throw Error('Confirme a revisão antes de salvar.');
    const review=window.WritingStagesUI.readReview(document,value);
-   job=(await api({action:'live_review',essay_id:essay.id,job_id:job.id,review_confirmed:true,partial_review:review})).job;reviewEditing=false;result();
+   job=(await api({action:'live_review',essay_id:essay.id,job_id:job.id,review_confirmed:true,partial_review:review})).job;reviewEditing=false;result();status('Revisão salva.');
   });
   if($('tlPartialEdit'))$('tlPartialEdit').onclick=()=>{reviewEditing=true;result();};
   if($('tlPartialCancel'))$('tlPartialCancel').onclick=()=>{reviewEditing=false;result();};

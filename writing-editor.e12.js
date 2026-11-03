@@ -72,7 +72,7 @@ window.renderWritingEditor=async function(navigation,options={}){
   status(dirty?'Alterações pendentes…':draft.version?'Salvo na sua conta.':'O rascunho será salvo quando você começar a escrever.');
   for(const id of ['weTheme','weCommand','wePlan','weText',...lesson.fields.map(([k])=>'wePlan_'+k)])$(id).oninput=changed;
   host.querySelectorAll('[data-writing-stage]').forEach(b=>b.onclick=()=>{collect();active=b.dataset.writingStage;render();});
-  $('weSave').onclick=async()=>{const button=$('weSave');button.disabled=true;try{collect();await persist();if(current())window.actionAlert('Seu rascunho foi salvo na sua conta.','Rascunho salvo');}catch(error){if(current())window.actionAlert('Não foi possível salvar. '+(error.message||'Tente novamente.'),'Não foi salvo');}finally{if(button.isConnected)button.disabled=false;}};
+  $('weSave').onclick=async()=>{const button=$('weSave');if(button.disabled)return;const label=button.textContent;button.disabled=true;button.textContent='Salvando…';button.setAttribute('aria-busy','true');status('Salvando…');try{collect();await persist();status('Salvo na sua conta.');if(current())window.actionAlert('Seu rascunho foi salvo na sua conta.','Rascunho salvo');}catch(error){if(current())window.actionAlert('Não foi possível salvar. '+(error.message||'Tente novamente.'),'Não foi salvo');}finally{if(button.isConnected){button.disabled=false;button.textContent=label;button.removeAttribute('aria-busy');}}};
   $('weList').onclick=async()=>{try{collect();await persist();draft=null;await list();}catch(e){status(e.message);}};
   $('weBackLive').onclick=()=>leave(()=>navigate(S.profile.role==='student'?'student-live':'teacher-live'));
   $('wePreview').onclick=()=>{collect();preview();};

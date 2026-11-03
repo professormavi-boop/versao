@@ -47,10 +47,10 @@ async function renderTeacherOrganization(navigation){
  $('orgSearch').oninput=renderCards;$('orgShowHidden').onchange=renderCards;
  $('orgCards').onclick=async e=>{const button=e.target.closest('[data-org-open]');if(!button||busy)return;selectedOrgId=button.dataset.orgOpen;if(section==='schools'){S.catalogSelection={organization_id:selectedOrgId};S.organizationIntent=homeIntent;S.homeStudentName=homeStudentName;navigate('teacher-classes');return;}await loadOrganization();if(current())$('orgBack')?.focus({preventScroll:true});};
  async function operation(button,fn){
-  if(busy)return;busy=true;button.disabled=true;lockNavigation(true);$('orgStatus').textContent='Salvando...';
+  if(busy)return;busy=true;const label=button.textContent;const fields=[...$('view').querySelectorAll('input,textarea,select,button')].map(el=>[el,el.disabled]);fields.forEach(([el])=>el.disabled=true);button.textContent='Salvando…';button.setAttribute('aria-busy','true');lockNavigation(true);$('orgStatus').textContent='Salvando...';
   try{await fn();S.cache={};S.student=null;}
   catch(e){if(current())$('orgStatus').textContent=e.message;}
-  finally{busy=false;if(current()){lockNavigation(false);button.disabled=false;}}
+  finally{busy=false;if(current()){fields.forEach(([el,disabled])=>{if(el.isConnected)el.disabled=disabled});lockNavigation(false);if(button.isConnected){button.disabled=false;button.textContent=label;button.removeAttribute('aria-busy');}}}
  }
  $('orgCreate').onsubmit=e=>{
   e.preventDefault();const name=$('orgName').value.trim();
