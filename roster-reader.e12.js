@@ -37,7 +37,22 @@ const RosterReader = (() => {
   if (!options[0].rows) throw Error('Confira as aspas da lista.');
   const rows = options[0].rows;
   if (rows.length > 1100 || rows.some(r => r.length > 40)) throw Error('Envie até 500 alunos por lote e até 40 colunas.');
-  return rows;
+  return separate(rows);
+ }
+ // Only split a single-column list; never guess around existing spreadsheet columns.
+ function separate(table) {
+  if (Math.max(0,...table.map(r=>r.length)) !== 1) return table;
+  const result=[]; let changed=false;
+  for(const row of table){
+   const value=String(row[0]??'').trim();
+   const match=value.match(/^(.+?)\s+([^\s@]+@[^\s@]+\.[^\s@]+)$/);
+   if(match && !match[1].includes('@')){result.push([match[1].trim(),match[2]]);changed=true;}
+   else if(email(value) && result.length && result.at(-1)[0] && !result.at(-1)[1] && !nameHeaders.includes(normalize(result.at(-1)[0]))){result.at(-1)[1]=value;changed=true;}
+   else result.push([value,'']);
+  }
+  if(!changed)return table;
+  if(nameHeaders.includes(normalize(result[0]?.[0])))result[0][1]='E-mail';
+  return result;
  }
  function infer(table) {
   if (!table.length) throw Error('Esta aba está vazia.');
@@ -88,5 +103,5 @@ const RosterReader = (() => {
    file.arrayBuffer().then(buffer => worker.postMessage(buffer, [buffer])).catch(() => done(Error('Não foi possível abrir o arquivo.')));
   });
  }
- return {textTable, infer, map, workbookFile};
+ return {textTable, separate, infer, map, workbookFile};
 })();
