@@ -185,3 +185,24 @@
 .admin-access-field select{width:100%;min-width:0;min-height:48px;color:#393038;background-color:#fff;font-size:15px}
 
 .org-redesign .org-student-pagination{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0}.org-redesign .org-student-pagination span{font-size:13px;color:var(--muted);text-align:center}.org-redesign .org-student-pagination[hidden]{display:none}
+
+/* Cadastro de alunos: hierarquia por escola, turma, lista e ação. */
+.org-redesign .org-step-label{margin:0 0 6px;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.08em}
+.org-redesign #orgWorkspace>.box{border:0;background:transparent;box-shadow:none;padding:0}
+.org-redesign #orgWorkspace>.box>.box-head{padding:18px 20px;border:1px solid var(--line);border-radius:16px 16px 0 0;background:#fffafa}
+.org-redesign #orgWorkspace>.box>.box-body{padding:16px 20px;border:1px solid var(--line);border-top:0;border-radius:0 0 16px 16px;background:#fff}
+.org-redesign #orgClasses{margin:0 0 18px}
+.org-redesign .org-class-card[aria-pressed=true]{border:2px solid var(--crimson);background:var(--soft);box-shadow:inset 4px 0 var(--crimson)}
+.org-redesign .class-roster-heading{padding:18px 20px;margin:18px 0 12px;border:1px solid #dfc8c5;border-radius:16px;background:linear-gradient(135deg,#fffafa,#fff)}
+.org-redesign .class-roster-title{display:flex;justify-content:space-between;align-items:center;gap:14px}
+.org-redesign .class-roster-title h2{margin:0;font-size:25px;color:var(--crimson)}
+.org-redesign .class-roster-title p{margin:5px 0 0;color:var(--muted)}
+.org-redesign #orgRosterCreatePanel{order:-1;margin:0 0 18px;border:1px solid #dfc8c5;border-radius:14px;background:#fffafa}
+.org-redesign #orgRosterCreatePanel>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--crimson);color:#fff;border-radius:12px;font-size:16px}
+.org-redesign #orgRosterCreatePanel>summary small{font-size:12px;font-weight:500;color:#fff}
+.org-redesign #orgRosterCreatePanel[open]>summary{border-radius:12px 12px 0 0}
+.org-redesign #orgRosterCreatePanel[open]{padding-bottom:14px}
+.org-redesign #orgRosterCreatePanel>h3,.org-redesign #orgRosterCreatePanel>p,.org-redesign #orgRosterCreatePanel>#rosterInput,.org-redesign #orgRosterCreatePanel>#rosterStatus,.org-redesign #orgRosterCreatePanel>#rosterReviewBody{margin-left:16px;margin-right:16px}
+.org-redesign #orgStudentsPanel{padding:8px 0}
+.org-redesign #orgStudentSearch{max-width:560px}
+@media(max-width:600px){.org-redesign #orgWorkspace>.box>.box-head,.org-redesign #orgWorkspace>.box>.box-body{padding:14px}.org-redesign .class-roster-title{align-items:flex-start}.org-redesign .class-roster-title h2{font-size:21px}.org-redesign #orgRosterCreatePanel>summary{align-items:flex-start;flex-direction:column;gap:4px}}

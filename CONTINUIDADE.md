@@ -1133,3 +1133,7 @@ Produção autorizada e publicada: 1b766eda90a1e28e43f506f8f4bea4626fbe7b4e, dep
 
 ## 09/11 — Lista de alunos paginada
 Plano [x] mostrar 10 alunos/página [x] busca global, anterior/próximos 10 e contagem [x] preservar contexto/cadastro [x] testes e preview. Arquivos teacher-organization.e12.js, enhancements.e12.css, index.html, tests/schools-import.cjs e CONTINUIDADE.md. Database: nenhum impacto. Alteração apenas interface; rollback frontend para1b766eda90a1e28e43f506f8f4bea4626fbe7b4e. Teste JSDOM com API simulada: 25 alunos em páginas 10/10/5, busca retorna aluno da última página; cadastro sem email passou. Sem login real.
+Preview paginação 09/11: remotoed21b16ae284f11d0cf6c119df1cba092b123a45/localf834e7d, branch feat/ao-vivo-preview. Deployment dpl_FJtdMm15eNPnH4pAknJdoLwKNDuw READY no projeto isolado; alias teste.versaoprofessor.com. Index, teacher-organization JS e enhancements CSS HTTP200 e idênticos ao local. Produção inalterada. Aguardando autorização específica para produção após conferência.
+
+## 09/11 — Hierarquia visual da turma e dos alunos
+Plano [ ] cabeçalho com contexto escola/turma [ ] separar lista e ação principal [ ] paginar em 10 [ ] validar import/cadastro, ativos e HTTP [ ] publicar preview. Arquivos teacher-organization.e12.js, enhancements.e12.css, index.html, tests/schools-import.cjs e CONTINUIDADE.md. Database: nenhum impacto. Risco: responsividade do cabeçalho/formulário; validar breakpoints em CSS e fluxo JSDOM. Rollback preview ed21b16; produção permanece 1b766eda. Sem mudança de dados/Auth.
