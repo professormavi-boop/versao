@@ -206,3 +206,10 @@
 .org-redesign #orgStudentsPanel{padding:8px 0}
 .org-redesign #orgStudentSearch{max-width:560px}
 @media(max-width:600px){.org-redesign #orgWorkspace>.box>.box-head,.org-redesign #orgWorkspace>.box>.box-body{padding:14px}.org-redesign .class-roster-title{align-items:flex-start}.org-redesign .class-roster-title h2{font-size:21px}.org-redesign #orgRosterCreatePanel>summary{align-items:flex-start;flex-direction:column;gap:4px}}
+
+.org-redesign .class-roster-loading{margin:18px 0;padding:20px;border:1px solid #dfc8c5;border-radius:16px;background:#fffafa;min-height:112px}
+.org-redesign .class-roster-loading h2{margin:4px 0 8px;color:var(--crimson)}
+.org-redesign .class-roster-loading p:last-child{display:flex;align-items:center;gap:9px;color:var(--muted)}
+.org-redesign .org-loading-dot{width:10px;height:10px;border-radius:50%;background:var(--crimson);animation:org-loading-pulse 1s ease-in-out infinite alternate}
+@keyframes org-loading-pulse{to{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.org-redesign .org-loading-dot{animation:none}}

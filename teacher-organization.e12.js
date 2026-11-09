@@ -73,7 +73,7 @@ async function renderTeacherOrganization(navigation){
     const r=await organizationCall('create_class',{organization_id:oid,name:$('orgClassName').value.trim(),year:Number($('orgClassYear').value)});if(!current())return;
     await loadOrganization();if(!current())return;selectedClassId=r.class_id;await loadClass();$('orgStatus').textContent='Turma criada.';
    });};
-   $('orgClasses').onclick=e=>{const button=e.target.closest('[data-class-open]');if(!button||busy)return;selectedClassId=button.dataset.classOpen;renderClasses();loadClass();};
+   $('orgClasses').onclick=e=>{const button=e.target.closest('[data-class-open]');if(!button||busy)return;selectedClassId=button.dataset.classOpen;loadClass();};
    if(selectedOrg?.is_active===false)$('orgClassCreate').querySelectorAll('input,button').forEach(x=>x.disabled=true);
    if((section==='students'||section==='classes')&&!savedSelection?.class_id&&base.classes.length===1){selectedClassId=base.classes[0].id;await loadClass();}
   }catch(e){if(current()&&version===selectionVersion){root.innerHTML='<button type="button" class="btn ghost" id="orgBack">← Todas as escolas</button><p role="alert"></p>';root.querySelector('p').textContent=e.message;$('orgBack').onclick=back;}}
@@ -84,7 +84,7 @@ async function renderTeacherOrganization(navigation){
  }
  let classVersion=0;
  async function loadClass(){
-  const version=++classVersion,oid=selectedOrgId,cid=selectedClassId,root=$('orgRoster');$('orgWorkspace').before($('catalogEditor'));$('catalogEditor').innerHTML='';root.innerHTML='';if(!cid)return;renderClasses();root.innerHTML='<p role="status">Carregando alunos...</p>';
+  const version=++classVersion,oid=selectedOrgId,cid=selectedClassId,root=$('orgRoster');$('orgWorkspace').before($('catalogEditor'));$('catalogEditor').innerHTML='';root.innerHTML='';if(!cid)return;renderClasses();const pendingClass=currentClasses.find(c=>c.id===cid);root.innerHTML=`<section class="class-roster-loading" role="status" aria-live="polite" aria-busy="true"><p class="org-step-label">ESCOLA · ${esc(dataOrganizationName(oid))}</p><h2>${esc(pendingClass?.name||'Turma')}</h2><p><span class="org-loading-dot" aria-hidden="true"></span>Carregando os alunos desta turma…</p></section>`;
   const same=()=>current()&&version===classVersion&&selectedOrgId===oid&&selectedClassId===cid;
   try{
    const data=await catalogCall('students',{organization_id:oid,class_id:cid});if(!same())return;currentStudents=data.students;
