@@ -183,3 +183,5 @@
 .platform-table td small{display:block;color:#6d5757;font-size:12px;margin-top:5px}
 
 .admin-access-field select{width:100%;min-width:0;min-height:48px;color:#393038;background-color:#fff;font-size:15px}
+
+.org-redesign .org-student-pagination{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0}.org-redesign .org-student-pagination span{font-size:13px;color:var(--muted);text-align:center}.org-redesign .org-student-pagination[hidden]{display:none}
