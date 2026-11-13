@@ -7,18 +7,14 @@ w.request=async(_,r)=>{essay={id:r.body.get('essay_id')};calls.push({action:'upl
 const click=async id=>w.$(id).onclick({target:w.$(id)});
 w.eval(fs.readFileSync('teacher-live.e12.js','utf8'));await w.renderTeacherLive(1);
 
-w.$('tlText').value='Texto anterior';w.$('tlName').value='Nome preservado';
-Object.defineProperty(w.navigator,'clipboard',{configurable:true,value:{readText:async()=> 'Redação copiada '.repeat(12)}});
-await click('tlPaste');
-assert.equal(w.$('tlText').value,'Redação copiada '.repeat(12));
-assert.equal(w.document.activeElement,w.$('tlText'));assert.equal(w.$('tlName').value,'Nome preservado');
-const kept=w.$('tlText').value;
-w.navigator.clipboard.readText=async()=>{throw Error('denied');};
-await click('tlPaste');assert.equal(w.$('tlText').value,kept);assert(w.document.body.textContent.includes('toque e segure'));
-w.navigator.clipboard.readText=async()=> '  ';
-await click('tlPaste');assert.equal(w.$('tlText').value,kept);assert(w.document.body.textContent.includes('Nenhum texto'));
-let resolve;w.navigator.clipboard.readText=()=>new Promise(r=>resolve=r);
-const pending=click('tlPaste');w.$('tlText').value='Nova digitação';resolve('Texto atrasado');await pending;
-assert.equal(w.$('tlText').value,'Nova digitação');assert.equal(w.$('tlPaste').disabled,false);
+
+assert.equal(w.$('tlPaste'),null);
+const text='Redação inserida pelo campo nativo. '.repeat(8);
+w.$('tlText').value=text;w.$('tlText').dispatchEvent(new w.Event('input',{bubbles:true}));
+w.$('tlPhoto').onchange({target:{files:[new w.File(['photo'],'foto.jpg',{type:'image/jpeg'})]}});
+assert.equal(w.$('tlText'),null);assert(w.$('tlRemoveFile'));
+await click('tlRemoveFile');assert.equal(w.$('tlText').value,text);assert.equal(w.document.activeElement,w.$('tlText'));
+assert.equal(w.$('tlPaste'),null);
+await click('tlNext');assert.equal(calls.find(c=>c.action==='live_create').input_text,text);
 d.window.close();
-}console.log('PASS clipboard teacher/student: success, denied, empty, focus and late response preservation');})().catch(e=>{console.error(e);process.exitCode=1});
+}console.log('PASS native text teacher/student: no clipboard button, file removal retains text, text submitted');})().catch(e=>{console.error(e);process.exitCode=1});
