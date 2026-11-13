@@ -1,6 +1,6 @@
 'use strict';
 window.teacherLiveHomeCard=()=>`<section class="tl-home student-live-offer"><span class="student-live-eyebrow">Ao Vivo · Da redação à devolutiva</span><h2>Mais clareza para orientar a próxima versão.</h2><p>Envie a redação, confira a análise e compartilhe uma devolutiva que ajuda o aluno a dar o próximo passo.</p><ul class="student-live-benefits"><li>Análise das 5 competências do ENEM</li><li>Pontos fortes e orientações para a revisão</li><li>Seu olhar de professor antes de compartilhar</li></ul><div class="student-live-offer-actions"><button class="btn primary" data-home-live>Quero corrigir uma redação</button></div><small>1 crédito por correção. Comece com uma foto, um arquivo ou texto, sem cadastrar escola ou turma.</small></section>`;
-window.liveCompetenciesHtml=value=>['C1','C2','C3','C4','C5'].map(c=>`<article class="tl-competency-card"><h3>${c}<strong>${Number(value.competencies[c].score)} / 200</strong></h3><p>${esc(value.competencies[c].diagnostic)}</p></article>`).join('');
+window.liveCompetenciesHtml=value=>['C1','C2','C3','C4','C5'].map(c=>`<article class="tl-competency-card"><h3>${c}<strong>${Number(value.competencies[c].score)} / 200</strong></h3><p>${esc(value.competencies[c].diagnostic)}</p></article>`).join('')+(window.c1CountingHtml?.(value)||'');
 // Apresentação compartilhada de evidências: nunca exibir objetos/JSON ao usuário.
 window.liveEvidenceHtml=function(value){
  const plain=v=>typeof v==='string'?v.trim():'';

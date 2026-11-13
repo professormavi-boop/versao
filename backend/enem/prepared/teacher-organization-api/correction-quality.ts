@@ -9,6 +9,7 @@ export const QUALITY_INSTRUCTIONS=`CONTROLES OBRIGATÓRIOS DO VERSÃO — preval
 2.4. PROCEDIMENTO FIXO DE DECISÃO DE C1: primeiro conclua a auditoria das ocorrências; depois descreva a estrutura sintática; por último escolha a faixa. Em syntax_assessment use quatro seções curtas: "Estrutura:", "Desvios válidos:", "Recorrência:" e "Faixa:". Estrutura descreve completude dos períodos, articulação das orações e rupturas demonstradas; período longo não é por si só ruptura. Desvios válidos resume somente c1_deviations, com trechos identificáveis; Recorrência distingue repetição da mesma regra em locais diferentes de duplicação da mesma ocorrência e contextualiza a distribuição no texto. Faixa compara a escolhida com as faixas vizinhas aplicáveis e explica qual evidência as distingue. Não basta repetir "poucos", "alguns", "muitos" ou enumerar categorias. Em 200, explicite por que eventuais desvios são excepcionais e não reincidentes; nos extremos, compare apenas com a faixa vizinha existente. Considere sintaxe e escrita formal em conjunto: sintaxe completa não garante 160, nem diversidade de erros determina 120. Não invente limites numéricos oficiais, percentuais ou descontos por ocorrência.
 2.5. CASOS DE CONTROLE: a expressão "das mesmas" não constitui desvio por si só; só registre problema específico comprovado no contexto, nunca pela preferência por "dessas políticas" ou "dessas palestras". Um par de travessões transcrito como hífens exige leitura do original antes de qualquer conclusão; não conte abertura e fechamento de uma mesma intercalação como dois erros independentes. Não invente erro sintático para justificar nota já escolhida. Uma correção deve ser mínima e preservar o sentido; reescrever uma frase inteira não comprova que a frase original era agramatical.
 2.6. CONSISTÊNCIA FINAL: o diagnostic de C1 deve corresponder à faixa e às evidências da análise, sem alegar categorias ausentes da lista validada. A exclusão de falso positivo exige reavaliar o fundamento da faixa, não somar automaticamente 40 pontos. Nenhuma dúvida de leitura, sugestão estilística ou referência literária não confirmada poderá servir como desvio de C1. A incerteza permanece explícita nas notas; não crie checklist adicional para o professor.
+2.7. CONTAGEM AUDITÁVEL (c1-counting-2026-11-13): classifique cada ocorrência em counting.type: orthography, accentuation, punctuation, agreement, regency, crasis, grammar, register, vocabulary ou syntax. syntax é falha de estrutura sintática e fica separada dos desvios. Counting não calcula nota nem concede piso. Cada ocorrência deve ter counting.reason explicando a classificação e eventual agrupamento. Use counting.basis=unique e key vazia em ocorrências independentes; para o mesmo desvio lexical repetido na mesma palavra use same_word; para o mesmo desvio em palavras do mesmo radical use same_root e key com o radical linguístico comum (não agrupe por mera semelhança gráfica). same_word/same_root só para orthography, accentuation, register, vocabulary. Para desvio gramatical repetido na MESMA construção literal use same_structure; não agrupe contextos distintos apenas porque violam a mesma regra. key identifica a construção. Falhas syntax usam unique. Se a classificação ou o radical for incerto, mantenha unique e explique, sem deduzir equivalência. Liste todas as ocorrências com contexto literal único, inclusive as que serão agrupadas. O código calcula totais; não escreva totais presumidos no diagnóstico. Esta contagem adota regras do manual público histórico do Inep disponibilizado em 2020, seções 3.5.2/3.5.3, sem alegar conformidade integral2026. Erros de tipos distintos no mesmo vocábulo podem contar separadamente quando demonstrados; múltiplas alterações de grafia no mesmo vocábulo são um só desvio de orthography. Nunca conte uma falha sintática também como desvio de pontuação pelo mesmo fundamento. Densidade por100 palavras é indicador interno, nunca conversão automática em nota.
 3. c1_deviations contém APENAS desvios demonstrados no original recebido (texto digitado, PDF ou imagem): original exato, correction adequada, rule explicando a regra no contexto, category, location e evidence (frase/trecho CONTÍNUO literal da transcrição contendo original). Não invente contexto ou número de linha. Não liste a mesma ocorrência duas vezes. Sugestões estilísticas, variantes aceitas e leitura incerta ficam em reading_notes, nunca como erro certo. syntax_assessment explica a estrutura sintática e ancora problemas em trechos reais; não reduza C1 com base em ocorrência não demonstrada.
 3.0. Distinga a modalidade: texto digitado não exige foto; PDF é um arquivo original e pode conter texto e páginas visuais. Não trate ausência de input_image como ausência do arquivo. Em manuscrito/OCR incerto, só confirme a ocorrência após leitura visual efetiva; nunca transforme leitura incerta em erro. Registre também rupturas e problemas de estrutura sintática usados para reduzir C1 em c1_deviations, com trecho literal, explicação e sugestão. Antes de finalizar, confira a coerência entre a nota, o diagnóstico e essa lista. Lista vazia não implica nota 200: não invente desvios nem aumente a nota para preencher o contrato.
 3.1. NÃO avalie maiúsculas/minúsculas em manuscrito. Quando a única diferença entre original e correction for caixa gráfica, ignore integralmente a ocorrência: não a registre em c1_deviations, não a mencione no diagnóstico e não a use para reduzir C1. A forma da letra manuscrita pode tornar essa distinção insegura.
@@ -22,6 +23,39 @@ export const QUALITY_INSTRUCTIONS=`CONTROLES OBRIGATÓRIOS DO VERSÃO — preval
 11. A análise é uma estimativa pedagógica, não a correção oficial da banca Inep. Não afirme conformidade com edição de cartilha que não foi efetivamente consultada.`;
 const clean=(s)=>String(s??'').normalize('NFC').replace(/\s+/g,' ').trim();
 const sameIgnoringCase=(a,b)=>clean(a).toLocaleLowerCase('pt-BR')===clean(b).toLocaleLowerCase('pt-BR');
+export const C1_COUNTING_VERSION='c1-counting-2026-11-13';
+const countTypes=new Set(['orthography','accentuation','punctuation','agreement','regency','crasis','grammar','register','vocabulary','syntax']);
+const lexicalTypes=new Set(['orthography','accentuation','register','vocabulary']);
+function countingMeta(d){
+ const m=d?.counting;
+ if(!m||!countTypes.has(m.type)||!['unique','same_word','same_root','same_structure'].includes(m.basis)||!clean(m.reason))return null;
+ if(m.type==='syntax'&&m.basis!=='unique')return null;
+ if(m.basis!=='unique'&&!clean(m.key))return null;
+ if(['same_word','same_root'].includes(m.basis)&&!lexicalTypes.has(m.type))return null;
+ if(m.basis==='same_structure'&&(lexicalTypes.has(m.type)||m.type==='syntax'))return null;
+ return m;
+}
+export function countC1(raw,{discarded=0}={}){
+ const ds=Array.isArray(raw.c1_deviations)?raw.c1_deviations:[];
+ const available=raw.c1_counting_version===C1_COUNTING_VERSION||raw.c1_counting?.version===C1_COUNTING_VERSION;
+ const wordCount=typeof raw.transcription==='string'?(raw.transcription.match(/[\p{L}\p{N}]+(?:[-’'][\p{L}\p{N}]+)*/gu)||[]).length:null;
+ if(!available)return {status:'unavailable',version:null,word_count:wordCount};
+ const groups=new Map(),byType={},items=[];let deviations=0,syntax=0,grouped=0,unclassified=0;
+ for(const [index,d] of ds.entries()){
+  const m=countingMeta(d),item={index,original:clean(d.original),location:clean(d.location),type:m?.type||'unknown',basis:m?.basis||'',reason:m?.reason||'Classificação de contagem ausente ou invalidada pela edição.',counted:false,grouped_with:null};
+  if(!m){unclassified++;items.push(item);continue;}
+  // The model identifies lexical roots. Arithmetic never infers roots from spelling.
+  // Grammar may group only an identical original/correction construction.
+  const identity=m.basis==='same_root'?clean(m.key).toLocaleLowerCase('pt-BR'):clean(d.original).toLocaleLowerCase('pt-BR')+'\u0000'+clean(d.correction).toLocaleLowerCase('pt-BR');
+  const key=m.type+'\u0000'+m.basis+'\u0000'+identity;
+  if(m.basis!=='unique'&&groups.has(key)){item.grouped_with=groups.get(key);grouped++;}
+  else{item.counted=true;if(m.basis!=='unique')groups.set(key,index);if(m.type==='syntax')syntax++;else{deviations++;byType[m.type]=(byType[m.type]||0)+1;}}
+  items.push(item);
+ }
+ const invalid=raw.evidence_audit?.removed?.length||0;
+ return {version:C1_COUNTING_VERSION,status:unclassified?'partial':'complete',found:ds.length+invalid+discarded,invalid,discarded,grouped,deviations,syntax,unclassified,word_count:wordCount,density_per_100_words:wordCount&&!unclassified?Math.round(deviations*10000/wordCount)/100:null,by_type:byType,items,source:'Inep, Manual de Correção da Competência I, disponibilizado em 2020, seções 3.5.2 e 3.5.3',classification_origin:'ai_with_teacher_edits',score_effect:'none'};
+}
+
 export function consultedSources(response){const sources=new Map();for(const item of response?.output||[]){if(item.type!=='web_search_call'||item.status!=='completed')continue;for(const source of item.action?.sources||[]){try{const u=new URL(source.url);if(u.protocol==='https:'||u.protocol==='http:')sources.set(u.href,{url:u.href,title:String(source.title||'')});}catch{}}}return [...sources.values()];}
 
 const codes=['C1','C2','C3','C4','C5'];
@@ -44,9 +78,10 @@ export function validateEvidence(raw,sources=[]){
   const positions=[...new Set(starts)];
   if(!reason&&positions.length!==1)reason='ambiguous_occurrence';
   const key=positions.length===1?`${positions[0]}:${positions[0]+original.length}`:'';
-  if(!reason&&seen.has(key))reason='duplicate';
+  const typedKey=key+'|'+(countingMeta(d)?.type||'legacy');
+  if(!reason&&seen.has(typedKey))reason='duplicate';
   if(reason){removed.push({index,reason});continue;}
-  seen.add(key);confirmed.push({...d,occurrence_start:positions[0],occurrence_end:positions[0]+original.length});
+  seen.add(typedKey);confirmed.push({...d,occurrence_start:positions[0],occurrence_end:positions[0]+original.length});
  }
  raw.c1_deviations=confirmed;
  if(!['regular','zero_candidate','uncertain'].includes(raw.essay_status))throw Error('Enquadramento da redação ausente.');
@@ -66,7 +101,7 @@ export function validateEvidence(raw,sources=[]){
  const audit={version:REVIEW_POLICY_VERSION,removed:[...(raw.evidence_audit?.removed||[]),...removed]};
  if(audit.removed.length)notes.push('Evidências removidas: reavaliar a faixa e o diagnóstico de C1 com fundamento em sintaxe, frequência e recorrência. A nota preliminar não está validada.');
  raw.evidence_audit=audit;
- return {quality_version:QUALITY_VERSION,evidence_audit:audit,c1_reassessment_required:audit.removed.length>0,repertoire_checks:checks,consulted_sources:sources,review_requirements:notes,needs_manual_review:notes.length>0};
+ return {quality_version:QUALITY_VERSION,c1_counting:countC1(raw),evidence_audit:audit,c1_reassessment_required:audit.removed.length>0,repertoire_checks:checks,consulted_sources:sources,review_requirements:notes,needs_manual_review:notes.length>0};
 }
 export function reviewedEvidence(base,body){
  if(base.quality_version!==QUALITY_VERSION)throw Error('Esta análise é anterior à revisão de evidências. Use a correção manual.');
@@ -86,7 +121,8 @@ export function reviewedEvidence(base,body){
   const check={...base,c1_deviations:[occurrence]};validateEvidence(check,base.consulted_sources||[]);
   if(!check.c1_deviations.length)throw Error('Evidência inválida ou incerta: descarte o apontamento e reavalie C1.');
   const item=check.c1_deviations[0];
-  if(confirmed.some(x=>x.occurrence_start===item.occurrence_start&&x.occurrence_end===item.occurrence_end))throw Error('Ocorrência duplicada: descarte a repetição e reavalie C1.');
+  if(confirmed.some(x=>x.occurrence_start===item.occurrence_start&&x.occurrence_end===item.occurrence_end&&(countingMeta(x)?.type||'legacy')===(countingMeta(item)?.type||'legacy')))throw Error('Ocorrência duplicada: descarte a repetição e reavalie C1.');
+  if(d.correction!==clean(deviations[d.index].correction)||d.rule!==clean(deviations[d.index].rule))delete item.counting;
   confirmed.push(item);
  }
  const requirements=[...new Set([...(base.review_requirements||[]),...validation.review_requirements])];
@@ -103,7 +139,7 @@ export function reviewedEvidence(base,body){
  if(hasAssessment&&suppliedAssessment.score!==body.scores.C1)throw Error('A nota da observação de C1 deve corresponder à nota escolhida.');
  const assessment=hasAssessment?{score:body.scores.C1,diagnostic:clean(suppliedAssessment.diagnostic),rationale:clean(suppliedAssessment.rationale),syntax_assessment:clean(suppliedAssessment.syntax_assessment)}:null;
  if(base.essay_status==='zero_candidate'&&codes.some(c=>body.scores[c]!==0))throw Error('Para alterar o enquadramento de anulação, utilize a correção manual e justifique a reavaliação.');
- return {...base.detailed_analysis,main_strength:String(body.main_strength??base.main_strength??''),next_step:String(body.overall_feedback??base.next_step??''),c1_deviations:confirmed,repertoire_checks:validation.repertoire_checks,competency_improvements:body.detailed_analysis?.competency_improvements||{},teacher_notes:String(body.detailed_analysis?.deviations_rules||''),review_audit:{quality_version:QUALITY_VERSION,policy_version:REVIEW_POLICY_VERSION,confirmed:true,note:clean(body.review_note),decisions,review_requirements:requirements,requirement_resolutions:resolutions,c1_reassessment:assessment,c1_reassessment_recommended:reassess},syntax_assessment:assessment?.syntax_assessment||base.syntax_assessment};
+ return {...base.detailed_analysis,main_strength:String(body.main_strength??base.main_strength??''),next_step:String(body.overall_feedback??base.next_step??''),c1_deviations:confirmed,c1_counting:countC1({...base,c1_deviations:confirmed},{discarded:decisions.filter(d=>d.decision==='discarded').length}),repertoire_checks:validation.repertoire_checks,competency_improvements:body.detailed_analysis?.competency_improvements||{},teacher_notes:String(body.detailed_analysis?.deviations_rules||''),review_audit:{quality_version:QUALITY_VERSION,policy_version:REVIEW_POLICY_VERSION,confirmed:true,note:clean(body.review_note),decisions,review_requirements:requirements,requirement_resolutions:resolutions,c1_reassessment:assessment,c1_reassessment_recommended:reassess},syntax_assessment:assessment?.syntax_assessment||base.syntax_assessment};
 }
 
 export function assertC1Evidence(raw){

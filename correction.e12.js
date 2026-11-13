@@ -58,6 +58,7 @@ function renderAiResult(id,job,official,usage,row){
   box.innerHTML=`<div class="box-head editor-head"><div><h2>${r.report_format==='essential-v1'&&jobStatus==='completed'?'Correção pronta':'Correção Inteligente VERSÃO'}</h2><p>${esc(row?.student_name||'Aluno')} · análise da redação</p></div><span class="pill ${jobStatus==='approved'?'ok':jobStatus==='completed'?'warn':''}">${esc(statusText)}</span></div>
   <div class="box-body ai-report">
     ${window.enemAnalysisHeader?.(job)||""}
+    ${window.c1CountingHtml?.(r)||""}
     ${r.report_format==='essential-v1'?`<section class="ai-section"><h4>Nota e competências</h4><div class="score-total" data-ai-total>${total??'—'} / 1000</div><div class="ai-competencies">${codes.map(c=>`<div class="ai-comp"><b>${c}</b> ${compData[c].score??'—'}</div>`).join('')}</div><p><b>C5</b></p>${[['action','Ação'],['agent','Agente'],['means','Meio/modo'],['purpose','Finalidade/efeito'],['detail','Detalhamento']].map(([key,label])=>`<p>${label}: ${esc(r.c5_check?.[key]||'Não informado')}</p>`).join('')}<p>Direitos humanos: ${esc(r.c5_check?.human_rights||'Não registrado nesta análise.')}</p><p>Vínculo argumentativo: ${esc(r.c5_check?.argument_alignment||'Não registrado nesta análise.')}</p></section>
 <section class="ai-section"><h4>Ponto forte</h4><p>${esc(r.main_strength||'Não informado')}</p></section>
 <section class="ai-section"><h4>Prioridade de melhoria</h4><p>${esc(r.improvement_priority||'Não informada')}</p></section>
@@ -273,6 +274,6 @@ function aiReviewData(box,result){
  const overall_feedback=box.querySelector('[data-ai-feedback]').value.trim();
  if(!overall_feedback)throw Error('Preencha a devolutiva ao aluno.');
  const detailed_analysis={...result.detailed_analysis,competency_improvements,deviations_rules:box.querySelector('[data-ai-deviations]').value.trim()};
- delete detailed_analysis.c1_deviations;delete detailed_analysis.deviations_structured;
+ delete detailed_analysis.c1_deviations;delete detailed_analysis.c1_counting;delete detailed_analysis.deviations_structured;
  return {scores,competency_justifications,overall_feedback,detailed_analysis};
 }

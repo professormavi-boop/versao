@@ -11,6 +11,7 @@
   if(window.WritingStagesUI?.isPartial(data.review)){const section=document.createElement('section');section.innerHTML=window.WritingStagesUI.feedbackHtml(data.review);host.append(section);text('p',data.reviewed_by_teacher?'Devolutiva revisada pelo professor.':'Análise por IA · sem revisão de professor.');return;}
   text('p',data.reviewed_by_teacher?'Devolutiva revisada pelo professor.':'Estimativa por IA · sem revisão de professor. Não é uma nota oficial do ENEM.');if(data.theme_origin==='inferred')text('p','C2 avaliada pelo recorte inferido e confirmado, sem aferição da proposta original.');
   const review=data.review;text('h2','Nota: '+review.total_score);
+  if(window.c1CountingHtml){const counting=document.createElement('div');counting.innerHTML=window.c1CountingHtml(review);host.append(counting);}
   for(const code of ['C1','C2','C3','C4','C5']){text('h3',code+' · '+review.competencies[code].score);text('p',review.competencies[code].diagnostic);}
   for(const [label,value] of [['Ponto forte',review.main_strength],['Prioridade de melhoria',review.improvement_priority],['Próximo passo',review.next_step||review.overall_feedback]]){text('h3',label);text('p',value);}
   if(review.c1_deviations?.length){text('h3','Desvios e sugestões');for(const item of review.c1_deviations)text('p',`${item.original} → ${item.correction}. ${item.rule}`);}
