@@ -4,6 +4,8 @@ const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
  assert.equal(source,fs.readFileSync(folder+'teacher-organization-api/correction-quality.ts','utf8'));
  assert(fs.readFileSync('enem-review.e12.js','utf8').includes(source.replaceAll('export ','')),'browser/server parity');
  const {assertC1Evidence,validateEvidence,reviewedEvidence,QUALITY_VERSION,QUALITY_INSTRUCTIONS,inputManifest}=await import('../'+folder+'ai-correction-beta-api/correction-quality.ts');
+ for(const section of ['Estrutura:', 'Desvios válidos:', 'Recorrência:', 'Faixa:'])assert(QUALITY_INSTRUCTIONS.includes(section),'C1 decision protocol: '+section);
+ assert(QUALITY_INSTRUCTIONS.includes('não somar automaticamente 40 pontos'));
  const live=await import('../'+folder+'teacher-organization-api/live-ai.ts');
  const code=fs.readFileSync(folder+'ai-correction-beta-api/index.ts','utf8');
  const normal=code.slice(code.indexOf('    function normalizeResult('),code.indexOf('    function extractOutputText(')).replace('(Object.values(comps) as any[])','Object.values(comps)');

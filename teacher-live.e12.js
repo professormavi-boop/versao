@@ -142,7 +142,22 @@ window.renderTeacherLive=async function(navigation,preset=null){
    if($('tlActivityEnabled'))$('tlActivityEnabled').onchange=e=>{saveFields();activityEnabled=e.target.checked;render();};
    $('tlSchool').oninput=()=>{const host=$('tlSchoolSuggestions');host.replaceChildren();const matches=window.SchoolNames?.match($('tlSchool').value,schoolCatalog);for(const name of matches?.suggestions||[]){const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='Usar '+name+'?';b.onclick=()=>{$('tlSchool').value=name;school=name;host.replaceChildren();};host.append(b);}};
    $('tlSchool').onblur=()=>{const match=window.SchoolNames?.match($('tlSchool').value,schoolCatalog);if(match?.exact)$('tlSchool').value=match.exact;};
-   $('tlCamera').onclick=()=>$('tlPhoto').click();$('tlChoose').onclick=()=>$('tlFile').click();$('tlPaste').onclick=()=>{saveFields();file=null;render();};
+   $('tlCamera').onclick=()=>$('tlPhoto').click();$('tlChoose').onclick=()=>$('tlFile').click();$('tlPaste').onclick=async()=>{
+    saveFields();file=null;render();
+    const field=$('tlText'),button=$('tlPaste'),initial=field.value;
+    field.focus();button.disabled=true;
+    try{
+     if(!navigator.clipboard?.readText)throw Error('clipboard unavailable');
+     const copied=await navigator.clipboard.readText();
+     if(!field.isConnected)return;
+     if(field.value!==initial){status('O texto digitado foi mantido. Para colar, use o comando Colar no campo.');return;}
+     if(!copied.trim()){status('Nenhum texto encontrado para colar. Copie a redação e tente novamente.');return;}
+     field.value=copied;text=copied;field.dispatchEvent(new Event('input',{bubbles:true}));
+     status('Texto colado. Confira a redação antes de continuar.');
+    }catch{
+     if(field.isConnected)status('Cole no campo de redação: toque e segure e escolha Colar, ou use Ctrl+V / ⌘V.');
+    }finally{if(button.isConnected)button.disabled=false;}
+   };
    for(const id of ['tlPhoto','tlFile'])$(id).onchange=e=>{saveFields();const picked=e.target.files[0];if(!picked)return;if(picked.size>15728640){status('Use um arquivo de até 15 MB.');return;}file=picked;render();};
    $('tlNext').onclick=e=>act(e.target,async()=>{saveFields();if(!file&&text.trim().length<80)throw Error('Envie um arquivo ou cole pelo menos 80 caracteres.');await create();if(correctionScope!=='complete'&&!essay.input_text){await readTranscription();return;}await continueAfterInput();});
   }else if(step===2){
