@@ -29,7 +29,7 @@ const tick=()=>new Promise(r=>setImmediate(r));
    if(b.action==='bootstrap')return {organizations:[{id:'org',name:'Escola'}],classes_by_org:{org:[{id:'class',name:'Turma'}]},recent:[record]};
    if(b.action==='get')return {proposal:record,targets:[{class_id:'class'}],motivators:[{body:'Texto motivador',source_label:'Fonte'}]};
    if(b.action==='credits')return {balance:2};
-   if(b.action==='save'){saved=b;record={...record,...b};return {ok:true}};
+   if(b.action==='save'){saved=b;record={...record,...b};return {ok:true,proposal:record}};
   };
   await load('teacher-proposals-v3.e12.js');await w.renderDemoProposals({});w.document.querySelector('[data-edit]').click();assert.equal(w.$('pvHandwritten').checked,true);
   w.$('pvHandwritten').checked=false;await w.$('pvDraft').onclick();assert.equal(saved.handwritten_only,false);

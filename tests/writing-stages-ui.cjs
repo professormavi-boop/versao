@@ -2,11 +2,12 @@
 const {JSDOM}=require('jsdom'),fs=require('fs'),assert=require('node:assert/strict');
 const vm=require('node:vm');
 const source=p=>fs.readFileSync(p,'utf8');
-function env(role='student',partialEnabled=false){
+function env(role='student',partialEnabled=false,partialVisible=false){
  const dom=new JSDOM('<main id="view"></main>',{url:'https://test.invalid',runScripts:'outside-only'}),w=dom.window,calls=[];
  w.$=id=>w.document.getElementById(id);w.esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');w.header=t=>'<h1>'+t+'</h1>';w.fmtDate=s=>s;w.navigationCurrent=()=>true;w.S={profile:{role},cache:{},session:{user:{id:'owner'}}};w.navigate=()=>{};
- w.edge=async(_,b)=>{calls.push(b);switch(b.action){case'live_status':return{enabled:true,partial_correction:partialEnabled,partial_input:'text-or-file'};case'live_history':return{essays:[]};case'organizations':return{organizations:[]};case'live_create':return{essay:{id:'essay',...b}};case'live_theme':return{essay:{id:'essay',...b}};case'live_start':return{job:{id:'job',status:'completed',result:sample(w)}};case'live_review':return{job:{id:'job',status:'completed',result:sample(w),review:b.partial_review}};case'live_share':return{token:'a'.repeat(64),expires_at:'synthetic'};case'live_revoke':return{ok:true};case'live_transcribe':return{text:'Trecho transcrito sintético. '.repeat(8),note:'Confira a leitura.'};case'live_confirm_text':return{essay:{id:'essay',input_text:b.input_text,correction_scope:'introduction'}};default:throw Error(b.action);}};
+ w.edge=async(_,b)=>{calls.push(b);switch(b.action){case'packages':return{balance:1};case'live_status':return{enabled:true,partial_correction:partialEnabled,partial_input:'text-or-file'};case'live_history':return{essays:[]};case'organizations':return{organizations:[]};case'live_create':return{essay:{id:'essay',...b}};case'live_theme':return{essay:{id:'essay',...b}};case'live_start':return{job:{id:'job',status:'completed',result:sample(w)}};case'live_review':return{job:{id:'job',status:'completed',result:sample(w),review:b.partial_review}};case'live_share':return{token:'a'.repeat(64),expires_at:'synthetic'};case'live_revoke':return{ok:true};case'live_transcribe':return{text:'Trecho transcrito sintético. '.repeat(8),note:'Confira a leitura.'};case'live_confirm_text':return{essay:{id:'essay',input_text:b.input_text,correction_scope:'introduction'}};default:throw Error(b.action);}};
  w.eval(source('custom-selects.e12.js'));w.eval(source('writing-stages.e12.js'));w.eval(source('writing-stages-ui.e12.js'));
+ if(partialVisible)w.WritingStages=Object.freeze({...w.WritingStages,partialCorrectionVisible:true});
  return {dom,w,calls};
 }
 function select(w,value){
@@ -28,7 +29,7 @@ function sample(w){return {mode:'partial',report_format:'partial-v1',stage:'intr
   assert.equal(w.$('tlPartialRedo'),null);assert.equal(calls.filter(c=>['live_start','live_transcribe'].includes(c.action)).length,0);if(completed){assert.match(w.$('view').textContent,/Somente a introdução/);assert(w.$('tlShare'));}else{assert(w.$('tlCompleteNew'));assert.match(w.$('view').textContent,/apenas para o professor/);}dom.window.close();
  }
  for(const role of ['teacher']){
-  const {dom,w,calls}=env(role);w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1);
+  const {dom,w,calls}=env(role,false,true);w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1);
   assert.equal(w.document.querySelector('[id^="writing-scope-"]').value,'complete');
   assert.equal(w.$('tlTextLabel').textContent,'Redação completa');
   const draft='Texto do aluno. '.repeat(12);w.$('tlText').value=draft;
@@ -40,7 +41,7 @@ function sample(w){return {mode:'partial',report_format:'partial-v1',stage:'intr
   dom.window.close();
  }
  for(const role of ['teacher']){
-  const {dom,w,calls}=env(role,true);w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1);
+  const {dom,w,calls}=env(role,true,true);w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1);
   select(w,'introduction');w.$('tlText').value='Texto para análise parcial. '.repeat(5);
   assert(!w.$('tlCamera').disabled);await w.$('tlNext').onclick({target:w.$('tlNext')});
   assert.equal(calls.find(c=>c.action==='live_create').correction_scope,'introduction');assert(!w.$('tlInfer').hidden);
@@ -59,7 +60,7 @@ function sample(w){return {mode:'partial',report_format:'partial-v1',stage:'intr
   dom.window.close();
  }
  {
-  const {dom,w,calls}=env('teacher',true);w.BASE='https://test.invalid';w.authHeaders=()=>({});w.request=async(url,options)=>{calls.push({action:'upload',scope:options.body.get('correction_scope')});return{ok:true,json:async()=>({essay:{id:'essay',correction_scope:'introduction',input_text:null}})}};
+  const {dom,w,calls}=env('teacher',true,true);w.BASE='https://test.invalid';w.authHeaders=()=>({});w.request=async(url,options)=>{calls.push({action:'upload',scope:options.body.get('correction_scope')});return{ok:true,json:async()=>({essay:{id:'essay',correction_scope:'introduction',input_text:null}})}};
   w.eval(source('teacher-live.e12.js'));await w.renderTeacherLive(1);select(w,'introduction');
   w.$('tlPhoto').onchange({target:{files:[new w.File(['image'],'photo.png',{type:'image/png'})]}});
   await w.$('tlNext').onclick({target:w.$('tlNext')});assert(w.$('tlTranscribedText'));assert.equal(calls.find(c=>c.action==='upload').scope,'introduction');
@@ -80,6 +81,10 @@ function sample(w){return {mode:'partial',report_format:'partial-v1',stage:'intr
   const {dom,w,calls}=env('teacher');vm.runInContext(source('correction.e12.js'),dom.getInternalVMContext());
   w.teacherQueue=async()=>[{submission_id:'one',student_name:'Aluno',theme:'Tema'}];w.ensure=async()=>({access_token:'dummy'});w.authHeaders=()=>({});w.BASE='https://test.invalid';w.API={credit:'credit'};w.fetch=async()=>({ok:true,json:async()=>({channels:{}})});
   vm.runInContext(source('correction-redesign.e12.js'),dom.getInternalVMContext());await w.renderCorrection(1);
+  let confirmation;w.appConfirm=async message=>{confirmation=message;return false;};
+  w.document.querySelector('[data-cx-stage]').click();await new Promise(resolve=>setImmediate(resolve));
+  assert.match(confirmation,/1 crédito/);assert.equal(w.$('cxWritingScope'),null);assert.equal(calls.length,1);
+  w.WritingStages=Object.freeze({...w.WritingStages,partialCorrectionVisible:true});calls.length=0;
   w.document.querySelector('[data-cx-stage]').click();select(w,'conclusion');await w.$('cxStageContinue').onclick({target:w.$('cxStageContinue')});assert.equal(calls.length,0);assert.match(w.$('cxStageStatus').textContent,/nenhum crédito/);
   assert.equal(w.document.querySelector('select').value,'conclusion');assert.equal(w.__VERSAO_UI_RULES__.nativeSelectPicker,false);dom.window.close();
  }

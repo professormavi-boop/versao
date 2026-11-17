@@ -30,3 +30,14 @@ As mudanças de backend serão preparadas em pacote privado. Não publicar fonte
 ## Limites
 
 Código e testes concluídos localmente; implantação e validação integrada permanecem pendentes. Pagamentos com contestação são registrados para conciliação humana; não foi implementada política automática de débito de créditos consumidos.
+
+## Simplificação temporária da correção
+
+- [x] Oferecer apenas redação completa em novos fluxos de correção. A fila abre direto na confirmação de crédito. Ao Vivo abre no envio da redação.
+- [x] Preservar as etapas de planejamento e edição na Escrita guiada, além da leitura de devolutivas parciais existentes.
+- [x] Atualizar a simulação dos rascunhos manuscritos para retornar a proposta salva. Conferir a navegação do professor pelo item atual Turmas.
+- [x] Validar com `npm run check` e `npm test` (52 testes). Serviços externos simulados; homologação com contas reais e publicação pendentes.
+
+Base auditada: `521db5e`. Sem alterações de banco, autenticação, domínios ou configuração da Vercel. Para devolver o seletor e o atalho de etapa, reativar `partialCorrectionVisible` no módulo de etapas.
+
+Na revisão do menu do professor, os nomes “Receber redações” e “Correções” merecem validação com professores para esclarecer onde começa cada fluxo.

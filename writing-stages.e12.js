@@ -58,6 +58,6 @@
       {role:'user',content:JSON.stringify({stage,label:stages[stage].label,criteria:stages[stage].criteria,theme,text:draft,context,question:request})}
     ];
   }
-  const api=Object.freeze({VERSION,stages,scope,buildPartialRequest,feedbackContract,tutorMessages});
+  const api=Object.freeze({VERSION,partialCorrectionVisible:false,stages,scope,buildPartialRequest,feedbackContract,tutorMessages});
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.WritingStages=api;
 })(globalThis);
