@@ -11,7 +11,13 @@ const QUALITY_INSTRUCTIONS=`CONTROLES OBRIGATÓRIOS DO VERSÃO — prevalecem so
 2.4. PROCEDIMENTO FIXO DE DECISÃO DE C1: primeiro conclua a auditoria das ocorrências; depois descreva a estrutura sintática; por último escolha a faixa. Em syntax_assessment use quatro seções curtas: "Estrutura:", "Desvios válidos:", "Recorrência:" e "Faixa:". Estrutura descreve completude dos períodos, articulação das orações e rupturas demonstradas; período longo não é por si só ruptura. Desvios válidos resume somente c1_deviations, com trechos identificáveis; Recorrência distingue repetição da mesma regra em locais diferentes de duplicação da mesma ocorrência e contextualiza a distribuição no texto. Faixa compara a escolhida com as faixas vizinhas aplicáveis e explica qual evidência as distingue. Não basta repetir "poucos", "alguns", "muitos" ou enumerar categorias. Em 200, explicite por que eventuais desvios são excepcionais e não reincidentes; nos extremos, compare apenas com a faixa vizinha existente. Considere sintaxe e escrita formal em conjunto: sintaxe completa não garante 160, nem diversidade de erros determina 120. Não invente limites numéricos oficiais, percentuais ou descontos por ocorrência.
 2.5. CASOS DE CONTROLE: a expressão "das mesmas" não constitui desvio por si só; só registre problema específico comprovado no contexto, nunca pela preferência por "dessas políticas" ou "dessas palestras". Um par de travessões transcrito como hífens exige leitura do original antes de qualquer conclusão; não conte abertura e fechamento de uma mesma intercalação como dois erros independentes. Não invente erro sintático para justificar nota já escolhida. Uma correção deve ser mínima e preservar o sentido; reescrever uma frase inteira não comprova que a frase original era agramatical.
 2.6. CONSISTÊNCIA FINAL: o diagnostic de C1 deve corresponder à faixa e às evidências da análise, sem alegar categorias ausentes da lista validada. A exclusão de falso positivo exige reavaliar o fundamento da faixa, não somar automaticamente 40 pontos. Nenhuma dúvida de leitura, sugestão estilística ou referência literária não confirmada poderá servir como desvio de C1. A incerteza permanece explícita nas notas; não crie checklist adicional para o professor.
-2.7. CONTAGEM AUDITÁVEL (c1-counting-2026-11-13): classifique cada ocorrência em counting.type: orthography, accentuation, punctuation, agreement, regency, crasis, grammar, register, vocabulary ou syntax. syntax é falha de estrutura sintática e fica separada dos desvios. Counting não calcula nota nem concede piso. Cada ocorrência deve ter counting.reason explicando a classificação e eventual agrupamento. Use counting.basis=unique e key vazia em ocorrências independentes; para o mesmo desvio lexical repetido na mesma palavra use same_word; para o mesmo desvio em palavras do mesmo radical use same_root e key com o radical linguístico comum (não agrupe por mera semelhança gráfica). same_word/same_root só para orthography, accentuation, register, vocabulary. Para desvio gramatical repetido na MESMA construção literal use same_structure; não agrupe contextos distintos apenas porque violam a mesma regra. key identifica a construção. Falhas syntax usam unique. Se a classificação ou o radical for incerto, mantenha unique e explique, sem deduzir equivalência. Liste todas as ocorrências com contexto literal único, inclusive as que serão agrupadas. O código calcula totais; não escreva totais presumidos no diagnóstico. Esta contagem adota regras do manual público histórico do Inep disponibilizado em 2020, seções 3.5.2/3.5.3, sem alegar conformidade integral2026. Erros de tipos distintos no mesmo vocábulo podem contar separadamente quando demonstrados; múltiplas alterações de grafia no mesmo vocábulo são um só desvio de orthography. Nunca conte uma falha sintática também como desvio de pontuação pelo mesmo fundamento. Densidade por100 palavras é indicador interno, nunca conversão automática em nota.
+2.7. CONTAGEM AUDITÁVEL (c1-counting-2026-11-13): classifique cada ocorrência em counting.type: orthography, accentuation, punctuation, agreement, regency, crasis, grammar, register, vocabulary ou syntax. syntax é falha de estrutura sintática e fica separada dos desvios. A contagem sustenta a matriz, sem descontos por categoria. Cada ocorrência deve ter counting.reason explicando a classificação e eventual agrupamento. Use counting.basis=unique e key vazia em ocorrências independentes; para o mesmo desvio lexical repetido na mesma palavra use same_word; para o mesmo desvio em palavras do mesmo radical use same_root e key com o radical linguístico comum (não agrupe por mera semelhança gráfica). same_word/same_root só para orthography, accentuation, register, vocabulary. Para desvio gramatical repetido na MESMA construção literal use same_structure; não agrupe contextos distintos apenas porque violam a mesma regra. key identifica a construção. Falhas syntax usam unique. Se a classificação ou o radical for incerto, mantenha unique e explique, sem deduzir equivalência. Liste todas as ocorrências com contexto literal único, inclusive as que serão agrupadas. O código calcula totais; não escreva totais presumidos no diagnóstico. Esta contagem adota regras do manual público histórico do Inep disponibilizado em 2020, seções 3.5.2/3.5.3, sem alegar conformidade integral2026. Erros de tipos distintos no mesmo vocábulo podem contar separadamente quando demonstrados; múltiplas alterações de grafia no mesmo vocábulo são um só desvio de orthography. Nunca conte uma falha sintática também como desvio de pontuação pelo mesmo fundamento. Densidade por100 palavras é indicador interno, nunca conversão automática em nota.
+2.8. CLASSIFICAÇÃO PARA A MATRIZ DE C1 (manual público do Inep, seções 1.3, 2 e 4): preencha c1_classification depois de conferir as ocorrências. Avalie os dois eixos sem partir da nota.
+- syntax_level: excellent se os períodos forem completos, articulados e com complexidade bem controlada (como subordinações e intercalações), admitindo até uma falha pontual; good quando a leitura for fluida, com falhas localizadas ou estrutura menos elaborada; regular quando a construção for limitada, por exemplo, com predomínio de parágrafos de período único; deficient quando rupturas frequentes comprometerem a fluidez na maior parte do texto; absent quando não houver estrutura oracional reconhecível. Registre um período ou fragmento contínuo e literal em syntax_excerpt e explique em syntax_reason o que ele demonstra e como representa o conjunto.
+- deviation_frequency: few para ocorrências esparsas em relação à extensão e à distribuição no texto, some para presença perceptível e recorrente, ou many quando os desvios forem frequentes e disseminados em relação ao conjunto. Use few também se restarem até dois desvios após agrupamento, inclusive zero. Em deviation_reason explique a extensão, a distribuição e a reincidência. Em deviation_indices cite até três índices, começando em 0, de itens de c1_deviations que sustentem a classificação; nunca referencie um item syntax nesse eixo. Use lista vazia quando não houver desvio comprovado.
+- Use uncertain no eixo que não puder sustentar com segurança. Use string vazia quando não houver trecho legível; descreva a limitação no motivo. Não invente ocorrências nem complete lacunas de OCR.
+- Referências para calibrar: no exemplo 67, poucos desvios e predomínio de parágrafos de período único resultam em nível 3; no 68, a leitura é fluida apesar de falhas localizadas e os desvios são poucos para o conjunto, resultando em nível 4; no 69, a sintaxe excelente não compensa os desvios acima do teto de dois, resultando em nível 4. Use os exemplos para reconhecer padrões, sem transformar suas contagens em cortes gerais.
+- O nível 5 (200) exige sintaxe excelente, até dois desvios e até uma falha sintática. Fora do nível 5, combine os descritores e use o eixo mais restritivo. Sintaxe deficitária somada a muitos desvios resulta em 40; apenas uma dessas condições resulta em 80. Sintaxe inexistente resulta em 0 na C1. Preserve as demais competências independentes.
 3. c1_deviations contém APENAS desvios demonstrados no original recebido (texto digitado, PDF ou imagem): original exato, correction adequada, rule explicando a regra no contexto, category, location e evidence (frase/trecho CONTÍNUO literal da transcrição contendo original). Não invente contexto ou número de linha. Não liste a mesma ocorrência duas vezes. Sugestões estilísticas, variantes aceitas e leitura incerta ficam em reading_notes, nunca como erro certo. syntax_assessment explica a estrutura sintática e ancora problemas em trechos reais; não reduza C1 com base em ocorrência não demonstrada.
 3.0. Distinga a modalidade: texto digitado não exige foto; PDF é um arquivo original e pode conter texto e páginas visuais. Não trate ausência de input_image como ausência do arquivo. Em manuscrito/OCR incerto, só confirme a ocorrência após leitura visual efetiva; nunca transforme leitura incerta em erro. Registre também rupturas e problemas de estrutura sintática usados para reduzir C1 em c1_deviations, com trecho literal, explicação e sugestão. Antes de finalizar, confira a coerência entre a nota, o diagnóstico e essa lista. Lista vazia não implica nota 200: não invente desvios nem aumente a nota para preencher o contrato.
 3.1. NÃO avalie maiúsculas/minúsculas em manuscrito. Quando a única diferença entre original e correction for caixa gráfica, ignore integralmente a ocorrência: não a registre em c1_deviations, não a mencione no diagnóstico e não a use para reduzir C1. A forma da letra manuscrita pode tornar essa distinção insegura.
@@ -27,6 +33,91 @@ const clean=(s)=>String(s??'').normalize('NFC').replace(/\s+/g,' ').trim();
 const sameIgnoringCase=(a,b)=>clean(a).toLocaleLowerCase('pt-BR')===clean(b).toLocaleLowerCase('pt-BR');
 const C1_COUNTING_VERSION='c1-counting-2026-11-13';
 const countTypes=new Set(['orthography','accentuation','punctuation','agreement','regency','crasis','grammar','register','vocabulary','syntax']);
+// Manual público do Inep, seções 1.3 e 3.5.4.
+const C1_RUBRIC = {
+ version: 'c1-inep-2020-v1',
+ maxDeviationsFor200: 2,
+ maxSyntaxFailuresFor200: 1,
+ scores: {
+  excellent: {within_limit: 200, few: 160, some: 120, many: 80},
+  good:      {within_limit: 160, few: 160, some: 120, many: 80},
+  regular:   {within_limit: 120, few: 120, some: 120, many: 80},
+  deficient: {within_limit:  80, few:  80, some:  80, many: 40},
+  absent:    {within_limit:   0, few:   0, some:   0, many:  0},
+ },
+};
+
+const C1_DEVIATION_FREQUENCIES = ['few', 'some', 'many'];
+const C1_CLASSIFICATION_SCHEMA = {
+ type: 'object',
+ additionalProperties: false,
+ properties: {
+  syntax_level: {type: 'string', enum: [...Object.keys(C1_RUBRIC.scores), 'uncertain']},
+  syntax_excerpt: {type: 'string', maxLength: 420},
+  syntax_reason: {type: 'string', maxLength: 420},
+  deviation_frequency: {type: 'string', enum: [...C1_DEVIATION_FREQUENCIES, 'uncertain']},
+  deviation_indices: {type: 'array', items: {type: 'integer', minimum: 0}, maxItems: 3},
+  deviation_reason: {type: 'string', maxLength: 420},
+ },
+ required: ['syntax_level', 'syntax_excerpt', 'syntax_reason', 'deviation_frequency', 'deviation_indices', 'deviation_reason'],
+};
+
+function suggestC1(raw, count) {
+ const saved = raw.c1_counting?.score_suggestion;
+ const provided = raw.c1_classification ?? (saved?.version === C1_RUBRIC.version ? saved.classification : null);
+ if (!provided) return null;
+
+ const {syntax_level, deviation_frequency} = provided;
+ const syntax_excerpt = typeof provided.syntax_excerpt === 'string' ? clean(provided.syntax_excerpt) : '';
+ const syntax_reason = typeof provided.syntax_reason === 'string' ? clean(provided.syntax_reason) : '';
+ const deviation_reason = typeof provided.deviation_reason === 'string' ? clean(provided.deviation_reason) : '';
+ const indices = provided.deviation_indices;
+ const deviation_indices = Array.isArray(indices) && indices.length <= 3 && indices.every(Number.isInteger)
+  ? [...indices] : null;
+ const classification = {syntax_level, syntax_excerpt, syntax_reason, deviation_frequency, deviation_indices, deviation_reason};
+ const pending = reason => ({version: C1_RUBRIC.version, status: 'needs_review', score: null, reason, classification});
+
+ if (raw.essay_status !== 'regular') return pending('Confira o enquadramento da redação antes de aplicar a matriz de C1.');
+ if (raw.reading_quality !== 'good' || !count.word_count || uncertain(raw.transcription)) {
+  return pending('Confira a leitura da redação antes de aplicar a matriz de C1.');
+ }
+ if (raw.evidence_audit?.version !== REVIEW_POLICY_VERSION || count.status !== 'complete' || count.invalid || count.discarded) {
+  return pending('A contagem está incompleta ou mudou. Reavalie os critérios de C1 com base nos apontamentos mantidos.');
+ }
+ if (!Object.hasOwn(C1_RUBRIC.scores, syntax_level) || !C1_DEVIATION_FREQUENCIES.includes(deviation_frequency)) {
+  return pending('Confira a classificação da sintaxe e da frequência dos desvios.');
+ }
+
+ const validIndices = deviation_indices
+  && (count.deviations === 0 ? deviation_indices.length === 0 : deviation_indices.length > 0)
+  && new Set(deviation_indices).size === deviation_indices.length
+  && deviation_indices.every(index => index >= 0 && count.items[index] && count.items[index].type !== 'syntax');
+ if (!syntax_excerpt || uncertain(syntax_excerpt) || !clean(raw.transcription).includes(syntax_excerpt)
+   || !syntax_reason || !deviation_reason || !validIndices) {
+  return pending('Confira o trecho da sintaxe e os apontamentos citados para sustentar a faixa de C1.');
+ }
+
+ const withinLimit = count.deviations <= C1_RUBRIC.maxDeviationsFor200;
+ if ((syntax_level === 'excellent' && count.syntax > C1_RUBRIC.maxSyntaxFailuresFor200)
+   || (withinLimit && deviation_frequency !== 'few')) {
+  return pending('A classificação entrou em conflito com a contagem. Confira os dois critérios de C1.');
+ }
+
+ const deviation_band = withinLimit ? 'within_limit' : deviation_frequency;
+ const syntaxRow = C1_RUBRIC.scores[syntax_level];
+ const syntaxLimit = syntaxRow.within_limit;
+ const deviationLimit = C1_RUBRIC.scores.excellent[deviation_band];
+ const deciding_axis = syntaxLimit === deviationLimit ? 'both' : syntaxLimit < deviationLimit ? 'syntax' : 'deviations';
+ return {
+  version: C1_RUBRIC.version,
+  status: 'suggested',
+  score: syntaxRow[deviation_band],
+  classification,
+  deviation_band,
+  deciding_axis,
+ };
+}
+
 const lexicalTypes=new Set(['orthography','accentuation','register','vocabulary']);
 function countingMeta(d){
  const m=d?.counting;
@@ -37,7 +128,7 @@ function countingMeta(d){
  if(m.basis==='same_structure'&&(lexicalTypes.has(m.type)||m.type==='syntax'))return null;
  return m;
 }
-function countC1(raw,{discarded=0}={}){
+function countC1(raw,{discarded=raw.c1_counting?.discarded??0}={}){
  const ds=Array.isArray(raw.c1_deviations)?raw.c1_deviations:[];
  const available=raw.c1_counting_version===C1_COUNTING_VERSION||raw.c1_counting?.version===C1_COUNTING_VERSION;
  const wordCount=typeof raw.transcription==='string'?(raw.transcription.match(/[\p{L}\p{N}]+(?:[-’'][\p{L}\p{N}]+)*/gu)||[]).length:null;
@@ -55,7 +146,9 @@ function countC1(raw,{discarded=0}={}){
   items.push(item);
  }
  const invalid=raw.evidence_audit?.removed?.length||0;
- return {version:C1_COUNTING_VERSION,status:unclassified?'partial':'complete',found:ds.length+invalid+discarded,invalid,discarded,grouped,deviations,syntax,unclassified,word_count:wordCount,density_per_100_words:wordCount&&!unclassified?Math.round(deviations*10000/wordCount)/100:null,by_type:byType,items,source:'Inep, Manual de Correção da Competência I, disponibilizado em 2020, seções 3.5.2 e 3.5.3',classification_origin:'ai_with_teacher_edits',score_effect:'none'};
+ const count = {version:C1_COUNTING_VERSION,status:unclassified?'partial':'complete',found:ds.length+invalid+discarded,invalid,discarded,grouped,deviations,syntax,unclassified,word_count:wordCount,density_per_100_words:wordCount&&!unclassified?Math.round(deviations*10000/wordCount)/100:null,by_type:byType,items,source:'Inep, Manual de Correção da Competência I, disponibilizado em 2020, seções 3.5.2 e 3.5.3',classification_origin:'ai_with_teacher_edits',score_effect:'none'};
+ const suggestion = suggestC1(raw, count);
+ return suggestion ? {...count, score_suggestion: suggestion} : count;
 }
 
 function consultedSources(response){const sources=new Map();for(const item of response?.output||[]){if(item.type!=='web_search_call'||item.status!=='completed')continue;for(const source of item.action?.sources||[]){try{const u=new URL(source.url);if(u.protocol==='https:'||u.protocol==='http:')sources.set(u.href,{url:u.href,title:String(source.title||'')});}catch{}}}return [...sources.values()];}
@@ -144,9 +237,11 @@ function reviewedEvidence(base,body){
  return {...base.detailed_analysis,main_strength:String(body.main_strength??base.main_strength??''),next_step:String(body.overall_feedback??base.next_step??''),c1_deviations:confirmed,c1_counting:countC1({...base,c1_deviations:confirmed},{discarded:decisions.filter(d=>d.decision==='discarded').length}),repertoire_checks:validation.repertoire_checks,competency_improvements:body.detailed_analysis?.competency_improvements||{},teacher_notes:String(body.detailed_analysis?.deviations_rules||''),review_audit:{quality_version:QUALITY_VERSION,policy_version:REVIEW_POLICY_VERSION,confirmed:true,note:clean(body.review_note),decisions,review_requirements:requirements,requirement_resolutions:resolutions,c1_reassessment:assessment,c1_reassessment_recommended:reassess},syntax_assessment:assessment?.syntax_assessment||base.syntax_assessment};
 }
 
-function assertC1Evidence(raw){
- // Generation only: never reintroduce an extra teacher-approval checklist.
- if(raw.essay_status!=='zero_candidate'&&raw.competencies?.C1?.score<200&&!(raw.c1_deviations||[]).length){
+function assertC1Evidence(raw, counting = countC1(raw)){
+ // A limited syntactic structure can justify a lower range even with zero local deviations.
+ const suggestion = counting.score_suggestion;
+ const supportedBySyntax = suggestion?.status === 'suggested' && suggestion.score < 200;
+ if(raw.essay_status!=='zero_candidate'&&raw.competencies?.C1?.score<200&&!(raw.c1_deviations||[]).length&&!supportedBySyntax){
   throw Error('A IA atribuiu uma nota de C1 sem apresentar os trechos que a justificam. A análise não foi concluída. Use a correção manual ou solicite uma nova análise.');
  }
 }
@@ -156,7 +251,7 @@ async function inputManifest(payload){
  return {version:1,policy_version:REVIEW_POLICY_VERSION,quality_version:QUALITY_VERSION,model:String(payload.model||''),instructions_sha256:await digest(String(payload.instructions||'')),schema_sha256:await digest(JSON.stringify(payload.text?.format?.schema||{})),inputs:(payload.input||[]).flatMap(item=>(item.content||[]).map(part=>({type:part.type,image_detail:part.type==='input_image'?part.detail||'auto':null})))};
 }
 
-window.EnemReview={countC1,C1_COUNTING_VERSION,validateEvidence,reviewedEvidence,QUALITY_VERSION,REVIEW_POLICY_VERSION};
+window.EnemReview={countC1,C1_COUNTING_VERSION,C1_RUBRIC,validateEvidence,reviewedEvidence,QUALITY_VERSION,REVIEW_POLICY_VERSION};
 })();
 
 window.enemReviewRequirements=base=>{
@@ -216,7 +311,7 @@ window.enemReviewBind=(host,job)=>{
   const signature=JSON.stringify(count);
   if(counting&&window.c1CountingHtml&&counting.dataset.countSignature!==signature){
    const open=counting.querySelector('details')?.open;
-   counting.outerHTML=window.c1CountingHtml({c1_counting:count});
+   counting.outerHTML=window.c1CountingHtml({...base,c1_counting:count});
    const next=host.querySelector('[data-c1-counting]');next.dataset.countSignature=signature;
    if(open&&next.querySelector('details'))next.querySelector('details').open=true;
   }
@@ -233,13 +328,41 @@ window.c1CountingHtml=value=>{
  const c=value?.c1_counting||value?.detailed_analysis?.c1_counting;
  if(!c||c.status==='unavailable')return '<section class="ai-section tl-result-section" data-c1-counting><h3>Contagem de C1</h3><p>Contagem não disponível nesta análise. Não é necessário refazer a correção.</p></section>';
  const labels={orthography:'Ortografia',accentuation:'Acentuação',punctuation:'Pontuação',agreement:'Concordância',regency:'Regência',crasis:'Crase',grammar:'Outros desvios gramaticais',register:'Registro',vocabulary:'Escolha vocabular',syntax:'Falha sintática',unknown:'Não classificado'};
+ const rubric=window.EnemReview.C1_RUBRIC;
+ const syntaxLabels={excellent:'Excelente',good:'Boa',regular:'Regular',deficient:'Deficitária',absent:'Inexistente'};
+ const deviationLabels={within_limit:'Até '+rubric.maxDeviationsFor200,few:'Poucos',some:'Alguns',many:'Muitos'};
+ const suggestion=c.score_suggestion?.version===rubric.version?c.score_suggestion:null;
+ const suggested=suggestion?.status==='suggested';
+ const classification=suggestion?.classification;
+ const aiScore=value?.competencies?.C1?.score;
+ const disagreement=suggested&&value?.preliminary===true&&Number.isInteger(aiScore)&&aiScore!==suggestion.score;
+ const outcome=suggested?'<p><b>Sugestão de C1 pela matriz:</b> '+esc(suggestion.score)+' pontos.</p>'
+  :suggestion?.status==='needs_review'?'<p class="safe-note"><b>C1 precisa de conferência.</b> '+esc(suggestion.reason)+'</p>':'';
+ const exampleIndices=Array.isArray(classification?.deviation_indices)?classification.deviation_indices:[];
+ const examples=exampleIndices.map(i=>c.items?.[i]).filter(Boolean);
+ const determining={syntax:'Estrutura sintática',deviations:'Frequência dos desvios',both:'Os dois critérios'};
+ const explanation=suggested&&classification?'<p><b>Critério que definiu a faixa:</b> '+esc(determining[suggestion.deciding_axis])+'</p>'+
+  '<p><b>Estrutura sintática · '+esc(syntaxLabels[classification.syntax_level])+'.</b> '+esc(classification.syntax_reason)+'</p>'+
+  '<blockquote>'+esc(classification.syntax_excerpt)+'</blockquote>'+
+  '<p><b>Desvios · '+esc(deviationLabels[suggestion.deviation_band])+'.</b> '+esc(classification.deviation_reason)+'</p>'+
+  (examples.length?'<ul>'+examples.map(item=>'<li>'+esc(item.original)+' · '+esc(item.location)+'</li>').join('')+'</ul>':''):'';
+ const matrix='<table data-c1-rubric style="width:100%;table-layout:fixed;overflow-wrap:anywhere"><caption>Matriz de C1 · Pontos por faixa</caption>'+
+  '<thead><tr><th scope="col">Sintaxe / Desvios</th>'+Object.values(deviationLabels).map(label=>'<th scope="col">'+esc(label)+'</th>').join('')+'</tr></thead><tbody>'+
+  Object.entries(rubric.scores).map(([level,scores])=>'<tr><th scope="row">'+esc(syntaxLabels[level])+'</th>'+
+   Object.keys(deviationLabels).map(band=>{
+    const selected=suggested&&classification?.syntax_level===level&&suggestion.deviation_band===band;
+    return selected?'<td data-c1-rubric-selected><strong>'+scores[band]+'</strong></td>':'<td>'+scores[band]+'</td>';
+   }).join('')+'</tr>').join('')+'</tbody></table>';
  const rows=[['Ocorrências encontradas',c.found],['Evidências inválidas excluídas',c.invalid],['Ignoradas pelo professor',c.discarded],['Repetições agrupadas',c.grouped],['Desvios contabilizados',c.deviations],['Falhas sintáticas (separadas)',c.syntax],['Sem classificação de contagem',c.unclassified],['Palavras',c.word_count],['Desvios por 100 palavras',c.density_per_100_words]];
  return '<section class="ai-section tl-result-section" data-c1-counting><h3>Contagem de C1</h3>'+
  (c.status==='partial'?'<p><b>Contagem parcial:</b> apontamentos editados ou sem classificação não entram nos totais por tipo. A densidade fica indisponível.</p>':'')+
+ outcome+
+ (disagreement?'<p class="safe-note">A nota preliminar da IA foi '+esc(aiScore)+'. Confira os critérios e as evidências da matriz.</p>':'')+
  '<table style="width:100%;table-layout:fixed"><caption>Resumo das ocorrências</caption><thead><tr><th scope="col">Indicador</th><th scope="col">Quantidade</th></tr></thead><tbody>'+
  rows.map(([label,n])=>'<tr><th scope="row">'+label+'</th><td>'+(typeof n==='number'&&Number.isFinite(n)?n.toLocaleString('pt-BR'):'—')+'</td></tr>').join('')+
  '</tbody></table><p>Desvios e falhas sintáticas são contados separadamente. A contagem e a densidade não descontam pontos nem alteram a nota.</p>'+
- '<details><summary>Tipos e agrupamentos</summary><ul>'+Object.entries(c.by_type||{}).map(([type,n])=>'<li>'+esc(labels[type]||type)+': '+esc(n)+'</li>').join('')+'</ul>'+
+ '<details><summary>Critérios, matriz e agrupamentos</summary>'+explanation+matrix+
+ '<p>Para 200 pontos, a sintaxe excelente admite até '+rubric.maxSyntaxFailuresFor200+' falha sintática e a escrita, até '+rubric.maxDeviationsFor200+' desvios. As outras frequências consideram a extensão e a distribuição no texto.</p><ul>'+Object.entries(c.by_type||{}).map(([type,n])=>'<li>'+esc(labels[type]||type)+': '+esc(n)+'</li>').join('')+'</ul>'+
  (c.items||[]).map(item=>'<p style="overflow-wrap:anywhere"><b>Ocorrência '+(Number(item.index)+1)+' · '+esc(labels[item.type]||item.type)+':</b> '+esc(item.original)+' — '+esc(item.location)+'. '+(item.grouped_with!==null?'Agrupada com a ocorrência '+(Number(item.grouped_with)+1)+'. ':item.counted?'Contabilizada. ':'Não contabilizada: falta classificação. ')+esc(item.reason)+'</p>').join('')+
- '<p>A IA classifica os tipos e identifica repetições; o sistema calcula os totais. Referência de contagem: manual público de C1 do Inep disponibilizado em 2020, seções 3.5.2 e 3.5.3. Não equivale a uma tabela numérica de notas.</p></details></section>';
+ '<p>A IA fundamenta a classificação e o sistema aplica a matriz. Consulte o <a href="https://download.inep.gov.br/educacao_basica/enem/downloads/2020/Competencia_1.pdf#page=10" target="_blank" rel="noopener noreferrer">manual público de C1 do Inep</a>.</p></details></section>';
 };
